@@ -1,6 +1,6 @@
-package pet.project.app.controller.dto.book
+package pet.project.app.dto.book
 
-import pet.project.app.repository.model.Book
+import pet.project.app.model.Book
 
 object BookMapper {
 

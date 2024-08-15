@@ -1,7 +1,7 @@
 package pet.project.app.service
 
 import org.springframework.stereotype.Service
-import pet.project.app.repository.model.User
+import pet.project.app.model.User
 import pet.project.app.repository.UserRepository
 
 @Service

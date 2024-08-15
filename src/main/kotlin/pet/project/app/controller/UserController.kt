@@ -2,10 +2,10 @@ package pet.project.app.controller
 
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import pet.project.app.controller.dto.user.RequestUserDto
-import pet.project.app.controller.dto.user.ResponseUserDto
-import pet.project.app.controller.dto.user.UserMapper.toDto
-import pet.project.app.controller.dto.user.UserMapper.toModel
+import pet.project.app.dto.user.RequestUserDto
+import pet.project.app.dto.user.ResponseUserDto
+import pet.project.app.dto.user.UserMapper.toDto
+import pet.project.app.dto.user.UserMapper.toModel
 import pet.project.app.service.UserService
 
 @RestController
@@ -19,24 +19,24 @@ class UserController(private val userService: UserService) {
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") userId: Long): ResponseUserDto {
+    fun getById(@PathVariable("id") userId: String): ResponseUserDto {
         return userService.getById(userId).toDto()
     }
 
     @PutMapping("/{id}")
-    fun update(@PathVariable("id") userId: Long, @RequestBody userDto: RequestUserDto): ResponseUserDto {
+    fun update(@PathVariable("id") userId: String, @RequestBody userDto: RequestUserDto): ResponseUserDto {
         val updatedUser = userService.update(userId, userDto.toModel())
         return updatedUser.toDto()
     }
 
     @PatchMapping("/{id}/wishlist")
-    fun addBookToWishList(@PathVariable("id") userId: Long, @RequestParam bookId: Long) : Boolean {
+    fun addBookToWishList(@PathVariable("id") userId: String, @RequestParam bookId: String) : Boolean {
         return userService.addBookToWishList(userId, bookId)
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable("id") userId: Long) {
+    fun delete(@PathVariable("id") userId: String) {
         return userService.delete(userId)
     }
 }

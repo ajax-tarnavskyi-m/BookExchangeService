@@ -3,7 +3,7 @@ package pet.project.app.service
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import pet.project.app.repository.BookRepository
-import pet.project.app.repository.model.Book
+import pet.project.app.model.Book
 
 @Service
 class BookService(val bookRepository: BookRepository) {
@@ -12,18 +12,19 @@ class BookService(val bookRepository: BookRepository) {
         return bookRepository.save(book)
     }
 
-    fun getById(id: Long): Book {
-        return bookRepository.findByIdOrNull(id) ?: throw Exception("No book with id = $id")
+    fun getById(bookId: String): Book {
+        return bookRepository.findByIdOrNull(bookId) ?: throw Exception("No book with id = $bookId")
     }
 
-    fun update(id: Long, book: Book): Book {
-        if (!bookRepository.existsById(id)) {
-            throw Exception("No book with id = $id, to update")
+    fun update(bookId: String, book: Book): Book {
+        if (!bookRepository.existsById(bookId)) {
+            throw Exception("No book with id = $bookId, to update")
         }
+        book.id = bookId
         return bookRepository.save(book)
     }
 
-    fun increaseAmount(id: Long, addition: Int): Int {
+    fun increaseAmount(id: String, addition: Int): Int {
         val book = getById(id)
         val updatedAmount : Int = (book.amountAvailable ?: 0) + addition
         val updatedBook = book.copy(amountAvailable = updatedAmount)
@@ -34,7 +35,7 @@ class BookService(val bookRepository: BookRepository) {
         return updatedAmount
     }
 
-    fun delete(id: Long) {
+    fun delete(id: String) {
         if (!bookRepository.existsById(id)) {
             throw Exception("No book with id = $id to delete")
         }

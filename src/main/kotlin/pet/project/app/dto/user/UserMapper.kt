@@ -1,6 +1,6 @@
-package pet.project.app.controller.dto.user
+package pet.project.app.dto.user
 
-import pet.project.app.repository.model.User
+import pet.project.app.model.User
 
 object UserMapper {
 

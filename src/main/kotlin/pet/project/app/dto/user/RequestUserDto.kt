@@ -1,4 +1,4 @@
-package pet.project.app.controller.dto.user
+package pet.project.app.dto.user
 
 data class RequestUserDto(
     val login: String,

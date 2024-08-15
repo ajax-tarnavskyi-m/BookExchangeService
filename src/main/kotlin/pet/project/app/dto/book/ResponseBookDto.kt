@@ -1,4 +1,4 @@
-package pet.project.app.controller.dto.book
+package pet.project.app.dto.book
 
 data class ResponseBookDto(
     val id: String?,
