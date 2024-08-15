@@ -1,5 +1,6 @@
 package pet.project.app.controller
 
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import pet.project.app.controller.dto.user.RequestUserDto
 import pet.project.app.controller.dto.user.ResponseUserDto
@@ -11,6 +12,7 @@ import pet.project.app.service.UserService
 @RequestMapping("/user")
 class UserController(private val userService: UserService) {
     @PostMapping("/")
+    @ResponseStatus(HttpStatus.CREATED)
     fun create(@RequestBody userDto: RequestUserDto): ResponseUserDto {
         val createdUser = userService.create(userDto.toModel())
         return createdUser.toDto()
@@ -33,6 +35,7 @@ class UserController(private val userService: UserService) {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@PathVariable("id") userId: Long) {
         return userService.delete(userId)
     }
