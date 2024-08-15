@@ -1,35 +1,39 @@
 package pet.project.app.controller
 
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import pet.project.app.model.User
+import org.springframework.web.bind.annotation.*
+import pet.project.app.controller.dto.user.RequestUserDto
+import pet.project.app.controller.dto.user.ResponseUserDto
+import pet.project.app.controller.dto.user.UserMapper.toDto
+import pet.project.app.controller.dto.user.UserMapper.toModel
 import pet.project.app.service.UserService
 
 @RestController
 @RequestMapping("/user")
 class UserController(private val userService: UserService) {
-    @PostMapping
-    fun create(user: User) : User {
-        return userService.create(user)
+    @PostMapping("/")
+    fun create(@RequestBody userDto: RequestUserDto): ResponseUserDto {
+        val createdUser = userService.create(userDto.toModel())
+        return createdUser.toDto()
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") id: Long) : User {
-        return userService.getById(id)
+    fun getById(@PathVariable("id") userId: Long): ResponseUserDto {
+        return userService.getById(userId).toDto()
     }
 
     @PutMapping("/{id}")
-    fun update(id: Long, user: User) : User {
-        return userService.update(id, user)
+    fun update(@PathVariable("id") userId: Long, @RequestBody userDto: RequestUserDto): ResponseUserDto {
+        val updatedUser = userService.update(userId, userDto.toModel())
+        return updatedUser.toDto()
+    }
+
+    @PatchMapping("/{id}/wishlist")
+    fun addBookToWishList(@PathVariable("id") userId: Long, @RequestParam bookId: Long) : Boolean {
+        return userService.addBookToWishList(userId, bookId)
     }
 
     @DeleteMapping("/{id}")
-    fun delete(id: Long ) : User{
-        return userService.delete(id)
+    fun delete(@PathVariable("id") userId: Long) {
+        return userService.delete(userId)
     }
 }
