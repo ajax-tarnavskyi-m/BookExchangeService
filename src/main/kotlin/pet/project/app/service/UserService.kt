@@ -2,6 +2,7 @@ package pet.project.app.service
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import pet.project.app.exception.UserNotFoundException
 import pet.project.app.model.User
 import pet.project.app.repository.UserRepository
 
@@ -12,15 +13,15 @@ class UserService(private val userRepository: UserRepository) {
     }
 
     fun getById(userId: String): User {
-        return userRepository.findByIdOrNull(userId) ?: throw Exception("No user with id = $userId")
+        return userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
     }
 
     fun update(userId: String, user: User): User {
-        if (!userRepository.existsById(userId)) {
-            throw Exception("No user with id = $userId, to update")
+        if (userRepository.existsById(userId)) {
+            user.id = userId
+            return userRepository.save(user)
         }
-        user.id = userId
-        return userRepository.save(user)
+        throw UserNotFoundException(userId, "UPDATE request")
     }
 
     fun addBookToWishList(userId: String, bookId: String): Boolean {
@@ -28,9 +29,9 @@ class UserService(private val userRepository: UserRepository) {
     }
 
     fun delete(userId: String) {
-        if (!userRepository.existsById(userId)) {
-            throw Exception("No user with id = $userId, to delete")
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId)
         }
-        userRepository.deleteById(userId)
+        throw UserNotFoundException(userId, "DELETE request")
     }
 }

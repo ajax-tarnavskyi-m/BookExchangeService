@@ -2,6 +2,7 @@ package pet.project.app.service
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.Book
 import pet.project.app.repository.BookRepository
 
@@ -13,7 +14,7 @@ class BookService(private val bookRepository: BookRepository) {
     }
 
     fun getById(bookId: String): Book {
-        return bookRepository.findByIdOrNull(bookId) ?: throw Exception("No book with id = $bookId")
+        return bookRepository.findByIdOrNull(bookId) ?: throw BookNotFoundException(bookId, "GET request")
     }
 
     fun update(bookId: String, book: Book): Book {
@@ -21,7 +22,7 @@ class BookService(private val bookRepository: BookRepository) {
             book.id = bookId
             return bookRepository.save(book)
         } else {
-            throw Exception("No book with id = $bookId, to update")
+            throw BookNotFoundException(bookId, "UPDATE request")
         }
 
     }
@@ -37,10 +38,10 @@ class BookService(private val bookRepository: BookRepository) {
         return updatedAmount
     }
 
-    fun delete(id: String) {
-        if (bookRepository.existsById(id)) {
-            bookRepository.deleteById(id)
+    fun delete(bookId: String) {
+        if (bookRepository.existsById(bookId)) {
+            bookRepository.deleteById(bookId)
         }
-        throw Exception("No book with id = $id to delete")
+        throw BookNotFoundException(bookId, "DELETE request")
     }
 }
