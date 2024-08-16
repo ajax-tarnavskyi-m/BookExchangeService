@@ -28,7 +28,7 @@ class BookService(private val bookRepository: BookRepository) {
     }
     fun increaseAmount(id: String, addition: Int): Int {
         val book = getById(id)
-        val updatedAmount: Int = (book.amountAvailable ?: 0) + addition
+        val updatedAmount = (book.amountAvailable ?: 0) + addition
         val updatedBook = book.copy(amountAvailable = updatedAmount)
             .apply { this.id = id }
         bookRepository.save(updatedBook)
@@ -41,7 +41,8 @@ class BookService(private val bookRepository: BookRepository) {
     fun delete(bookId: String) {
         if (bookRepository.existsById(bookId)) {
             bookRepository.deleteById(bookId)
+        } else {
+            throw BookNotFoundException(bookId, "DELETE request")
         }
-        throw BookNotFoundException(bookId, "DELETE request")
     }
 }

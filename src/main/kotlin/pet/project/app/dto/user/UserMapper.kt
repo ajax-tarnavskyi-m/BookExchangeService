@@ -7,14 +7,12 @@ object UserMapper {
 
     fun RequestUserDto.toModel() = User(
         login,
-        contact,
         bookWishList
     )
 
     fun User.toDto() = ResponseUserDto(
         id,
         login ?: throw MappingNullValueException("login", "User"),
-        contact ?: throw MappingNullValueException("contact", "User"),
         bookWishList ?:throw MappingNullValueException("bookWishList", "User"),
     )
 

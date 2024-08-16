@@ -31,7 +31,8 @@ class UserService(private val userRepository: UserRepository) {
     fun delete(userId: String) {
         if (userRepository.existsById(userId)) {
             userRepository.deleteById(userId)
+        } else {
+            throw UserNotFoundException(userId, "DELETE request")
         }
-        throw UserNotFoundException(userId, "DELETE request")
     }
 }
