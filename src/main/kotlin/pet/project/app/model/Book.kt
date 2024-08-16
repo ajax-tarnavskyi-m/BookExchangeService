@@ -9,7 +9,7 @@ data class Book(
     val description: String?,
     val yearOfPublishing: Int?,
     val amazonPrice: Double?,
-    val amountAvailable: Int?
+    val amountAvailable: Int?,
 ) {
     @Id
     lateinit var id: String
