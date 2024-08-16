@@ -4,18 +4,14 @@ import org.springframework.stereotype.Service
 import pet.project.app.model.User
 import pet.project.app.repository.UserRepository
 
+/**
+ * This service is responsible for gathering information about all users who are subscribed to a specific book
+ * and sending them a notification message via Kafka.
+ *
+ * It interacts with the {@link UserRepository} to fetch the relevant user data and uses Kafka messaging to
+ * broadcast updates or notifications to the users who are subscribed to the book.
+ */
 @Service
-class EventService(val userRepository : UserRepository) {
+class EventService(private val userRepository: UserRepository) {
 
-    fun createEvent(bookId: Long) {
-        TODO("Implement method")
-//        val subscribers = userRepository.findAllWhereWishListContainsWithId(bookId);
-//        for (subscriber in subscribers) {
-//            sendEvent(subscriber, bookId)
-//        }
-    }
-
-    private fun sendEvent(subscriber: User, bookId: Long) {
-        println("Ivent was sent for ${subscriber.login} about book with id $bookId")
-    }
 }

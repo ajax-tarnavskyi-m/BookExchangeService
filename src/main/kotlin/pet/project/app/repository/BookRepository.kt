@@ -5,6 +5,4 @@ import org.springframework.stereotype.Repository
 import pet.project.app.model.Book
 
 @Repository
-interface BookRepository : MongoRepository <Book, String> {
-
-}
+interface BookRepository : MongoRepository<Book, String>

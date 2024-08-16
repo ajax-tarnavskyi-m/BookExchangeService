@@ -6,9 +6,9 @@ import pet.project.app.model.User
 import pet.project.app.repository.UserRepository
 
 @Service
-class UserService(val userRepository: UserRepository) {
+class UserService(private val userRepository: UserRepository) {
     fun create(user: User): User {
-        return userRepository.save(user);
+        return userRepository.save(user)
     }
 
     fun getById(userId: String): User {
@@ -31,6 +31,6 @@ class UserService(val userRepository: UserRepository) {
         if (!userRepository.existsById(userId)) {
             throw Exception("No user with id = $userId, to delete")
         }
-        userRepository.deleteById(userId);
+        userRepository.deleteById(userId)
     }
 }

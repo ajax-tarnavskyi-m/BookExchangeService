@@ -5,6 +5,4 @@ import org.springframework.stereotype.Repository
 import pet.project.app.model.User
 
 @Repository
-interface UserRepository : MongoRepository <User, String> {
-
-}
+interface UserRepository : MongoRepository<User, String>

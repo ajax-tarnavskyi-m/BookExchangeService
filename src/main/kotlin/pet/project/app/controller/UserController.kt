@@ -30,7 +30,7 @@ class UserController(private val userService: UserService) {
     }
 
     @PatchMapping("/{id}/wishlist")
-    fun addBookToWishList(@PathVariable("id") userId: String, @RequestParam bookId: String) : Boolean {
+    fun addBookToWishList(@PathVariable("id") userId: String, @RequestParam bookId: String): Boolean {
         return userService.addBookToWishList(userId, bookId)
     }
 

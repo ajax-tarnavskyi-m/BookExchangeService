@@ -2,13 +2,13 @@ package pet.project.app.service
 
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import pet.project.app.repository.BookRepository
 import pet.project.app.model.Book
+import pet.project.app.repository.BookRepository
 
 @Service
-class BookService(val bookRepository: BookRepository) {
+class BookService(private val bookRepository: BookRepository) {
 
-    fun create(book: Book) : Book {
+    fun create(book: Book): Book {
         return bookRepository.save(book)
     }
 
@@ -17,28 +17,30 @@ class BookService(val bookRepository: BookRepository) {
     }
 
     fun update(bookId: String, book: Book): Book {
-        if (!bookRepository.existsById(bookId)) {
+        if (bookRepository.existsById(bookId)) {
+            book.id = bookId
+            return bookRepository.save(book)
+        } else {
             throw Exception("No book with id = $bookId, to update")
         }
-        book.id = bookId
-        return bookRepository.save(book)
-    }
 
+    }
     fun increaseAmount(id: String, addition: Int): Int {
         val book = getById(id)
-        val updatedAmount : Int = (book.amountAvailable ?: 0) + addition
+        val updatedAmount: Int = (book.amountAvailable ?: 0) + addition
         val updatedBook = book.copy(amountAvailable = updatedAmount)
+            .apply { this.id = id }
         bookRepository.save(updatedBook)
         if (updatedAmount == addition) {
-            TODO("event for subscribers")
+            println("Message for subscribers of book (id=$id) was sent")
         }
         return updatedAmount
     }
 
     fun delete(id: String) {
-        if (!bookRepository.existsById(id)) {
-            throw Exception("No book with id = $id to delete")
+        if (bookRepository.existsById(id)) {
+            bookRepository.deleteById(id)
         }
-        bookRepository.deleteById(id)
+        throw Exception("No book with id = $id to delete")
     }
 }

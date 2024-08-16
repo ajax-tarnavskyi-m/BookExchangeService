@@ -10,7 +10,7 @@ import pet.project.app.service.BookService
 
 @RestController
 @RequestMapping("/book")
-class BookController(val bookService: BookService) {
+class BookController(private val bookService: BookService) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
@@ -31,8 +31,11 @@ class BookController(val bookService: BookService) {
     }
 
     //TODO validate that 'addition' is positive
-    @PatchMapping("/{id}/increase-amount")
-    fun increaseAmount(@PathVariable("id") id: String, @RequestParam addition: Int = 1): Int {
+    @PatchMapping("/{id}/amount")
+    fun increaseAmount(
+        @PathVariable("id") id: String,
+        @RequestParam(defaultValue = "1") addition: Int
+    ): Int {
         return bookService.increaseAmount(id, addition)
     }
 
