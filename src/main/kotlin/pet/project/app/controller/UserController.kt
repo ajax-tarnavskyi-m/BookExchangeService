@@ -21,6 +21,7 @@ import pet.project.app.service.UserService
 @RestController
 @RequestMapping("/user")
 class UserController(private val userService: UserService) {
+
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@RequestBody userDto: RequestUserDto): ResponseUserDto {
@@ -29,9 +30,8 @@ class UserController(private val userService: UserService) {
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") userId: String): ResponseUserDto {
-        return userService.getById(userId).toDto()
-    }
+    fun getById(@PathVariable("id") userId: String): ResponseUserDto =
+        userService.getById(userId).toDto()
 
     @PutMapping("/{id}")
     fun update(@PathVariable("id") userId: String, @RequestBody userDto: RequestUserDto): ResponseUserDto {
@@ -40,13 +40,10 @@ class UserController(private val userService: UserService) {
     }
 
     @PatchMapping("/{id}/wishlist")
-    fun addBookToWishList(@PathVariable("id") userId: String, @RequestParam bookId: String): Boolean {
-        return userService.addBookToWishList(userId, bookId)
-    }
+    fun addBookToWishList(@PathVariable("id") userId: String, @RequestParam bookId: String): Boolean =
+        userService.addBookToWishList(userId, bookId)
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable("id") userId: String) {
-        return userService.delete(userId)
-    }
+    fun delete(@PathVariable("id") userId: String) = userService.delete(userId)
 }

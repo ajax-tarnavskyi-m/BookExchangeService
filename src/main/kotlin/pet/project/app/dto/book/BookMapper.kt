@@ -14,7 +14,6 @@ object BookMapper {
         amountAvailable ?: throw MappingNullValueException("amountAvailable", "Book")
     )
 
-
     fun RequestBookDto.toModel() = Book(
         title,
         description,

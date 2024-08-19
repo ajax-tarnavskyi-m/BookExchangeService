@@ -11,6 +11,4 @@ import pet.project.app.repository.UserRepository
  * broadcast updates or notifications to the users who are subscribed to the book.
  */
 @Service
-class EventService(private val userRepository: UserRepository) {
-
-}
+class EventService(private val userRepository: UserRepository)

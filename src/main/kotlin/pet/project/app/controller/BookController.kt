@@ -30,12 +30,15 @@ class BookController(private val bookService: BookService) {
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") id: String): ResponseBookDto {
-        return bookService.getById(id).toDto()
-    }
+    fun getById(@PathVariable("id") id: String): ResponseBookDto =
+        bookService.getById(id).toDto()
+
 
     @PutMapping("/{id}")
-    fun update(@PathVariable("id") id: String, @RequestBody bookDto: RequestBookDto): ResponseBookDto {
+    fun update(
+        @PathVariable("id") id: String,
+        @RequestBody bookDto: RequestBookDto,
+    ): ResponseBookDto {
         val updatedBook = bookService.update(id, bookDto.toModel())
         return updatedBook.toDto()
     }
@@ -44,14 +47,12 @@ class BookController(private val bookService: BookService) {
     @PatchMapping("/{id}/amount")
     fun increaseAmount(
         @PathVariable("id") id: String,
-        @RequestParam(defaultValue = "1") addition: Int
+        @RequestParam(defaultValue = "1") addition: Int,
     ): Int {
         return bookService.increaseAmount(id, addition)
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable("id") id: String) {
-        return bookService.delete(id)
-    }
+    fun delete(@PathVariable("id") id: String) = bookService.delete(id)
 }

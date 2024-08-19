@@ -1,5 +1,6 @@
 package pet.project.app.service
 
+import mu.KotlinLogging
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import pet.project.app.exception.BookNotFoundException
@@ -8,6 +9,8 @@ import pet.project.app.repository.BookRepository
 
 @Service
 class BookService(private val bookRepository: BookRepository) {
+
+    private val logger = KotlinLogging.logger {}
 
     fun create(book: Book): Book {
         return bookRepository.save(book)
@@ -26,23 +29,23 @@ class BookService(private val bookRepository: BookRepository) {
         }
 
     }
-    fun increaseAmount(id: String, addition: Int): Int {
-        val book = getById(id)
+
+    fun increaseAmount(bookId: String, addition: Int): Int {
+        val book = getById(bookId)
         val updatedAmount = (book.amountAvailable ?: 0) + addition
         val updatedBook = book.copy(amountAvailable = updatedAmount)
-            .apply { this.id = id }
+            .apply { this.id = bookId }
         bookRepository.save(updatedBook)
         if (updatedAmount == addition) {
-            println("Message for subscribers of book (id=$id) was sent")
+            logger.info { "Message for subscribers of book (id=$bookId) was sent" }
         }
         return updatedAmount
     }
 
     fun delete(bookId: String) {
-        if (bookRepository.existsById(bookId)) {
-            bookRepository.deleteById(bookId)
-        } else {
-            throw BookNotFoundException(bookId, "DELETE request")
+        if (!bookRepository.existsById(bookId)) {
+            logger.warn { "Attempting to delete absent book with id=$bookId" }
         }
+        bookRepository.deleteById(bookId)
     }
 }
