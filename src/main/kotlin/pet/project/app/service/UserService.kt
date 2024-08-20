@@ -31,9 +31,10 @@ class UserService(private val userRepository: UserRepository) {
     }
 
     fun delete(userId: String) {
-        if (!userRepository.existsById(userId)) {
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId)
+        } else {
             logger.warn { "Attempting to delete absent user with id=$userId" }
         }
-        userRepository.deleteById(userId)
     }
 }

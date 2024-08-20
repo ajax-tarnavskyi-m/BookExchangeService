@@ -12,9 +12,7 @@ class BookService(private val bookRepository: BookRepository) {
 
     private val logger = KotlinLogging.logger {}
 
-    fun create(book: Book): Book {
-        return bookRepository.save(book)
-    }
+    fun create(book: Book): Book = bookRepository.save(book)
 
     fun getById(bookId: String): Book {
         return bookRepository.findByIdOrNull(bookId) ?: throw BookNotFoundException(bookId, "GET request")
@@ -43,9 +41,10 @@ class BookService(private val bookRepository: BookRepository) {
     }
 
     fun delete(bookId: String) {
-        if (!bookRepository.existsById(bookId)) {
+        if (bookRepository.existsById(bookId)) {
+            bookRepository.deleteById(bookId)
+        } else {
             logger.warn { "Attempting to delete absent book with id=$bookId" }
         }
-        bookRepository.deleteById(bookId)
     }
 }
