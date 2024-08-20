@@ -4,6 +4,6 @@ data class RequestBookDto(
     val title: String,
     val description: String?,
     val yearOfPublishing: Int,
-    val amazonPrice: Double,
+    val price: Double,
     val amountAvailable: Int,
 )

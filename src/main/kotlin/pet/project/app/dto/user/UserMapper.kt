@@ -12,8 +12,8 @@ object UserMapper {
 
     fun User.toDto() = ResponseUserDto(
         id,
-        login ?: throw MappingNullValueException("login", "User"),
-        bookWishList ?:throw MappingNullValueException("bookWishList", "User"),
+        login ?: "",
+        bookWishList ?: emptySet(),
     )
 
 }
