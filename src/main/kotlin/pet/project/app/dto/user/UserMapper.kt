@@ -4,12 +4,12 @@ import pet.project.app.model.User
 
 object UserMapper {
 
-    fun RequestSaveUserDto.toModel() = User(
+    fun CreateUserRequest.toModel() = User(
         login = login,
         bookWishList = bookWishList
     )
 
-    fun RequestUpdateUserDto.toModel() = User(
+    fun UpdateUserRequest.toModel() = User(
         id,
         login,
         bookWishList

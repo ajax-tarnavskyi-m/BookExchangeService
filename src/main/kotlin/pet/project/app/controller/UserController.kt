@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import pet.project.app.dto.user.RequestSaveUserDto
-import pet.project.app.dto.user.RequestUpdateUserDto
+import pet.project.app.dto.user.CreateUserRequest
+import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UserMapper.toDto
 import pet.project.app.dto.user.UserMapper.toModel
@@ -25,8 +25,8 @@ class UserController(private val userService: UserService) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@RequestBody userDto: RequestSaveUserDto): ResponseUserDto {
-        val createdUser = userService.create(userDto.toModel())
+    fun create(@RequestBody request: CreateUserRequest): ResponseUserDto {
+        val createdUser = userService.create(request.toModel())
         return createdUser.toDto()
     }
 
@@ -35,8 +35,8 @@ class UserController(private val userService: UserService) {
         userService.getById(userId).toDto()
 
     @PutMapping("/")
-    fun update(@RequestBody userDto: RequestUpdateUserDto): ResponseUserDto {
-        val updatedUser = userService.update(userDto.toModel())
+    fun update(@RequestBody request: UpdateUserRequest): ResponseUserDto {
+        val updatedUser = userService.update(request.toModel())
         return updatedUser.toDto()
     }
 

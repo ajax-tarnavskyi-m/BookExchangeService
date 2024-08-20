@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pet.project.app.dto.book.BookMapper.toDto
 import pet.project.app.dto.book.BookMapper.toModel
-import pet.project.app.dto.book.RequestCreateBookDto
-import pet.project.app.dto.book.RequestUpdateBookDto
+import pet.project.app.dto.book.CreateBookRequest
+import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.service.BookService
 
@@ -25,8 +25,8 @@ class BookController(private val bookService: BookService) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@RequestBody bookDto: RequestCreateBookDto): ResponseBookDto {
-        val createdBook = bookService.create(bookDto.toModel())
+    fun create(@RequestBody request: CreateBookRequest): ResponseBookDto {
+        val createdBook = bookService.create(request.toModel())
         return createdBook.toDto()
     }
 
@@ -36,8 +36,8 @@ class BookController(private val bookService: BookService) {
 
 
     @PutMapping("/")
-    fun update(@RequestBody bookDto: RequestUpdateBookDto): ResponseBookDto {
-        val updatedBook = bookService.update(bookDto.toModel())
+    fun update(@RequestBody request: UpdateBookRequest): ResponseBookDto {
+        val updatedBook = bookService.update(request.toModel())
         return updatedBook.toDto()
     }
 

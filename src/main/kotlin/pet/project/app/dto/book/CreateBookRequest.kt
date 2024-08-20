@@ -1,6 +1,6 @@
 package pet.project.app.dto.book
 
-data class RequestCreateBookDto(
+data class CreateBookRequest(
     val title: String,
     val description: String?,
     val yearOfPublishing: Int,

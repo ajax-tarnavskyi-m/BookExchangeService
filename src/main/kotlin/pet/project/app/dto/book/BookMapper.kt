@@ -13,7 +13,7 @@ object BookMapper {
         amountAvailable ?: 0
     )
 
-    fun RequestCreateBookDto.toModel() = Book(
+    fun CreateBookRequest.toModel() = Book(
         title = title,
         description = description,
         yearOfPublishing = yearOfPublishing,
@@ -21,7 +21,7 @@ object BookMapper {
         amountAvailable = amountAvailable
     )
 
-    fun RequestUpdateBookDto.toModel() = Book(
+    fun UpdateBookRequest.toModel() = Book(
         id,
         title,
         description,

@@ -1,6 +1,6 @@
 package pet.project.app.dto.book
 
-data class RequestUpdateBookDto(
+data class UpdateBookRequest(
     val id: String,
     val title: String,
     val description: String?,
