@@ -5,9 +5,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 @Document
 data class User(
-    val login: String?,
-    val bookWishList: Set<String>? = mutableSetOf(),
-) {
     @Id
-    lateinit var id: String
-}
+    val id: String? = null,
+    val login: String?,
+    val bookWishList: Set<String> = emptySet(),
+)

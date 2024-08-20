@@ -14,16 +14,14 @@ class UserService(private val userRepository: UserRepository) {
 
     fun create(user: User): User = userRepository.save(user)
 
-    fun getById(userId: String): User {
-        return userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
-    }
+    fun getById(userId: String): User =
+        userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
 
-    fun update(userId: String, user: User): User {
-        if (userRepository.existsById(userId)) {
-            user.id = userId
+    fun update(user: User): User {
+        if (userRepository.existsById(user.id!!)) {
             return userRepository.save(user)
         }
-        throw UserNotFoundException(userId, "UPDATE request")
+        throw UserNotFoundException(user.id, "UPDATE request")
     }
 
     fun addBookToWishList(userId: String, bookId: String): Boolean {

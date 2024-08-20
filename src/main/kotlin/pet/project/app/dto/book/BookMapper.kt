@@ -5,7 +5,7 @@ import pet.project.app.model.Book
 object BookMapper {
 
     fun Book.toDto() = ResponseBookDto(
-        id,
+        id!!,
         title ?: "",
         description,
         yearOfPublishing ?: 0,
@@ -13,7 +13,16 @@ object BookMapper {
         amountAvailable ?: 0
     )
 
-    fun RequestBookDto.toModel() = Book(
+    fun RequestCreateBookDto.toModel() = Book(
+        title = title,
+        description = description,
+        yearOfPublishing = yearOfPublishing,
+        price = price,
+        amountAvailable = amountAvailable
+    )
+
+    fun RequestUpdateBookDto.toModel() = Book(
+        id,
         title,
         description,
         yearOfPublishing,

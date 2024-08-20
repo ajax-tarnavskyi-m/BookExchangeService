@@ -5,12 +5,11 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 @Document
 data class Book(
+    @Id
+    val id: String? = null,
     val title: String?,
     val description: String?,
     val yearOfPublishing: Int?,
     val price: Double?,
     val amountAvailable: Int?,
-) {
-    @Id
-    lateinit var id: String
-}
+)
