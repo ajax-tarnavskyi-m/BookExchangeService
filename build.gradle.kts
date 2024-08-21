@@ -19,12 +19,15 @@ repositories {
 }
 
 dependencies {
+    implementation ("io.github.microutils:kotlin-logging-jvm:2.0.11")
+    implementation ("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("io.mockk:mockk:1.12.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

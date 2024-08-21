@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: BookExchangeService
+  data:
+    mongodb:
+      uri: mongodb://mongoadmit:root@localhost:27017/
+      database: myDatabase
