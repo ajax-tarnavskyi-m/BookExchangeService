@@ -23,7 +23,7 @@ class UserService(private val userRepository: UserRepository) {
     }
 
     fun addBookToWishList(userId: String, bookId: String): Boolean {
-        TODO("Implement")
+        TODO("Implement method who ads book with id $bookId to wishlist of user with id $userId")
     }
 
     fun delete(userId: String) {

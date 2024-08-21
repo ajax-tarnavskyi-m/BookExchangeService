@@ -7,5 +7,6 @@ import org.springframework.boot.runApplication
 class BookExchangeServiceApplication
 
 fun main(args: Array<String>) {
+    @Suppress("SpreadOperator")
     runApplication<BookExchangeServiceApplication>(*args)
 }
