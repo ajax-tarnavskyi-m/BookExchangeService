@@ -7,13 +7,13 @@ object UserMapper {
 
     fun CreateUserRequest.toModel() = User(
         login = login,
-        bookWishList = bookWishList
+        bookWishList = bookWishList,
     )
 
     fun UpdateUserRequest.toModel() = User(
         ObjectId(id),
         login,
-        bookWishList
+        bookWishList,
     )
 
     fun User.toDto() = ResponseUserDto(
