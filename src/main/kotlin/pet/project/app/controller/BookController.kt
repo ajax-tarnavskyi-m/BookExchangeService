@@ -1,5 +1,8 @@
 package pet.project.app.controller
 
+import jakarta.validation.constraints.Negative
+import jakarta.validation.constraints.Positive
+import mu.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -41,11 +44,10 @@ class BookController(private val bookService: BookService) {
         return updatedBook.toDto()
     }
 
-    //TODO validate that 'addition' is positive
     @PatchMapping("/{id}/amount")
     fun increaseAmount(
         @PathVariable("id") id: String,
-        @RequestParam(defaultValue = "1") addition: Int,
+        @Positive @RequestParam(defaultValue = "1") addition: Int,
     ): Int {
         return bookService.increaseAmount(id, addition)
     }

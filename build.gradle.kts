@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-validation:3.3.2")
     implementation ("io.github.microutils:kotlin-logging-jvm:2.0.11")
     implementation ("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-web")

@@ -16,10 +16,10 @@ class BookService(private val bookRepository: BookRepository) {
         bookRepository.findByIdOrNull(bookId) ?: throw BookNotFoundException(bookId, "GET request")
 
     fun update(book: Book): Book {
-        if (bookRepository.existsById(book.id!!)) {
+        if (bookRepository.existsById(book.id.toHexString())) {
             return bookRepository.save(book)
         } else {
-            throw BookNotFoundException(book.id, "UPDATE request")
+            throw BookNotFoundException(book.id.toHexString(), "UPDATE request")
         }
 
     }

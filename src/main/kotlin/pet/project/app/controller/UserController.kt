@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pet.project.app.dto.user.CreateUserRequest
-import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
+import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserMapper.toDto
 import pet.project.app.dto.user.UserMapper.toModel
 import pet.project.app.service.UserService
@@ -41,8 +41,13 @@ class UserController(private val userService: UserService) {
     }
 
     @PatchMapping("/{id}/wishlist")
-    fun addBookToWishList(@PathVariable("id") userId: String, @RequestParam bookId: String): Boolean =
-        userService.addBookToWishList(userId, bookId)
+    fun addBookToWishList(
+        @PathVariable("id") userId: String,
+        @RequestParam bookId: String,
+    ): ResponseUserDto {
+        val updatedUser = userService.addBookToWishList(userId, bookId)
+        return updatedUser.toDto()
+    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

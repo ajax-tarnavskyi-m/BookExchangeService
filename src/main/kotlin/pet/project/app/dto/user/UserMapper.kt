@@ -1,5 +1,6 @@
 package pet.project.app.dto.user
 
+import org.bson.types.ObjectId
 import pet.project.app.model.User
 
 object UserMapper {
@@ -10,13 +11,13 @@ object UserMapper {
     )
 
     fun UpdateUserRequest.toModel() = User(
-        id,
+        ObjectId(id),
         login,
         bookWishList
     )
 
     fun User.toDto() = ResponseUserDto(
-        id!!,
+        id.toHexString(),
         login ?: "",
         bookWishList,
     )
