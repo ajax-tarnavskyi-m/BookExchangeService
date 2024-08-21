@@ -10,8 +10,6 @@ import pet.project.app.repository.UserRepository
 @Service
 class UserService(private val userRepository: UserRepository) {
 
-    private val logger = KotlinLogging.logger {}
-
     fun create(user: User): User = userRepository.save(user)
 
     fun getById(userId: String): User =
@@ -34,5 +32,9 @@ class UserService(private val userRepository: UserRepository) {
         } else {
             logger.warn { "Attempting to delete absent user with id=$userId" }
         }
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
     }
 }

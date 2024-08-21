@@ -10,8 +10,6 @@ import pet.project.app.repository.BookRepository
 @Service
 class BookService(private val bookRepository: BookRepository) {
 
-    private val logger = KotlinLogging.logger {}
-
     fun create(book: Book): Book = bookRepository.save(book)
 
     fun getById(bookId: String): Book =
@@ -43,5 +41,9 @@ class BookService(private val bookRepository: BookRepository) {
         } else {
             logger.warn { "Attempting to delete absent book with id=$bookId" }
         }
+    }
+
+    companion object {
+        private val logger = KotlinLogging.logger {}
     }
 }
