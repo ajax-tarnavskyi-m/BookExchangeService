@@ -15,6 +15,7 @@ import pet.project.app.dto.book.BookMapper.toDto
 import pet.project.app.dto.book.BookMapper.toModel
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
+import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.service.BookService
 
@@ -40,14 +41,10 @@ class BookController(private val bookService: BookService) {
         return updatedBook.toDto()
     }
 
-    data class AmountRequest(
-        val delta : Int,
-    )
-
     @PatchMapping("/{id}/amount")
     fun updateAmount(
         @PathVariable("id") id: String,
-        @RequestBody request: AmountRequest,
+        @RequestBody request: UpdateAmountRequest,
     ): Int {
         return bookService.changeAmount(id, request.delta)
     }

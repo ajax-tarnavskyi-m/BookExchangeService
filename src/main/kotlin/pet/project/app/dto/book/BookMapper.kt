@@ -6,7 +6,7 @@ import pet.project.app.model.Book
 object BookMapper {
 
     fun Book.toDto() = ResponseBookDto(
-        id?.toHexString() ?: "None",
+        id!!.toHexString(),
         title ?: "",
         description,
         yearOfPublishing ?: 0,

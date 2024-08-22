@@ -17,7 +17,7 @@ object UserMapper {
     )
 
     fun User.toDto() = ResponseUserDto(
-        id?.toHexString() ?: "None",
+        id!!.toHexString(),
         login ?: "",
         bookWishList,
     )
