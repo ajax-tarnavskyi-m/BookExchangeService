@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document
 data class User(
     @Id
-    val id: ObjectId = ObjectId.get(),
+    val id: ObjectId? = null,
     val login: String?,
     val bookWishList: Set<String> = emptySet(),
 )

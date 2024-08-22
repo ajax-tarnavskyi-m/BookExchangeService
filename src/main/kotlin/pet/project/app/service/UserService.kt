@@ -21,7 +21,7 @@ class UserService(
         userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
 
     fun update(user: User): User {
-        if (userRepository.existsById(user.id.toHexString())) {
+        if (userRepository.existsById(user.id!!.toHexString())) {
             return userRepository.save(user)
         }
         throw UserNotFoundException(user.id.toHexString(), "UPDATE request")
@@ -31,13 +31,12 @@ class UserService(
         val user = userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(
             userId, "adding book with id=$bookId into user wishlist"
         )
-        if (bookRepository.existsById(bookId)) {
-            val updatedWishList = user.bookWishList.plus(bookId)
-            val updatedUser = user.copy(bookWishList = updatedWishList)
-            return userRepository.save(updatedUser)
-        } else {
+        if (!bookRepository.existsById(bookId)) {
             throw BookNotFoundException(bookId, "adding book to wishlist of user with id=$userId")
         }
+        val updatedWishList = user.bookWishList.plus(bookId)
+        val updatedUser = user.copy(bookWishList = updatedWishList)
+        return userRepository.save(updatedUser)
     }
 
     fun delete(userId: String) {

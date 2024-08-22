@@ -1,6 +1,5 @@
 package pet.project.app.controller
 
-import jakarta.validation.constraints.Positive
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -10,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pet.project.app.dto.book.BookMapper.toDto
@@ -42,12 +40,16 @@ class BookController(private val bookService: BookService) {
         return updatedBook.toDto()
     }
 
+    data class AmountRequest(
+        val delta : Int,
+    )
+
     @PatchMapping("/{id}/amount")
-    fun increaseAmount(
+    fun updateAmount(
         @PathVariable("id") id: String,
-        @Positive @RequestParam(defaultValue = "1") addition: Int,
+        @RequestBody request: AmountRequest,
     ): Int {
-        return bookService.increaseAmount(id, addition)
+        return bookService.changeAmount(id, request.delta)
     }
 
     @DeleteMapping("/{id}")
