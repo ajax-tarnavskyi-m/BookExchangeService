@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import pet.project.app.dto.book.BookMapper.toDto
-import pet.project.app.dto.book.BookMapper.toModel
+import pet.project.app.dto.book.BookMapper
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.dto.book.UpdateAmountRequest
@@ -21,24 +20,22 @@ import pet.project.app.service.BookService
 
 @RestController
 @RequestMapping("/book")
-class BookController(private val bookService: BookService) {
+class BookController(private val bookService: BookService, private val mapper: BookMapper) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@RequestBody request: CreateBookRequest): ResponseBookDto {
-        val createdBook = bookService.create(request.toModel())
-        return createdBook.toDto()
+        val createdBook = bookService.create(mapper.toModel(request))
+        return mapper.toDto(createdBook)
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") id: String): ResponseBookDto =
-        bookService.getById(id).toDto()
-
+    fun getById(@PathVariable("id") id: String): ResponseBookDto = mapper.toDto(bookService.getById(id))
 
     @PutMapping("/")
     fun update(@RequestBody request: UpdateBookRequest): ResponseBookDto {
-        val updatedBook = bookService.update(request.toModel())
-        return updatedBook.toDto()
+        val updatedBook = bookService.update(mapper.toModel(request))
+        return mapper.toDto(updatedBook)
     }
 
     @PatchMapping("/{id}/amount")

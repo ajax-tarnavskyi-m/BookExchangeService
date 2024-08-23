@@ -15,29 +15,28 @@ import org.springframework.web.bind.annotation.RestController
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.dto.user.UserMapper.toDto
-import pet.project.app.dto.user.UserMapper.toModel
+import pet.project.app.dto.user.UserMapper
 import pet.project.app.service.UserService
 
 @RestController
 @RequestMapping("/user")
-class UserController(private val userService: UserService) {
+class UserController(private val userService: UserService, private val mapper: UserMapper) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@RequestBody request: CreateUserRequest): ResponseUserDto {
-        val createdUser = userService.create(request.toModel())
-        return createdUser.toDto()
+        val createdUser = userService.create(mapper.toModel(request))
+        return mapper.toDto(createdUser)
     }
 
     @GetMapping("/{id}")
     fun getById(@PathVariable("id") userId: String): ResponseUserDto =
-        userService.getById(userId).toDto()
+        mapper.toDto(userService.getById(userId))
 
     @PutMapping("/")
     fun update(@RequestBody request: UpdateUserRequest): ResponseUserDto {
-        val updatedUser = userService.update(request.toModel())
-        return updatedUser.toDto()
+        val updatedUser = userService.update(mapper.toModel(request))
+        return mapper.toDto(updatedUser)
     }
 
     @PatchMapping("/{id}/wishlist")
@@ -46,7 +45,7 @@ class UserController(private val userService: UserService) {
         @RequestParam bookId: String,
     ): ResponseUserDto {
         val updatedUser = userService.addBookToWishList(userId, bookId)
-        return updatedUser.toDto()
+        return mapper.toDto(updatedUser)
     }
 
     @DeleteMapping("/{id}")
