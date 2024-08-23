@@ -1,16 +1,17 @@
 package pet.project.app.dto.book
 
+import org.bson.types.ObjectId
 import pet.project.app.model.Book
 
 object BookMapper {
 
     fun Book.toDto() = ResponseBookDto(
-        id!!,
+        id!!.toHexString(),
         title ?: "",
         description,
         yearOfPublishing ?: 0,
         price,
-        amountAvailable ?: 0
+        amountAvailable ?: 0,
     )
 
     fun CreateBookRequest.toModel() = Book(
@@ -18,16 +19,16 @@ object BookMapper {
         description = description,
         yearOfPublishing = yearOfPublishing,
         price = price,
-        amountAvailable = amountAvailable
+        amountAvailable = amountAvailable,
     )
 
     fun UpdateBookRequest.toModel() = Book(
-        id,
+        ObjectId(id),
         title,
         description,
         yearOfPublishing,
         price,
-        amountAvailable
+        amountAvailable,
     )
 
 }

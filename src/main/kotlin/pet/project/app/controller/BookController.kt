@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pet.project.app.dto.book.BookMapper.toDto
 import pet.project.app.dto.book.BookMapper.toModel
 import pet.project.app.dto.book.CreateBookRequest
-import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
+import pet.project.app.dto.book.UpdateAmountRequest
+import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.service.BookService
 
 @RestController
@@ -41,13 +41,12 @@ class BookController(private val bookService: BookService) {
         return updatedBook.toDto()
     }
 
-    //TODO validate that 'addition' is positive
     @PatchMapping("/{id}/amount")
-    fun increaseAmount(
+    fun updateAmount(
         @PathVariable("id") id: String,
-        @RequestParam(defaultValue = "1") addition: Int,
+        @RequestBody request: UpdateAmountRequest,
     ): Int {
-        return bookService.increaseAmount(id, addition)
+        return bookService.changeAmount(id, request.delta)
     }
 
     @DeleteMapping("/{id}")

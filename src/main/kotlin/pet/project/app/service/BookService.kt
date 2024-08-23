@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.Book
 import pet.project.app.repository.BookRepository
+import kotlin.math.abs
 
 @Service
 class BookService(private val bookRepository: BookRepository) {
@@ -16,20 +17,21 @@ class BookService(private val bookRepository: BookRepository) {
         bookRepository.findByIdOrNull(bookId) ?: throw BookNotFoundException(bookId, "GET request")
 
     fun update(book: Book): Book {
-        if (bookRepository.existsById(book.id!!)) {
+        if (bookRepository.existsById(book.id!!.toHexString())) {
             return bookRepository.save(book)
         } else {
-            throw BookNotFoundException(book.id, "UPDATE request")
+            throw BookNotFoundException(book.id.toHexString(), "UPDATE request")
         }
 
     }
 
-    fun increaseAmount(bookId: String, addition: Int): Int {
+    fun changeAmount(bookId: String, delta: Int): Int {
         val book = getById(bookId)
-        val updatedAmount = (book.amountAvailable ?: 0) + addition
+        val updatedAmount = (book.amountAvailable ?: 0) + delta
+        check (updatedAmount >= 0) {"Can't withdraw ${abs(delta)} book(s), when amount is ${book.amountAvailable}"}
         val updatedBook = book.copy(amountAvailable = updatedAmount)
         bookRepository.save(updatedBook)
-        if (updatedAmount == addition) {
+        if (updatedAmount == delta) {
             logger.info { "Message for subscribers of book (id=$bookId) was sent" }
         }
         return updatedAmount
