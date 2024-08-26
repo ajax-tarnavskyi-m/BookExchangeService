@@ -17,14 +17,14 @@ class UserService(
     private val bookRepository: BookRepository,
 ) {
 
-    fun create(user: User): User = this.userRepository.save(user)
+    fun create(user: User): User = userRepository.save(user)
 
     fun getById(userId: String): User =
         userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
 
     fun update(user: User): User {
         if (this.userRepository.existsById(user.id!!.toHexString())) {
-            return this.userRepository.save(user)
+            return userRepository.save(user)
         }
         throw UserNotFoundException(user.id.toHexString(), "UPDATE request")
     }
@@ -38,7 +38,7 @@ class UserService(
         }
         val updatedWishList = user.bookWishList.plus(bookId)
         val updatedUser = user.copy(bookWishList = updatedWishList)
-        return this.userRepository.save(updatedUser)
+        return userRepository.save(updatedUser)
     }
 
     fun delete(userId: String) {

@@ -14,6 +14,7 @@ import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.full.superclasses
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.jvmErasure
+
 @Configuration
 class ProfilingAnnotationBeanPostProcessor : BeanPostProcessor {
 
@@ -21,57 +22,48 @@ class ProfilingAnnotationBeanPostProcessor : BeanPostProcessor {
 
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
         val beanClass: KClass<out Any> = bean::class
-        if (findAnnotationRecursively(beanClass, Profiling() )) {
+        if (findAnnotationRecursively(beanClass, Profiling())) {
             logger.info { "PROFILING: Remembering $beanName during 'before init'" }
             map[beanName] = beanClass
         }
-        return super.postProcessBeforeInitialization(bean, beanName)
+        return bean
     }
 
-    fun findAnnotationRecursively(beanClass: KClass<out Any>, annotation: Annotation): Boolean {
+    private fun findAnnotationRecursively(beanClass: KClass<out Any>, annotation: Annotation): Boolean {
         if (beanClass.annotations.contains(annotation)) {
             return true
         }
-        for (superclass in beanClass.superclasses) {
-            if (findAnnotationRecursively(superclass, annotation)) {
-                return true
-            }
-        }
-
-        return false
+        return beanClass.superclasses.any { findAnnotationRecursively(it, annotation) }
     }
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
-        val beanClass: KClass<out Any>? = map[beanName]
-        if (beanClass != null) {
-            val enhancer = Enhancer()
-            enhancer.setSuperclass(beanClass.java)
-            enhancer.setCallback(MethodInterceptor(::withProfiling))
+        val beanClass = map[beanName] ?: return bean
 
-            val constructorParams : Array<Class<*>> = getConstructorParams(beanClass) ?: return enhancer.create()
-            constructorParams.forEach { logger.info { "constructor param: $it" }}
+        val enhancer = Enhancer()
+        enhancer.setSuperclass(beanClass.java)
+        enhancer.setCallback(MethodInterceptor(::withProfiling))
 
-            val propertyValues : Array<Any?> = getPropertyValues(beanClass, bean)
-            propertyValues.forEach { logger.info { "property value: $it, type: ${it?.javaClass?.name}" } }
+        val constructorParams: Array<Class<*>> = getConstructorParams(beanClass) ?: return enhancer.create()
+        constructorParams.forEach { logger.info { "constructor param: $it" } }
 
-            return enhancer.create(constructorParams, propertyValues)
-        } else {
-            return super.postProcessAfterInitialization(bean, beanName)
-        }
+        val propertyValues: Array<Any?> = getPropertyValues(beanClass, bean)
+        propertyValues.forEach { logger.info { "property value: $it, type: ${it?.javaClass?.name}" } }
+
+        return enhancer.create(constructorParams, propertyValues)
     }
 
-    private fun getPropertyValues(beanClass: KClass<out Any>, bean: Any, ): Array<Any?> {
+    private fun getPropertyValues(beanClass: KClass<out Any>, bean: Any): Array<Any?> {
         val kotlinProperties = beanClass.memberProperties.map { it.javaField }
         val allJavaFields = beanClass.java.declaredFields
-        allJavaFields.forEach { it.isAccessible = true}
+        allJavaFields.forEach { it.isAccessible = true }
         return allJavaFields
             .filter { kotlinProperties.contains(it) }
-            .map { p -> p.get(bean)  }
+            .map { it.get(bean) }
             .toTypedArray()
     }
 
     private fun getConstructorParams(beanClass: KClass<out Any>): Array<Class<*>>? {
-       return beanClass.primaryConstructor?.parameters?.map { param -> param.type.jvmErasure.java}?.toTypedArray()
+        return beanClass.primaryConstructor?.parameters?.map { param -> param.type.jvmErasure.java }?.toTypedArray()
     }
 
     private fun withProfiling(obj: Any, method: Method, args: Array<out Any>?, proxy: MethodProxy): Any? {
