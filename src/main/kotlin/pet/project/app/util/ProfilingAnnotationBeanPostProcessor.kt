@@ -63,7 +63,7 @@ class ProfilingAnnotationBeanPostProcessor : BeanPostProcessor {
     }
 
     private fun getConstructorParams(beanClass: KClass<out Any>): Array<Class<*>>? {
-        return beanClass.primaryConstructor?.parameters?.map { param -> param.type.jvmErasure.java }?.toTypedArray()
+        return beanClass.primaryConstructor?.parameters?.map { it.type.jvmErasure.java }?.toTypedArray()
     }
 
     private fun withProfiling(obj: Any, method: Method, args: Array<out Any>?, proxy: MethodProxy): Any? {
