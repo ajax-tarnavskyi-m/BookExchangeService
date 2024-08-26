@@ -2,10 +2,8 @@ package pet.project.app.dto.user
 
 import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
-import pet.project.app.annotation.Profiling
 import pet.project.app.model.User
 
-@Profiling
 @Component
 class UserMapper {
 

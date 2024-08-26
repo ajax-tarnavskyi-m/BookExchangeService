@@ -1,11 +1,10 @@
 package pet.project.app.dto.book
 
-import org.springframework.stereotype.Component
-import pet.project.app.annotation.Profiling
 import org.bson.types.ObjectId
+import org.springframework.stereotype.Component
 import pet.project.app.model.Book
 
-@Profiling
+
 @Component
 class BookMapper {
 

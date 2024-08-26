@@ -3,26 +3,28 @@ package pet.project.app.service
 import mu.KotlinLogging
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import pet.project.app.annotation.Profiling
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.exception.UserNotFoundException
 import pet.project.app.model.User
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 
+@Profiling
 @Service
 class UserService(
     private val userRepository: UserRepository,
     private val bookRepository: BookRepository,
 ) {
 
-    fun create(user: User): User = userRepository.save(user)
+    fun create(user: User): User = this.userRepository.save(user)
 
     fun getById(userId: String): User =
         userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
 
     fun update(user: User): User {
-        if (userRepository.existsById(user.id!!.toHexString())) {
-            return userRepository.save(user)
+        if (this.userRepository.existsById(user.id!!.toHexString())) {
+            return this.userRepository.save(user)
         }
         throw UserNotFoundException(user.id.toHexString(), "UPDATE request")
     }
@@ -36,7 +38,7 @@ class UserService(
         }
         val updatedWishList = user.bookWishList.plus(bookId)
         val updatedUser = user.copy(bookWishList = updatedWishList)
-        return userRepository.save(updatedUser)
+        return this.userRepository.save(updatedUser)
     }
 
     fun delete(userId: String) {

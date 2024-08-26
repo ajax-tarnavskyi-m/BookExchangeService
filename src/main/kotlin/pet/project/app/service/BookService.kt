@@ -9,6 +9,7 @@ import pet.project.app.model.Book
 import pet.project.app.repository.BookRepository
 import kotlin.math.abs
 
+@Profiling
 @Service
 class BookService(private val bookRepository: BookRepository) {
 
