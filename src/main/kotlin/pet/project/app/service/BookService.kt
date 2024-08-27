@@ -1,6 +1,6 @@
 package pet.project.app.service
 
-import mu.KotlinLogging
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import pet.project.app.annotation.Profiling
@@ -30,11 +30,11 @@ class BookService(private val bookRepository: BookRepository) {
     fun changeAmount(bookId: String, delta: Int): Int {
         val book = getById(bookId)
         val updatedAmount = (book.amountAvailable ?: 0) + delta
-        check (updatedAmount >= 0) {"Can't withdraw ${abs(delta)} book(s), when amount is ${book.amountAvailable}"}
+        check(updatedAmount >= 0) { "Can't withdraw ${abs(delta)} book(s), when amount is ${book.amountAvailable}" }
         val updatedBook = book.copy(amountAvailable = updatedAmount)
         bookRepository.save(updatedBook)
         if (updatedAmount == delta) {
-            logger.info { "Message for subscribers of book (id=$bookId) was sent" }
+            log.info("Message for subscribers of book (id={})", bookId)
         }
         return updatedAmount
     }
@@ -43,11 +43,11 @@ class BookService(private val bookRepository: BookRepository) {
         if (bookRepository.existsById(bookId)) {
             bookRepository.deleteById(bookId)
         } else {
-            logger.warn { "Attempting to delete absent book with id=$bookId" }
+            log.warn("Attempting to delete absent book with id={}", bookId)
         }
     }
 
     companion object {
-        private val logger = KotlinLogging.logger {}
+        private val log = LoggerFactory.getLogger(BookService::class.java)
     }
 }

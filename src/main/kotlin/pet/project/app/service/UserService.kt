@@ -1,6 +1,6 @@
 package pet.project.app.service
 
-import mu.KotlinLogging
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import pet.project.app.annotation.Profiling
@@ -45,11 +45,11 @@ class UserService(
         if (userRepository.existsById(userId)) {
             userRepository.deleteById(userId)
         } else {
-            logger.warn { "Attempting to delete absent user with id=$userId" }
+            log.warn("Attempting to delete absent user with id={}", userId)
         }
     }
 
     companion object {
-        private val logger = KotlinLogging.logger {}
+        private val log = LoggerFactory.getLogger(UserService::class.java)
     }
 }
