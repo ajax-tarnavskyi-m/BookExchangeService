@@ -25,7 +25,6 @@ class UserServiceTest {
     @MockK
     lateinit var userRepositoryMock: UserRepository
 
-
     @MockK
     lateinit var bookRepositoryMock: BookRepository
 

@@ -27,10 +27,19 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("io.mockk:mockk:1.12.0")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+        exclude(group = "org.mockito", module = "mockito-core")
+
+    }
+    testImplementation("com.ninja-squad:springmockk:3.0.1")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+
+//    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+//    testImplementation("io.mockk:mockk:1.12.0")
+//    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {

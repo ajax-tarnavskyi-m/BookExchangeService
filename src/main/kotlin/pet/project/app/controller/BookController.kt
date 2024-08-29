@@ -41,12 +41,9 @@ class BookController(private val bookService: BookService) {
         return updatedBook.toDto()
     }
 
-    @PatchMapping("/{id}/amount")
-    fun updateAmount(
-        @PathVariable("id") id: String,
-        @RequestBody request: UpdateAmountRequest,
-    ): Int {
-        return bookService.changeAmount(id, request.delta)
+    @PatchMapping("/amount")
+    fun updateAmount(@RequestBody requests: List<UpdateAmountRequest>): Int {
+        return bookService.changeAmount(requests)
     }
 
     @DeleteMapping("/{id}")

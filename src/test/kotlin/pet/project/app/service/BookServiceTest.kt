@@ -8,6 +8,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.verify
 import org.bson.types.ObjectId
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,7 +16,6 @@ import org.springframework.data.repository.findByIdOrNull
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.Book
 import pet.project.app.repository.BookRepository
-import kotlin.test.assertEquals
 
 class BookServiceTest {
 
