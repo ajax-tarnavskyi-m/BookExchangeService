@@ -1,18 +1,18 @@
-package pet.project.app.service
+package pet.project.app.service.impl
 
-import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.exception.UserNotFoundException
@@ -20,22 +20,18 @@ import pet.project.app.model.User
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 
-class UserServiceTest {
+@ExtendWith(MockKExtension::class)
+class UserServiceImplTest {
 
     @MockK
     lateinit var userRepositoryMock: UserRepository
-
 
     @MockK
     lateinit var bookRepositoryMock: BookRepository
 
     @InjectMockKs
-    lateinit var userService: UserService
+    lateinit var userService: UserServiceImpl
 
-    @BeforeEach
-    fun setUp() {
-        MockKAnnotations.init(this)
-    }
 
     private val dummyWishlist = setOf(
         "66bf6bf8039339103054e21a", "66c3636647ff4c2f0242073d",
@@ -93,7 +89,7 @@ class UserServiceTest {
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
 
-        every { userRepositoryMock.existsById(testRequestUserId)} returns true
+        every { userRepositoryMock.existsById(testRequestUserId) } returns true
         every { userRepositoryMock.save(user) } returns user
 
         // WHEN
