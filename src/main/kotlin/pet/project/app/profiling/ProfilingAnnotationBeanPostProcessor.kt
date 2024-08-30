@@ -1,4 +1,4 @@
-package pet.project.app.util.profiling
+package pet.project.app.profiling
 
 import org.springframework.beans.factory.config.BeanPostProcessor
 import org.springframework.stereotype.Component
@@ -6,6 +6,7 @@ import pet.project.app.annotation.Profiling
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
+import kotlin.time.Duration.Companion.nanoseconds
 
 @Component
 class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: ProfilingConsumer) : BeanPostProcessor {
@@ -15,7 +16,6 @@ class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: Profil
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
         val beanClass: Class<*> = bean::class.java
         if (beanClass.annotations.contains(Profiling())) {
-            profilingConsumer.accept("PROFILING: Remembering $beanName during 'before init'")
             beanClassesForProfilingMap[beanName] = beanClass
         }
         return bean
@@ -32,19 +32,18 @@ class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: Profil
     }
 
     @Suppress("SpreadOperator")
-    class ProfilingInvocationHandler(
+    private class ProfilingInvocationHandler(
         private val target: Any,
         private val profilingConsumer: ProfilingConsumer,
     ) : InvocationHandler {
 
         override fun invoke(proxy: Any?, method: Method, args: Array<Any>?): Any? {
-            val before = System.nanoTime()
+            val before = System.nanoTime().nanoseconds
             return try {
                 method.invoke(target, *(args ?: emptyArray()))
             } finally {
-                val after = System.nanoTime()
-                val className = target::class.simpleName
-                profilingConsumer.accept("$className.${method.name} method ran for ${after - before} ns")
+                val after = System.nanoTime().nanoseconds
+                profilingConsumer.accept(ProfilingData(method, after - before))
             }
         }
     }

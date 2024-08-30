@@ -1,22 +1,22 @@
-package pet.project.app.util
+package pet.project.app.profiling
 
 import com.mongodb.assertions.Assertions.assertTrue
-import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.fail
 import pet.project.app.annotation.Profiling
-import pet.project.app.util.profiling.ProfilingAnnotationBeanPostProcessor
-import pet.project.app.util.profiling.ProfilingConsumer
 import java.lang.reflect.Proxy
+import kotlin.time.Duration
 
+@ExtendWith(MockKExtension::class)
 class ProfilingAnnotationBeanPostProcessorTest {
 
     @MockK
@@ -24,41 +24,6 @@ class ProfilingAnnotationBeanPostProcessorTest {
 
     @InjectMockKs
     private lateinit var processor: ProfilingAnnotationBeanPostProcessor
-
-    @BeforeEach
-    fun setUp() {
-        MockKAnnotations.init(this)
-    }
-
-    @Test
-    fun `postProcessBeforeInitialization should remember beans with Profiling annotation`() {
-        // GIVEN
-        val bean = ProfilingAnnotatedClass()
-        val beanName = "testBean"
-
-        every { profilingConsumer.accept(any()) } just runs
-
-        // WHEN
-        val result = processor.postProcessBeforeInitialization(bean, beanName)
-
-        // THEN
-        assertEquals(bean, result)
-        verify { profilingConsumer.accept("PROFILING: Remembering testBean during 'before init'") }
-    }
-
-    @Test
-    fun `postProcessBeforeInitialization should ignore beans without Profiling annotation`() {
-        // GIVEN
-        val bean = NonProfilingAnnotatedClass()
-        val beanName = "testBean"
-
-        // WHEN
-        val result = processor.postProcessBeforeInitialization(bean, beanName)
-
-        // THEN
-        assertEquals(bean, result)
-        verify(exactly = 0) { profilingConsumer.accept(any()) }
-    }
 
     @Test
     fun `postProcessAfterInitialization should return proxy for beans with Profiling annotation`() {
@@ -96,20 +61,17 @@ class ProfilingAnnotationBeanPostProcessorTest {
         val beanName = "testBean"
         every { profilingConsumer.accept(any()) } just runs
         processor.postProcessBeforeInitialization(bean, beanName)
+        val expectedMethod = ProxyRequiredInterface::class.java.getDeclaredMethod("testMethod")
 
         // WHEN
         val profilingProxy = processor.postProcessAfterInitialization(bean, beanName)
         (profilingProxy as ProxyRequiredInterface).testMethod()
 
         // THEN
-        verify(exactly = 1) { profilingConsumer.accept("PROFILING: Remembering testBean during 'before init'") }
         verify(exactly = 1) {
-            profilingConsumer.accept(
-                match { message ->
-                    message.startsWith("ProfilingAnnotatedClass.testMethod method ran for ") &&
-                            message.endsWith(" ns")
-                }
-            )
+            profilingConsumer.accept(match { profilingData ->
+                profilingData.method == expectedMethod && profilingData.duration > Duration.ZERO
+            })
         }
     }
 
