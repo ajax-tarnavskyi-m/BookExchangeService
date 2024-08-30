@@ -6,10 +6,12 @@ import org.springframework.stereotype.Component
 @Component
 class LoggingProfilingConsumer : ProfilingConsumer {
     override fun accept(profilingData: ProfilingData) {
-        val className = profilingData.method.declaringClass.simpleName
-        val methodName = profilingData.method.name
-        val nanoseconds = profilingData.duration.inWholeNanoseconds
-        log.info("$className.$methodName method ran for $nanoseconds ns")
+        log.info(
+            "{}.{} method ran for {} ns",
+            profilingData.method.declaringClass.simpleName,
+            profilingData.method.name,
+            profilingData.duration.inWholeNanoseconds
+        )
     }
 
     companion object {
