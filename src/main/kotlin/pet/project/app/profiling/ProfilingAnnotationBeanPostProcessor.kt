@@ -6,6 +6,7 @@ import pet.project.app.annotation.Profiling
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 @Component
@@ -38,12 +39,13 @@ class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: Profil
     ) : InvocationHandler {
 
         override fun invoke(proxy: Any?, method: Method, args: Array<Any>?): Any? {
-            val before = System.nanoTime().nanoseconds
+            val before = System.nanoTime()
             return try {
                 method.invoke(target, *(args ?: emptyArray()))
             } finally {
-                val after = System.nanoTime().nanoseconds
-                profilingConsumer.accept(ProfilingData(method, after - before))
+                val after = System.nanoTime()
+                val executionDuration : Duration = after.nanoseconds - before.nanoseconds
+                profilingConsumer.accept(ProfilingData(method, executionDuration))
             }
         }
     }
