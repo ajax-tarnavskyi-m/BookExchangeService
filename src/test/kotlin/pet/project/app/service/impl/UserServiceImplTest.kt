@@ -9,10 +9,13 @@ import io.mockk.just
 import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+<<<<<<< HEAD:src/test/kotlin/pet/project/app/service/impl/UserServiceImplTest.kt
 import org.junit.jupiter.api.extension.ExtendWith
+=======
+import org.junit.jupiter.api.assertThrows
+>>>>>>> ef3ada1 (New tests added):src/test/kotlin/pet/project/app/service/UserServiceTest.kt
 import org.springframework.data.repository.findByIdOrNull
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.exception.UserNotFoundException
@@ -40,55 +43,58 @@ class UserServiceImplTest {
 
     @Test
     fun `check creates user`() {
-        //GIVEN
+        // GIVEN
         val inputUser = User(login = "testUser123", bookWishList = dummyWishlist)
         val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", dummyWishlist)
         every { userRepositoryMock.save(inputUser) } returns expected
 
-        //WHEN
+        // WHEN
         val actual = userService.create(inputUser)
 
-        //THEN
+        // THEN
         verify { userRepositoryMock.save((inputUser)) }
         assertEquals(expected, actual)
     }
 
     @Test
     fun `check getting user`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", dummyWishlist)
         every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns expected
 
-        //WHEN
+        // WHEN
         val actual = userService.getById(testRequestUserId)
 
-        //THEN
+        // THEN
         verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
         assertEquals(expected, actual)
     }
 
     @Test
     fun `check getting user by id throws exception when not found`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns null
 
-        // THEN
-        assertThrows(UserNotFoundException::class.java) {
-            // WHEN
+        // WHEN
+        assertThrows<UserNotFoundException> {
             userService.getById(testRequestUserId)
         }
 
+        // THEN
         verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
     }
 
     @Test
     fun `check updating user`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
+<<<<<<< HEAD:src/test/kotlin/pet/project/app/service/impl/UserServiceImplTest.kt
 
+=======
+>>>>>>> ef3ada1 (New tests added):src/test/kotlin/pet/project/app/service/UserServiceTest.kt
         every { userRepositoryMock.existsById(testRequestUserId) } returns true
         every { userRepositoryMock.save(user) } returns user
 
@@ -103,28 +109,46 @@ class UserServiceImplTest {
 
     @Test
     fun `check updating user throws exception when user not found`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
-
         every { userRepositoryMock.existsById(testRequestUserId) } returns false
 
-        // THEN
-        assertThrows(UserNotFoundException::class.java) {
-            // WHEN
+        // WHEN
+        assertThrows<UserNotFoundException> {
             userService.update(user)
         }
 
+        // THEN
         verify { userRepositoryMock.existsById(testRequestUserId) }
     }
 
     @Test
+    fun `addBookToWishList should throw UserNotFoundException if user not found`() {
+        // GIVEN
+        val userId = "nonexistentUserId"
+        val bookId = "60f1b13e8f1b2c000b355777"
+
+        every { userRepositoryMock.findByIdOrNull(userId) } returns null
+
+        // WHEN
+        val exception = assertThrows<UserNotFoundException> {
+            userService.addBookToWishList(userId, bookId)
+        }
+
+        // THEN
+        assertEquals(
+            "User with id=$userId was not found during adding book with id=$bookId into user wishlist",
+            exception.message
+        )
+    }
+
+    @Test
     fun `check adding book to wishlist`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
-        val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
-
+        val user = User(ObjectId(testRequestUserId), "John Doe", setOf())
         every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns user
         every { bookRepositoryMock.existsById(testRequestBookId) } returns true
         every { userRepositoryMock.save(any()) } returns user.copy(bookWishList = setOf(testRequestBookId))
@@ -141,7 +165,7 @@ class UserServiceImplTest {
 
     @Test
     fun `check adding book to wishlist throws exception when book not found`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
         val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
@@ -149,12 +173,12 @@ class UserServiceImplTest {
         every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns user
         every { bookRepositoryMock.existsById(testRequestBookId) } returns false
 
-        // THEN
-        assertThrows(BookNotFoundException::class.java) {
-            // WHEN
+        // WHEN
+        assertThrows<BookNotFoundException> {
             userService.addBookToWishList(testRequestUserId, testRequestBookId)
         }
 
+        // THEN
         verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
         verify { bookRepositoryMock.existsById(testRequestBookId) }
     }
@@ -162,24 +186,23 @@ class UserServiceImplTest {
 
     @Test
     fun `check delete user`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         every { userRepositoryMock.existsById(testRequestUserId) } returns true
         every { userRepositoryMock.deleteById(testRequestUserId) } just Runs
 
-        //WHEN
+        // WHEN
         userService.delete(testRequestUserId)
 
-        //THEN
+        // THEN
         verify { userRepositoryMock.existsById(testRequestUserId) }
         verify { userRepositoryMock.deleteById(testRequestUserId) }
     }
 
     @Test
     fun `check deleting user when user does not exist`() {
-        //GIVEN
+        // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-
         every { userRepositoryMock.existsById(testRequestUserId) } returns false
 
         // WHEN
