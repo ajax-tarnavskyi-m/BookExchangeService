@@ -29,21 +29,23 @@ class BookService(private val bookRepository: BookRepository) {
 
     @Transactional
     fun changeAmount(requests: List<UpdateAmountRequest>): Int {
-        val eventForSending = arrayListOf<String>()
-
-        for (request in requests) {
-            val book = getById(request.bookId)
-            val updatedAmount = (book.amountAvailable ?: 0) + request.delta
-            check(updatedAmount >= 0) { "Can't withdraw ${abs(request.delta)} book(s), when amount is ${book.amountAvailable}" }
+        var booksAmountAffected = 0
+        val requestedIds = requests.map { it.bookId }
+        val booksByIds = bookRepository.findAllById(requestedIds)
+        if (booksByIds.size != requests.size) {
+            throw RuntimeException("Could not find all books. Found $booksByIds, while requested $requestedIds")
+        }
+        for (book in booksByIds) {
+            val correspondingRequest = requests.find { it.bookId == book.id!!.toHexString() }!!
+            val updatedAmount = (book.amountAvailable ?: 0) + correspondingRequest.delta
+            check(updatedAmount >= 0) {
+                "Can't withdraw ${abs(correspondingRequest.delta)} book(s), when amount is ${book.amountAvailable}"
+            }
             val updatedBook = book.copy(amountAvailable = updatedAmount)
             bookRepository.save(updatedBook)
-            if (updatedAmount == request.delta) {
-                eventForSending.add(request.bookId)
-            }
+            booksAmountAffected += abs(correspondingRequest.delta)
         }
-
-        logger.info { "Message for subscribers of book (id=${eventForSending}) was sent" }
-        return 0;
+        return booksAmountAffected;
     }
 
     fun delete(bookId: String) {
