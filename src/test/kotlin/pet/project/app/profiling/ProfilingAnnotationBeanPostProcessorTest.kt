@@ -8,16 +8,21 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
+import io.mockk.spyk
 import io.mockk.verify
+import org.aopalliance.intercept.MethodInvocation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.aop.support.AopUtils
+import org.springframework.context.annotation.EnableAspectJAutoProxy
 import pet.project.app.annotation.Profiling
-import java.lang.reflect.Proxy
+import java.lang.reflect.Method
 import kotlin.time.Duration
 
 @ExtendWith(MockKExtension::class)
+@EnableAspectJAutoProxy
 class ProfilingAnnotationBeanPostProcessorTest {
 
     @MockK
@@ -26,8 +31,11 @@ class ProfilingAnnotationBeanPostProcessorTest {
     @InjectMockKs
     private lateinit var processor: ProfilingAnnotationBeanPostProcessor
 
+    @InjectMockKs
+    private lateinit var interceptor: ProfilingAnnotationBeanPostProcessor.LoggerProfilingMethodInterceptor
+
     @Test
-    fun `postProcessAfterInitialization should return proxy for beans with Profiling annotation`() {
+    fun `postProcessAfterInitialization should return CGLIB proxy when bean is annotated with Profiling`() {
         // GIVEN
         val bean = ProfilingAnnotatedClass()
         val beanName = "testBean"
@@ -39,11 +47,14 @@ class ProfilingAnnotationBeanPostProcessorTest {
 
         // THEN
         assertNotNull(result)
-        assertTrue(Proxy.isProxyClass(result!!::class.java))
+        assertTrue(AopUtils.isCglibProxy(result))
     }
 
+    @Profiling
+    open class ProfilingAnnotatedClass
+
     @Test
-    fun `postProcessAfterInitialization should return original bean if no Profiling annotation`() {
+    fun `postProcessAfterInitialization should return original bean when not annotated with Profiling`() {
         // GIVEN
         val bean = NonProfilingAnnotatedClass()
         val beanName = "testBean"
@@ -55,60 +66,48 @@ class ProfilingAnnotationBeanPostProcessorTest {
         assertEquals(bean, result)
     }
 
+    open class NonProfilingAnnotatedClass
+
     @Nested
-    inner class ProxyTestCases {
+    inner class MethodInvocationProfilingTests {
+
+        inner class CustomMethodInvocation(
+            private val target: Any,
+            private val method: Method,
+            private val arguments: Array<Any>,
+        ) : MethodInvocation {
+            override fun getMethod(): Method = method
+            override fun getArguments(): Array<Any> = arguments
+            override fun getThis(): Any = target
+            override fun getStaticPart(): Method = method
+            override fun proceed(): Any? = method.invoke(target, *arguments)
+        }
 
         @Test
-        fun `postProcessAfterInitialization should measure method execution time`() {
-            // GIVEN
-            val bean = ProfilingAnnotatedClass()
-            val beanName = "testBean"
+        fun `invoke should profile method execution and return result`() {
+            //GIVEN
+            val method = InterceptedExampleClass::class.java.getDeclaredMethod("profiledMethod")
+            val methodInvocationSpy = spyk(CustomMethodInvocation(InterceptedExampleClass(), method, emptyArray()))
+            val expectedInvocationResult = "expectedInvocationResult"
+            every { methodInvocationSpy.proceed() } returns expectedInvocationResult
             every { profilingConsumer.accept(any()) } just runs
-            processor.postProcessBeforeInitialization(bean, beanName)
-            val expectedMethod = ProxyRequiredInterface::class.java.getDeclaredMethod("testMethod")
-            val profilingProxy = processor.postProcessAfterInitialization(bean, beanName)
 
             // WHEN
-            (profilingProxy as ProxyRequiredInterface).testMethod()
+            val actualInvocationResult = interceptor.invoke(methodInvocationSpy)
 
             // THEN
+            verify(exactly = 1) { methodInvocationSpy.proceed() }
             verify(exactly = 1) {
                 profilingConsumer.accept(match { profilingData ->
-                    profilingData.method == expectedMethod && profilingData.duration > Duration.ZERO
+                    profilingData.method == method &&
+                            profilingData.duration > Duration.ZERO
                 })
             }
+            assertEquals(expectedInvocationResult, actualInvocationResult)
         }
 
-
-        @Test
-        fun `postProcessAfterInitialization should not measure method execution time when no profiling annotation`() {
-            // GIVEN
-            val bean = NonProfilingAnnotatedClass()
-            val beanName = "testBean"
-            every { profilingConsumer.accept(any()) } just runs
-            processor.postProcessBeforeInitialization(bean, beanName)
-
-            // WHEN
-            val profilingProxy = processor.postProcessAfterInitialization(bean, beanName)
-            (profilingProxy as ProxyRequiredInterface).testMethod()
-
-            // THEN
-            verify(exactly = 0) { profilingConsumer.accept(any()) }
+        inner class InterceptedExampleClass {
+            fun profiledMethod() = Unit
         }
-    }
-
-
-
-    interface ProxyRequiredInterface {
-        fun testMethod()
-    }
-
-    @Profiling
-    class ProfilingAnnotatedClass : ProxyRequiredInterface {
-        override fun testMethod() = Unit
-    }
-
-    class NonProfilingAnnotatedClass : ProxyRequiredInterface {
-        override fun testMethod() = Unit
     }
 }

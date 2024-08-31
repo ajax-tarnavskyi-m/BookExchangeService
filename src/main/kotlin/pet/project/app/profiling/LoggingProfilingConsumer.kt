@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 class LoggingProfilingConsumer : ProfilingConsumer {
     override fun accept(profilingData: ProfilingData) {
         log.info(
-            "{}.{} method ran for {} ns",
+            "Method [{}.{}] ran for {} ns",
             profilingData.method.declaringClass.simpleName,
             profilingData.method.name,
             profilingData.duration.inWholeNanoseconds

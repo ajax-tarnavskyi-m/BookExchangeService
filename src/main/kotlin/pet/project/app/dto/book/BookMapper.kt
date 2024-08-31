@@ -4,7 +4,6 @@ import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 import pet.project.app.model.Book
 
-
 @Component
 class BookMapper {
 
