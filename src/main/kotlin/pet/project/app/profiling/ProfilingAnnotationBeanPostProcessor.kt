@@ -4,6 +4,7 @@ import org.aopalliance.intercept.MethodInterceptor
 import org.aopalliance.intercept.MethodInvocation
 import org.springframework.aop.framework.ProxyFactory
 import org.springframework.beans.factory.config.BeanPostProcessor
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import pet.project.app.annotation.Profiling
 import kotlin.reflect.KClass
@@ -11,6 +12,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 
 @Component
+@ConditionalOnProperty("profiling.enabled", havingValue = "true")
 class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: ProfilingConsumer) : BeanPostProcessor {
 
     private val beanClassesForProfilingMap = hashMapOf<String, KClass<out Any>>()
