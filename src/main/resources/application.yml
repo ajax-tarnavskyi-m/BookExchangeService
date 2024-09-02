@@ -5,3 +5,5 @@ spring:
     mongodb:
       uri: mongodb://mongoadmit:root@localhost:27017/
       database: myDatabase
+profiling:
+  enabled: true

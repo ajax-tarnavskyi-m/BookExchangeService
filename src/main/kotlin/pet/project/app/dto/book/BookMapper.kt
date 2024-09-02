@@ -1,34 +1,36 @@
 package pet.project.app.dto.book
 
 import org.bson.types.ObjectId
+import org.springframework.stereotype.Component
 import pet.project.app.model.Book
 
-object BookMapper {
+@Component
+class BookMapper {
 
-    fun Book.toDto() = ResponseBookDto(
-        id!!.toHexString(),
-        title ?: "",
-        description,
-        yearOfPublishing ?: 0,
-        price,
-        amountAvailable ?: 0,
+    fun toDto(book: Book) = ResponseBookDto(
+        book.id!!.toHexString(),
+        book.title ?: "",
+        book.description,
+        book.yearOfPublishing ?: 0,
+        book.price,
+        book.amountAvailable ?: 0,
     )
 
-    fun CreateBookRequest.toModel() = Book(
-        title = title,
-        description = description,
-        yearOfPublishing = yearOfPublishing,
-        price = price,
-        amountAvailable = amountAvailable,
+    fun toModel(request: CreateBookRequest) = Book(
+        title = request.title,
+        description = request.description,
+        yearOfPublishing = request.yearOfPublishing,
+        price = request.price,
+        amountAvailable = request.amountAvailable,
     )
 
-    fun UpdateBookRequest.toModel() = Book(
-        ObjectId(id),
-        title,
-        description,
-        yearOfPublishing,
-        price,
-        amountAvailable,
+    fun toModel(request: UpdateBookRequest) = Book(
+        ObjectId(request.id),
+        request.title,
+        request.description,
+        request.yearOfPublishing,
+        request.price,
+        request.amountAvailable,
     )
 
 }
