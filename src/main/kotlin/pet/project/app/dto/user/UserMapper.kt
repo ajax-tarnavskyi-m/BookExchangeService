@@ -9,13 +9,13 @@ class UserMapper {
 
     fun toModel(request: CreateUserRequest) = User(
         login = request.login,
-        bookWishList = request.bookWishList
+        bookWishList = request.bookWishList,
     )
 
     fun toModel(request: UpdateUserRequest) = User(
         ObjectId(request.id),
         request.login,
-        request.bookWishList
+        request.bookWishList,
     )
 
     fun toDto(user: User) = ResponseUserDto(

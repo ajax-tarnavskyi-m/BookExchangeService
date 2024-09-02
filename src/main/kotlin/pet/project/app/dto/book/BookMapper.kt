@@ -13,7 +13,7 @@ class BookMapper {
         book.description,
         book.yearOfPublishing ?: 0,
         book.price,
-        book.amountAvailable ?: 0
+        book.amountAvailable ?: 0,
     )
 
     fun toModel(request: CreateBookRequest) = Book(
@@ -21,7 +21,7 @@ class BookMapper {
         description = request.description,
         yearOfPublishing = request.yearOfPublishing,
         price = request.price,
-        amountAvailable = request.amountAvailable
+        amountAvailable = request.amountAvailable,
     )
 
     fun toModel(request: UpdateBookRequest) = Book(
@@ -30,7 +30,7 @@ class BookMapper {
         request.description,
         request.yearOfPublishing,
         request.price,
-        request.amountAvailable
+        request.amountAvailable,
     )
 
 }

@@ -13,14 +13,14 @@ import kotlin.time.Duration.Companion.nanoseconds
 
 @Component
 @ConditionalOnProperty("profiling.enabled", havingValue = "true")
-class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: ProfilingConsumer) : BeanPostProcessor {
+class ProfilingAnnotationBeanPostProcessor(profilingConsumer: ProfilingConsumer) : BeanPostProcessor {
 
     private val beanClassesForProfilingMap = hashMapOf<String, KClass<out Any>>()
     private val profilingInterceptor = LoggerProfilingMethodInterceptor(profilingConsumer)
 
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
         val beanClass: KClass<out Any> = bean::class
-        if (beanClass.annotations.contains(Profiling())) {
+        if (beanClass.annotations.any { it is Profiling }) {
             beanClassesForProfilingMap[beanName] = beanClass
         }
         return bean
@@ -28,16 +28,16 @@ class ProfilingAnnotationBeanPostProcessor(private val profilingConsumer: Profil
 
     override fun postProcessAfterInitialization(bean: Any, beanName: String): Any? {
         return if (beanClassesForProfilingMap.containsKey(beanName)) {
-            val factory = ProxyFactory(bean)
-            factory.addAdvice(profilingInterceptor)
-            factory.proxy
+            ProxyFactory(bean)
+                .apply { addAdvice(profilingInterceptor) }
+                .proxy
         } else {
             bean
         }
     }
 
-    class LoggerProfilingMethodInterceptor(private val profilingConsumer: ProfilingConsumer) : MethodInterceptor {
-
+    internal class LoggerProfilingMethodInterceptor(private val profilingConsumer: ProfilingConsumer) :
+        MethodInterceptor {
         override fun invoke(invocation: MethodInvocation): Any? {
             val before = System.nanoTime()
             try {

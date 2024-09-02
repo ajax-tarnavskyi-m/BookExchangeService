@@ -8,7 +8,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.runs
-import io.mockk.spyk
 import io.mockk.verify
 import org.aopalliance.intercept.MethodInvocation
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,13 +15,11 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.aop.support.AopUtils
-import org.springframework.context.annotation.EnableAspectJAutoProxy
 import pet.project.app.annotation.Profiling
 import java.lang.reflect.Method
 import kotlin.time.Duration
 
 @ExtendWith(MockKExtension::class)
-@EnableAspectJAutoProxy
 class ProfilingAnnotationBeanPostProcessorTest {
 
     @MockK
@@ -30,9 +27,6 @@ class ProfilingAnnotationBeanPostProcessorTest {
 
     @InjectMockKs
     private lateinit var processor: ProfilingAnnotationBeanPostProcessor
-
-    @InjectMockKs
-    private lateinit var interceptor: ProfilingAnnotationBeanPostProcessor.LoggerProfilingMethodInterceptor
 
     @Test
     fun `postProcessAfterInitialization should return CGLIB proxy when bean is annotated with Profiling`() {
@@ -71,6 +65,12 @@ class ProfilingAnnotationBeanPostProcessorTest {
     @Nested
     inner class MethodInvocationProfilingTests {
 
+        @MockK
+        private lateinit var profilingConsumer: ProfilingConsumer
+
+        @InjectMockKs
+        private lateinit var interceptor: ProfilingAnnotationBeanPostProcessor.LoggerProfilingMethodInterceptor
+
         inner class CustomMethodInvocation(
             private val target: Any,
             private val method: Method,
@@ -87,27 +87,29 @@ class ProfilingAnnotationBeanPostProcessorTest {
         fun `invoke should profile method execution and return result`() {
             //GIVEN
             val method = InterceptedExampleClass::class.java.getDeclaredMethod("profiledMethod")
-            val methodInvocationSpy = spyk(CustomMethodInvocation(InterceptedExampleClass(), method, emptyArray()))
-            val expectedInvocationResult = "expectedInvocationResult"
-            every { methodInvocationSpy.proceed() } returns expectedInvocationResult
+            val methodInvocationSpy = CustomMethodInvocation(InterceptedExampleClass(), method, emptyArray())
+            val expectedInvocationResult = TEST_INVOCATION_RESULT
             every { profilingConsumer.accept(any()) } just runs
 
             // WHEN
             val actualInvocationResult = interceptor.invoke(methodInvocationSpy)
 
             // THEN
-            verify(exactly = 1) { methodInvocationSpy.proceed() }
             verify(exactly = 1) {
                 profilingConsumer.accept(match { profilingData ->
-                    profilingData.method == method &&
-                            profilingData.duration > Duration.ZERO
+                    profilingData.method == method && profilingData.duration > Duration.ZERO
                 })
             }
             assertEquals(expectedInvocationResult, actualInvocationResult)
         }
 
         inner class InterceptedExampleClass {
-            fun profiledMethod() = Unit
+            fun profiledMethod() = TEST_INVOCATION_RESULT
         }
+
+    }
+
+    companion object {
+        private const val TEST_INVOCATION_RESULT = "TEST_INVOCATION_RESULT"
     }
 }
