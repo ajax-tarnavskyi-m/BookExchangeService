@@ -46,7 +46,6 @@ class UserControllerTest {
         "66c3637847ff4c2f0242073e"
     )
 
-
     @Test
     fun `create user successfully`() {
         // GIVEN

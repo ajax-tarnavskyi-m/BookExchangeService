@@ -68,12 +68,10 @@ class BookServiceImplTest {
         val bookId = ObjectId.get().toHexString()
         every { bookRepositoryMock.findByIdOrNull(bookId) } returns null
 
-        // THEN
+        // WHEN & THEN
         assertThrows(BookNotFoundException::class.java) {
-            // WHEN
             bookService.getById(bookId)
         }
-
         verify { bookRepositoryMock.findByIdOrNull(bookId) }
     }
 
@@ -100,12 +98,10 @@ class BookServiceImplTest {
         val book = Book(ObjectId.get(), "Test Book", "Description", 2023, 20.0, 10)
         every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns false
 
-        // THEN
+        // WHEN & THEN
         assertThrows(BookNotFoundException::class.java) {
-            // WHEN
             bookService.update(book)
         }
-
         verify { bookRepositoryMock.existsById(book.id!!.toHexString()) }
     }
 
@@ -133,12 +129,10 @@ class BookServiceImplTest {
         val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, 20.0, 3)
         every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
 
-        // THEN
+        // WHEN & THEN
         assertThrows(IllegalStateException::class.java) {
-            // WHEN
             bookService.changeAmount(bookId, -4)
         }
-
         verify { bookRepositoryMock.findByIdOrNull(bookId) }
     }
 

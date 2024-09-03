@@ -32,7 +32,6 @@ class UserServiceImplTest {
     @InjectMockKs
     lateinit var userService: UserServiceImpl
 
-
     private val dummyWishlist = setOf(
         "66bf6bf8039339103054e21a", "66c3636647ff4c2f0242073d",
         "66c3637847ff4c2f0242073e"
