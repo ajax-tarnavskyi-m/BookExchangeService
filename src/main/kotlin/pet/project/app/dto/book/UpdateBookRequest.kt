@@ -5,17 +5,18 @@ import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
 import org.hibernate.validator.constraints.Range
 import pet.project.app.validation.ValidObjectId
+import pet.project.app.validation.ValidPublishingYearRange
 
 data class UpdateBookRequest(
-    @field:ValidObjectId
+    @field:ValidObjectId(message = "The provided ID must be a valid ObjectId hex String")
     val id: String,
-    @field:NotBlank
+    @field:NotBlank(message = "Book title must not be blank")
     val title: String,
     val description: String?,
-    @field:Range(min = 1600, max = 2024)
+    @field:ValidPublishingYearRange(message = "Publishing year of the book should be within a valid range")
     val yearOfPublishing: Int,
-    @field:Positive
+    @field:Positive(message = "Book price must be greater than zero")
     val price: Double,
-    @field:PositiveOrZero
+    @field:PositiveOrZero(message = "Book amount cannot be negative")
     val amountAvailable: Int,
 )

@@ -3,16 +3,16 @@ package pet.project.app.dto.book
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
-import org.hibernate.validator.constraints.Range
+import pet.project.app.validation.ValidPublishingYearRange
 
 data class CreateBookRequest(
     @field:NotEmpty(message = "Book title should not be empty")
     val title: String,
     val description: String?,
-    @field:Range(min = 1600, max = 2024, message = "Publish year of book should be in valid range")
+    @field:ValidPublishingYearRange(message = "Publishing year of the book should be within a valid range")
     val yearOfPublishing: Int,
-    @field:Positive(message = "Book price should be grater than zero")
+    @field:Positive(message = "Book price should be greater than zero")
     val price: Double,
-    @field:PositiveOrZero(message = "Book amount cant be negative")
+    @field:PositiveOrZero(message = "Book amount cannot be negative")
     val amountAvailable: Int,
 )
