@@ -8,12 +8,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.service.UserService
 import pet.project.app.dto.user.UserMapper
+import pet.project.app.service.UserService
 
 @WebMvcTest(UserController::class)
 @Import(UserMapper::class)
@@ -22,8 +26,9 @@ class UserControllerValidationTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    @Suppress("unused")
     @MockkBean
-    private lateinit var userService: UserService
+    private lateinit var userServiceDependencyMockForInjection: UserService
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper

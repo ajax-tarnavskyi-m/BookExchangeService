@@ -27,8 +27,9 @@ class BookControllerValidationTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
+    @Suppress("unused")
     @MockkBean
-    private lateinit var bookService: BookService
+    private lateinit var bookServiceDependencyMockForInjection: BookService
 
     @Autowired
     private lateinit var objectMapper: ObjectMapper
