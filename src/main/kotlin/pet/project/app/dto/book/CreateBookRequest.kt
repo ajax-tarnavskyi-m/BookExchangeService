@@ -11,8 +11,8 @@ data class CreateBookRequest(
     val description: String?,
     @field:Range(min = 1600, max = 2024, message = "Publish year of book should be in valid range")
     val yearOfPublishing: Int,
-    @Positive(message = "Book price should be grater than zero")
+    @field:Positive(message = "Book price should be grater than zero")
     val price: Double,
-    @PositiveOrZero(message = "Book amount cant be negative")
+    @field:PositiveOrZero(message = "Book amount cant be negative")
     val amountAvailable: Int,
 )

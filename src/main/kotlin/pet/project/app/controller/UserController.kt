@@ -2,7 +2,6 @@ package pet.project.app.controller
 
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
-import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -43,8 +42,8 @@ class UserController(private val userService: UserService, private val mapper: U
 
     @PatchMapping("/{id}/wishlist")
     fun addBookToWishList(
-       @ValidObjectId @PathVariable("id") userId: String,
-        @RequestParam bookId: String,
+        @ValidObjectId @PathVariable("id") userId: String,
+        @ValidObjectId @RequestParam bookId: String,
     ): ResponseUserDto {
         val updatedUser = userService.addBookToWishList(userId, bookId)
         return mapper.toDto(updatedUser)
