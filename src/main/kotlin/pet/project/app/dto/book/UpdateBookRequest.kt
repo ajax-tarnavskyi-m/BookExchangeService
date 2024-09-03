@@ -1,23 +1,21 @@
 package pet.project.app.dto.book
 
-import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
-import pet.project.app.validation.ValidOpenId
-import pet.project.app.validation.YearBeforeCurrent
+import org.hibernate.validator.constraints.Range
+import pet.project.app.validation.ValidObjectId
 
 data class UpdateBookRequest(
-    @ValidOpenId
+    @field:ValidObjectId
     val id: String,
-    @NotBlank
+    @field:NotBlank
     val title: String,
     val description: String?,
-    @Min(value = 1600)
-    @YearBeforeCurrent
+    @field:Range(min = 1600, max = 2024)
     val yearOfPublishing: Int,
-    @Positive
+    @field:Positive
     val price: Double,
-    @PositiveOrZero
+    @field:PositiveOrZero
     val amountAvailable: Int,
 )

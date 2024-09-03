@@ -11,11 +11,8 @@ import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-<<<<<<< HEAD:src/test/kotlin/pet/project/app/service/impl/UserServiceImplTest.kt
-import org.junit.jupiter.api.extension.ExtendWith
-=======
 import org.junit.jupiter.api.assertThrows
->>>>>>> ef3ada1 (New tests added):src/test/kotlin/pet/project/app/service/UserServiceTest.kt
+import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.exception.UserNotFoundException
@@ -91,10 +88,6 @@ class UserServiceImplTest {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
-<<<<<<< HEAD:src/test/kotlin/pet/project/app/service/impl/UserServiceImplTest.kt
-
-=======
->>>>>>> ef3ada1 (New tests added):src/test/kotlin/pet/project/app/service/UserServiceTest.kt
         every { userRepositoryMock.existsById(testRequestUserId) } returns true
         every { userRepositoryMock.save(user) } returns user
 

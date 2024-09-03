@@ -1,6 +1,8 @@
 package pet.project.app.controller
 
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -17,6 +19,7 @@ import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserMapper
 import pet.project.app.service.UserService
+import pet.project.app.validation.ValidObjectId
 
 @RestController
 @RequestMapping("/user")
@@ -24,24 +27,23 @@ class UserController(private val userService: UserService, private val mapper: U
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@RequestBody request: CreateUserRequest): ResponseUserDto {
+    fun create(@Valid @RequestBody request: CreateUserRequest): ResponseUserDto {
         val createdUser = userService.create(mapper.toModel(request))
         return mapper.toDto(createdUser)
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") userId: String): ResponseUserDto =
-        mapper.toDto(userService.getById(userId))
+    fun getById(@ValidObjectId @PathVariable("id") userId: String) = mapper.toDto(userService.getById(userId))
 
     @PutMapping("/")
-    fun update(@RequestBody request: UpdateUserRequest): ResponseUserDto {
+    fun update(@Valid @RequestBody request: UpdateUserRequest): ResponseUserDto {
         val updatedUser = userService.update(mapper.toModel(request))
         return mapper.toDto(updatedUser)
     }
 
     @PatchMapping("/{id}/wishlist")
     fun addBookToWishList(
-        @PathVariable("id") userId: String,
+       @ValidObjectId @PathVariable("id") userId: String,
         @RequestParam bookId: String,
     ): ResponseUserDto {
         val updatedUser = userService.addBookToWishList(userId, bookId)
@@ -50,5 +52,5 @@ class UserController(private val userService: UserService, private val mapper: U
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable("id") userId: String) = userService.delete(userId)
+    fun delete(@ValidObjectId @PathVariable("id") userId: String) = userService.delete(userId)
 }
