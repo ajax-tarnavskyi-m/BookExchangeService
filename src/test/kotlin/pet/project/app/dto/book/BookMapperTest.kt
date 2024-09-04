@@ -3,6 +3,7 @@ import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import pet.project.app.model.Book
+import java.math.BigDecimal
 
 class BookMapperTest {
 
@@ -16,7 +17,7 @@ class BookMapperTest {
             "Test Book",
             "Test Description",
             2023,
-            29.99,
+            BigDecimal(20.99),
             10
         )
         val expectedDto = ResponseBookDto(
@@ -24,7 +25,7 @@ class BookMapperTest {
             "Test Book",
             "Test Description",
             2023,
-            29.99,
+            BigDecimal(20.99),
             10
         )
 
@@ -42,7 +43,7 @@ class BookMapperTest {
             "Test Book",
             "Test Description",
             2023,
-            29.99,
+            BigDecimal(20.99),
             10
         )
         val expectedBook = Book(
@@ -50,7 +51,7 @@ class BookMapperTest {
             "Test Book",
             "Test Description",
             2023,
-            29.99,
+            BigDecimal(20.99),
             10
         )
 
@@ -69,7 +70,7 @@ class BookMapperTest {
             "Updated Book",
             "Updated Description",
             2024,
-            39.99,
+            BigDecimal(20.99),
             15
         )
         val expectedBook = Book(
@@ -77,7 +78,7 @@ class BookMapperTest {
             "Updated Book",
             "Updated Description",
             2024,
-            39.99,
+            BigDecimal(20.99),
             15
         )
 
@@ -96,7 +97,7 @@ class BookMapperTest {
             null, // Title is null
             "Test Description",
             null,
-            29.99,
+            BigDecimal(20.99),
             null
         )
         val expectedDto = ResponseBookDto(
@@ -104,7 +105,7 @@ class BookMapperTest {
             "",
             "Test Description",
             0,
-            29.99,
+            BigDecimal(20.99),
             0
         )
 

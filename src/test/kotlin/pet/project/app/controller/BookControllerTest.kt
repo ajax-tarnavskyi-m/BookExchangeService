@@ -27,6 +27,7 @@ import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.model.Book
 import pet.project.app.service.BookService
+import java.math.BigDecimal
 
 @WebMvcTest(BookController::class)
 @Import(BookMapper::class)
@@ -43,27 +44,29 @@ class BookControllerTest {
     @Test
     fun `get book by id successfully`() {
         //GIVEN
-        val initializedBook = Book(ObjectId("66bf6bf8039339103054e21a"), "Title", "Description", 2023, 20.0, 10)
-        every { bookService.getById("66bf6bf8039339103054e21a") } returns initializedBook
+        val bookId = "66bf6bf8039339103054e21a"
+        val initializedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
+        every { bookService.getById(bookId) } returns initializedBook
 
         //WHEN
-        val result = mockMvc.perform(get("/book/{id}", "66bf6bf8039339103054e21a"))
+        val result = mockMvc.perform(get("/book/{id}", bookId))
             .andExpect(status().isOk)
             .andReturn()
 
         //THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
-        val expected = ResponseBookDto("66bf6bf8039339103054e21a", "Title", "Description", 2023, 20.0, 10)
+        val expected = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         assertEquals(expected, actual)
-        verify { bookService.getById("66bf6bf8039339103054e21a") }
+        verify { bookService.getById(bookId) }
     }
 
     @Test
     fun `create book successfully`() {
         // GIVEN
-        val createBookRequest = CreateBookRequest("Title", "Description", 2023, 20.0, 10)
-        val mappedBook = Book(null, "Title", "Description", 2023, 20.0, 10)
-        val initializedBook = Book(ObjectId("66bf6bf8039339103054e21a"), "Title", "Description", 2023, 20.0, 10)
+        val createBookRequest = CreateBookRequest("Title", "Description", 2023, BigDecimal(20.0), 10)
+        val mappedBook = Book(null, "Title", "Description", 2023, BigDecimal(20.0), 10)
+        val bookId = "66bf6bf8039339103054e21a"
+        val initializedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
         every { bookService.create(mappedBook) } returns initializedBook
 
         // WHEN
@@ -77,7 +80,7 @@ class BookControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
-        val expected = ResponseBookDto("66bf6bf8039339103054e21a", "Title", "Description", 2023, 20.0, 10)
+        val expected = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         assertEquals(expected, actual)
         verify { bookService.create(mappedBook) }
     }
@@ -85,8 +88,9 @@ class BookControllerTest {
     @Test
     fun `update book successfully`() {
         // GIVEN
-        val updateBookRequest = UpdateBookRequest("66bf6bf8039339103054e21a", "Title", "Description", 2023, 20.0, 10)
-        val updatedBook = Book(ObjectId("66bf6bf8039339103054e21a"), "Title", "Description", 2023, 20.0, 10)
+        val bookId = "66bf6bf8039339103054e21a"
+        val updateBookRequest = UpdateBookRequest(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
+        val updatedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
         every { bookService.update(updatedBook) } returns updatedBook
 
         // WHEN
@@ -100,7 +104,7 @@ class BookControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
-        val expected = ResponseBookDto("66bf6bf8039339103054e21a", "Title", "Description", 2023, 20.0, 10)
+        val expected = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         assertEquals(expected, actual)
         verify { bookService.update(any()) }
     }

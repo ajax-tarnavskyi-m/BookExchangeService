@@ -16,6 +16,7 @@ import org.springframework.data.repository.findByIdOrNull
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.Book
 import pet.project.app.repository.BookRepository
+import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class BookServiceImplTest {
@@ -33,10 +34,10 @@ class BookServiceImplTest {
             title = "Title",
             description = "Description",
             yearOfPublishing = 200,
-            price = 9.99,
+            price = BigDecimal(20.99),
             amountAvailable = 1
         )
-        val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, 9.99, 1)
+        val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, BigDecimal(20.99), 1)
         every { bookRepositoryMock.save(inputBook) } returns expected
 
         //WHEN
@@ -51,7 +52,7 @@ class BookServiceImplTest {
     fun `check getting book by id`() {
         //GIVEN
         val testRequestBookId = "66c3637847ff4c2f0242073e"
-        val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, 9.99, 1)
+        val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, BigDecimal(20.99), 1)
         every { bookRepositoryMock.findByIdOrNull(testRequestBookId) } returns expected
 
         //WHEN
@@ -78,7 +79,7 @@ class BookServiceImplTest {
     @Test
     fun `check updating book`() {
         //GIVEN
-        val book = Book(ObjectId.get(), "Test Book", "Description", 2023, 20.0, 10)
+        val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
 
         every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns true
         every { bookRepositoryMock.save(book) } returns book
@@ -95,7 +96,7 @@ class BookServiceImplTest {
     @Test
     fun `check updating book throws exception when book not found`() {
         //GIVEN
-        val book = Book(ObjectId.get(), "Test Book", "Description", 2023, 20.0, 10)
+        val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
         every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns false
 
         // WHEN & THEN
@@ -109,7 +110,7 @@ class BookServiceImplTest {
     fun `check changing amount of book successfully`() {
         //GIVEN
         val bookId = ObjectId.get().toHexString()
-        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, 20.0, 10)
+        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
         every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
         every { bookRepositoryMock.save(any()) } returns book.copy(amountAvailable = 15)
 
@@ -126,7 +127,7 @@ class BookServiceImplTest {
     fun `check changing amount throws exception when insufficient books`() {
         //GIVEN
         val bookId = ObjectId.get().toHexString()
-        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, 20.0, 3)
+        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, BigDecimal(20.99), 3)
         every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
 
         // WHEN & THEN

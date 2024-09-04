@@ -23,6 +23,7 @@ import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.exception.handler.ValidationExceptionResponse
 import pet.project.app.service.BookService
+import java.math.BigDecimal
 
 @WebMvcTest(BookController::class)
 @Import(BookMapper::class)
@@ -40,7 +41,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when creating book with empty title`() {
         // GIVEN
-        val request = CreateBookRequest("", "Description", 2020, 19.99, 10)
+        val request = CreateBookRequest("", "Description", 2020, BigDecimal(20.99), 10)
 
         // WHEN
         val result = mockMvc.perform(
@@ -61,7 +62,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when creating book with invalid year`() {
         //GIVEN
-        val request = CreateBookRequest("Title", "Description", 1500, 19.99, 10)
+        val request = CreateBookRequest("Title", "Description", 1500, BigDecimal(20.99), 10)
 
         // WHEN
         val result = mockMvc.perform(
@@ -83,7 +84,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when creating book with negative price`() {
         // GIVEN
-        val request = CreateBookRequest("Title", "Description", 2020, -19.99, 10)
+        val request = CreateBookRequest("Title", "Description", 2020, BigDecimal(-20.99), 10)
 
         // WHEN
         val result = mockMvc.perform(
@@ -104,7 +105,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when creating book with negative amountAvailable`() {
         // GIVEN
-        val request = CreateBookRequest("Title", "Description", 2020, 19.99, -10)
+        val request = CreateBookRequest("Title", "Description", 2020, BigDecimal(20.99), -10)
 
         // WHEN
         val result = mockMvc.perform(
@@ -125,7 +126,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when updating book with invalid ObjectId`() {
         // GIVEN
-        val request = UpdateBookRequest("invalidObjectId", "Title", "Description", 2020, 19.99, 10)
+        val request = UpdateBookRequest("invalidObjectId", "Title", "Description", 2020, BigDecimal(20.99), 10)
 
         // WHEN
         val result = mockMvc.perform(
@@ -147,7 +148,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when updating book with empty title`() {
         // GIVEN
-        val request = UpdateBookRequest("507f191e810c19729de860ea", "", "Description", 2020, 19.99, 10)
+        val request = UpdateBookRequest("507f191e810c19729de860ea", "", "Description", 2020, BigDecimal(20.99), 10)
 
         // WHEN
         val result = mockMvc.perform(
