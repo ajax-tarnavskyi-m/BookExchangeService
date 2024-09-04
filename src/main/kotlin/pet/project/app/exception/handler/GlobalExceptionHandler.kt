@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
 @ControllerAdvice
 class GlobalExceptionHandler {
 
-    @ExceptionHandler
+    @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handle(ex: MethodArgumentNotValidException): ResponseEntity<Any> {
         val reports = ex.bindingResult.fieldErrors.map {
             InvalidInputReport(it.field, it.defaultMessage ?: "Invalid method argument")

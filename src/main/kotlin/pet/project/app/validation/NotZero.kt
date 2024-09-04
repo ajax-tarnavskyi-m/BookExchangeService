@@ -5,7 +5,7 @@ import jakarta.validation.Payload
 import pet.project.app.validation.validator.NotZeroValidator
 import kotlin.reflect.KClass
 
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [NotZeroValidator::class])
 annotation class NotZero(

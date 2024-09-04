@@ -9,7 +9,7 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @Constraint(validatedBy = [ValidObjectIdValidator::class])
 annotation class ValidObjectId(
-    val message: String = "Invalid ObjectId format",
+    val message: String = "The provided ID must be a valid ObjectId hex String",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = []
 )
