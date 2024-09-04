@@ -75,7 +75,8 @@ class BookControllerValidationTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
         assertEquals(1, response.invalidInputReports.size)
         assertEquals("yearOfPublishing", response.invalidInputReports[0].field)
-        assertEquals("Publishing year of the book should be within a valid range", response.invalidInputReports[0].message)
+        val actualMessage = response.invalidInputReports[0].message
+        assertEquals("Publishing year of the book should be within a valid range", actualMessage)
         verify(exactly = 0) { bookServiceMock.create(any()) }
     }
 
@@ -138,7 +139,8 @@ class BookControllerValidationTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
         assertEquals(1, response.invalidInputReports.size)
         assertEquals("id", response.invalidInputReports[0].field)
-        assertEquals("The provided ID must be a valid ObjectId hex String", response.invalidInputReports[0].message)
+        val actualMessage = response.invalidInputReports[0].message
+        assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { bookServiceMock.update(any()) }
     }
 

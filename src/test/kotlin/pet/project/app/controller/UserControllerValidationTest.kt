@@ -53,7 +53,7 @@ class UserControllerValidationTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
         assertEquals(1, response.invalidInputReports.size)
         assertEquals("login", response.invalidInputReports[0].field)
-        assertEquals("User login must not be blank", response.invalidInputReports[0].message)  // Adjust message if necessary
+        assertEquals("User login must not be blank", response.invalidInputReports[0].message)
         verify(exactly = 0) { userServiceMock.create(any()) }
     }
 
@@ -74,7 +74,8 @@ class UserControllerValidationTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
         assertEquals(1, response.invalidInputReports.size)
         assertEquals("id", response.invalidInputReports[0].field)
-        assertEquals("The provided ID must be a valid ObjectId hex String", response.invalidInputReports[0].message)
+        val actualMessage = response.invalidInputReports[0].message
+        assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { userServiceMock.update(any()) }
     }
 
@@ -95,7 +96,7 @@ class UserControllerValidationTest {
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
         assertEquals(1, response.invalidInputReports.size)
         assertEquals("login", response.invalidInputReports[0].field)
-        assertEquals("User login must not be blank", response.invalidInputReports[0].message)  // Adjust message if necessary
+        assertEquals("User login must not be blank", response.invalidInputReports[0].message)
         verify(exactly = 0) { userServiceMock.update(any()) }
     }
 

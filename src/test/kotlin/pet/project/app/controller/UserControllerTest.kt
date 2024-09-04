@@ -107,7 +107,8 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "testUser", emptySet())
+        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "updatedUser", dummyWishlist)
+        assertEquals(expected, actual)
         verify { userService.update(any()) }
     }
 

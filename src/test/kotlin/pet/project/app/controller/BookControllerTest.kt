@@ -50,6 +50,7 @@ class BookControllerTest {
         val result = mockMvc.perform(get("/book/{id}", "66bf6bf8039339103054e21a"))
             .andExpect(status().isOk)
             .andReturn()
+
         //THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
         val expected = ResponseBookDto("66bf6bf8039339103054e21a", "Title", "Description", 2023, 20.0, 10)
