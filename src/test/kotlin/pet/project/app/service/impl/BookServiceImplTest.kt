@@ -30,13 +30,7 @@ class BookServiceImplTest {
     @Test
     fun `check create book`() {
         //GIVEN
-        val inputBook = Book(
-            title = "Title",
-            description = "Description",
-            yearOfPublishing = 200,
-            price = BigDecimal(20.99),
-            amountAvailable = 1
-        )
+        val inputBook = Book(null, "Title", "Description", 200, BigDecimal(20.99), 1)
         val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, BigDecimal(20.99), 1)
         every { bookRepositoryMock.save(inputBook) } returns expected
 
@@ -80,7 +74,6 @@ class BookServiceImplTest {
     fun `check updating book`() {
         //GIVEN
         val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-
         every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns true
         every { bookRepositoryMock.save(book) } returns book
 

@@ -62,7 +62,7 @@ class UserControllerValidationTest {
         //GIVEN
         val request = UpdateUserRequest("invalidObjectId", "UserLogin")
 
-        //WHEN & THEN
+        //WHEN
         val result = mockMvc.perform(
             put("/user/")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -127,7 +127,7 @@ class UserControllerValidationTest {
         val userId = "507f191e810c19729de860ea"
         val invalidBookId = "invalidObjectId"
 
-        //WHEN & THEN
+        //WHEN
         val result = mockMvc.perform(
             patch("/user/{id}/wishlist", userId)
                 .param("bookId", invalidBookId)
@@ -147,7 +147,7 @@ class UserControllerValidationTest {
         //GIVEN
         val invalidObjectId = "invalidObjectId"
 
-        //WHEN & THEN
+        //WHEN
         val result = mockMvc.perform(
             delete("/user/{id}", invalidObjectId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +166,7 @@ class UserControllerValidationTest {
         //GIVEN
         val invalidObjectId = "invalidObjectId"
 
-        //WHEN & THEN
+        //WHEN
         val result = mockMvc.perform(
             get("/user/{id}", invalidObjectId)
                 .contentType(MediaType.APPLICATION_JSON)
