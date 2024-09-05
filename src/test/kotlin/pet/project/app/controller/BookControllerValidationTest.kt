@@ -5,7 +5,11 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
@@ -24,6 +28,7 @@ import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.exception.handler.ValidationExceptionResponse
 import pet.project.app.service.BookService
 import java.math.BigDecimal
+import java.time.Year
 
 @WebMvcTest(BookController::class)
 @Import(BookMapper::class)
@@ -59,10 +64,11 @@ class BookControllerValidationTest {
         verify(exactly = 0) { bookServiceMock.create(any()) }
     }
 
-    @Test
-    fun `should return bad request when creating book with invalid year`() {
+    @ParameterizedTest
+    @MethodSource("squares")
+    fun `should return bad request when creating book with invalid year`(invalidYear: Int) {
         //GIVEN
-        val request = CreateBookRequest("Title", "Description", 1500, BigDecimal(20.99), 10)
+        val request = CreateBookRequest("Title", "Description", invalidYear, BigDecimal(20.99), 10)
 
         // WHEN
         val result = mockMvc.perform(
@@ -79,6 +85,16 @@ class BookControllerValidationTest {
         val actualMessage = response.invalidInputReports[0].message
         assertEquals("Publishing year of the book should be within a valid range", actualMessage)
         verify(exactly = 0) { bookServiceMock.create(any()) }
+    }
+
+    companion object {
+        @Value("\${validation.params.future-years-allowance:5}")
+
+        @JvmStatic
+        fun squares() = listOf(
+            Arguments.of(1599),
+            Arguments.of(Year.now().value + 6)
+        )
     }
 
     @Test

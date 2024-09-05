@@ -55,7 +55,7 @@ configure<io.github.surpsg.deltacoverage.gradle.DeltaCoverageConfiguration> {
         compareWith(targetBranch)
     }
 
-    violationRules.failIfCoverageLessThan(0.6)
+    violationRules.failIfCoverageLessThan(0.85)
     reports {
         html.set(true)
     }

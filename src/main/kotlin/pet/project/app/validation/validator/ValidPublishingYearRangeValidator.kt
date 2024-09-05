@@ -2,6 +2,7 @@ package pet.project.app.validation.validator
 
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
+import org.springframework.beans.factory.annotation.Value
 import pet.project.app.validation.ValidPublishingYearRange
 import java.time.Year
 
@@ -16,15 +17,16 @@ import java.time.Year
  *
  * @see ValidPublishingYearRange
  */
-class ValidPublishingYearRangeValidator : ConstraintValidator<ValidPublishingYearRange, Int> {
+class ValidPublishingYearRangeValidator(
+    @Value("\${validation.params.future-years-allowance:5}") private val futureYearsAllowance: Int,
+) : ConstraintValidator<ValidPublishingYearRange, Int> {
 
     override fun isValid(value: Int, context: ConstraintValidatorContext?): Boolean {
-        val maxYear = Year.now().value + FUTURE_YEARS_ALLOWANCE
+        val maxYear = Year.now().value + futureYearsAllowance
         return value in MIN_YEAR..maxYear
     }
 
     companion object {
-        private const val FUTURE_YEARS_ALLOWANCE = 5
         private const val MIN_YEAR = 1600
     }
 }

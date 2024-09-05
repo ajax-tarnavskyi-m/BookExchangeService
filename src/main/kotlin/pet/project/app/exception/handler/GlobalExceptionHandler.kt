@@ -14,7 +14,7 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handle(ex: MethodArgumentNotValidException): ResponseEntity<Any> {
         val reports = ex.bindingResult.fieldErrors.map {
-            InvalidInputReport(it.field, it.defaultMessage ?: "Invalid method argument")
+            InvalidInputReport(it.field, it.defaultMessage)
         }
         val timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         return ResponseEntity(ValidationExceptionResponse(timestamp, reports), HttpStatus.BAD_REQUEST)
@@ -29,5 +29,5 @@ data class ValidationExceptionResponse(
 
 data class InvalidInputReport(
     val field: String,
-    val message: String,
+    val message: String?,
 )
