@@ -4,6 +4,7 @@ plugins {
     kotlin("plugin.spring") version "1.9.23"
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
+    id("io.github.surpsg.delta-coverage") version "2.4.0"
 }
 
 group = "pet.project"
@@ -22,7 +23,6 @@ repositories {
 dependencies {
     implementation("org.apache.logging.log4j:log4j-api-kotlin:1.5.0")
     implementation("org.springframework.boot:spring-boot-starter-validation:3.3.2")
-    implementation("jakarta.validation:jakarta.validation-api:3.0.2")
     implementation ("io.github.microutils:kotlin-logging-jvm:2.0.11")
     implementation ("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -47,4 +47,20 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+configure<io.github.surpsg.deltacoverage.gradle.DeltaCoverageConfiguration> {
+    val targetBranch = project.properties["diffBase"]?.toString() ?: "refs/heads/main"
+    diffSource.byGit {
+        compareWith(targetBranch)
+    }
+
+    violationRules.failIfCoverageLessThan(0.6)
+    reports {
+        html.set(true)
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.deltaCoverage)
 }
