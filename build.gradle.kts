@@ -1,9 +1,12 @@
+import io.github.surpsg.deltacoverage.gradle.DeltaCoverageConfiguration
+
 plugins {
     id("io.gitlab.arturbosch.detekt") version "1.23.6"
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.spring") version "1.9.23"
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
+    id("io.github.surpsg.delta-coverage") version "2.4.0"
 }
 
 group = "pet.project"
@@ -46,4 +49,16 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+configure<DeltaCoverageConfiguration> {
+    val targetBranch = project.properties["diffBase"]?.toString() ?: "refs/heads/main"
+    diffSource.byGit {
+        compareWith(targetBranch)
+    }
+    violationRules.failIfCoverageLessThan(0.85)
+}
+
+tasks.check {
+    dependsOn(tasks.deltaCoverage)
 }
