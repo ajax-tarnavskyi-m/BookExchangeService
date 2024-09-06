@@ -13,5 +13,4 @@ interface BookService {
     fun changeAmount(bookId: String, delta: Int): Int
 
     fun delete(bookId: String)
-
 }

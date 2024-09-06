@@ -67,7 +67,7 @@ class BookControllerValidationTest {
     @ParameterizedTest
     @MethodSource("squares")
     fun `should return bad request when creating book with invalid year`(invalidYear: Int) {
-        //GIVEN
+        // GIVEN
         val request = CreateBookRequest("Title", "Description", invalidYear, BigDecimal(20.99), 10)
 
         // WHEN
@@ -223,16 +223,16 @@ class BookControllerValidationTest {
 
     @Test
     fun `should return bad request when getting book with invalid ObjectId`() {
-        //GIVEN
+        // GIVEN
         val invalidObjectId = "invalidObjectId"
 
-        //WHEN
+        // WHEN
         val result = mockMvc.perform(
             get("/book/{id}", invalidObjectId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()
 
-        //THEN
+        // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
         val actualMessage = exception.detailMessageArguments.get(0)

@@ -33,8 +33,9 @@ class UserServiceImplTest {
     lateinit var userService: UserServiceImpl
 
     private val dummyWishlist = setOf(
-        "66bf6bf8039339103054e21a", "66c3636647ff4c2f0242073d",
-        "66c3637847ff4c2f0242073e"
+        "66bf6bf8039339103054e21a",
+        "66c3636647ff4c2f0242073d",
+        "66c3637847ff4c2f0242073e",
     )
 
     @Test
@@ -131,7 +132,7 @@ class UserServiceImplTest {
         // THEN
         assertEquals(
             "User with id=$userId was not found during adding book with id=$bookId into user wishlist",
-            exception.message
+            exception.message,
         )
     }
 
@@ -174,7 +175,6 @@ class UserServiceImplTest {
         verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
         verify { bookRepositoryMock.existsById(testRequestBookId) }
     }
-
 
     @Test
     fun `check delete user`() {

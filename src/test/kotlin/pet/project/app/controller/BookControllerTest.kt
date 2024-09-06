@@ -43,17 +43,17 @@ class BookControllerTest {
 
     @Test
     fun `get book by id successfully`() {
-        //GIVEN
+        // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
         val initializedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
         every { bookService.getById(bookId) } returns initializedBook
 
-        //WHEN
+        // WHEN
         val result = mockMvc.perform(get("/book/{id}", bookId))
             .andExpect(status().isOk)
             .andReturn()
 
-        //THEN
+        // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
         val expected = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         assertEquals(expected, actual)
