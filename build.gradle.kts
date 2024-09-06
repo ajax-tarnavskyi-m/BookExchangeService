@@ -1,5 +1,4 @@
 import io.github.surpsg.deltacoverage.gradle.DeltaCoverageConfiguration
-import java.time.LocalDate
 
 plugins {
     id("io.gitlab.arturbosch.detekt") version "1.23.6"
@@ -26,7 +25,6 @@ repositories {
 dependencies {
     implementation("org.apache.logging.log4j:log4j-api-kotlin:1.5.0")
     implementation("org.springframework.boot:spring-boot-starter-validation:3.3.2")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
