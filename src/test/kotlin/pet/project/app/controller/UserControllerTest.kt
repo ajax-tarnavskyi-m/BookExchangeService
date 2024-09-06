@@ -31,7 +31,6 @@ import pet.project.app.service.UserService
 @WebMvcTest(UserController::class)
 @Import(UserMapper::class)
 class UserControllerTest {
-
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -42,7 +41,8 @@ class UserControllerTest {
     private lateinit var objectMapper: ObjectMapper
 
     private val dummyWishlist = setOf(
-        "66bf6bf8039339103054e21a", "66c3636647ff4c2f0242073d",
+        "66bf6bf8039339103054e21a",
+        "66c3636647ff4c2f0242073d",
         "66c3637847ff4c2f0242073e"
     )
 

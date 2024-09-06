@@ -11,5 +11,5 @@ import kotlin.reflect.KClass
 annotation class ValidObjectId(
     val message: String = "The provided ID must be a valid ObjectId hex String",
     val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = []
+    val payload: Array<KClass<out Payload>> = [],
 )

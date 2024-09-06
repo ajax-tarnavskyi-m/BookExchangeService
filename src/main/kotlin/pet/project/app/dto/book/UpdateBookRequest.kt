@@ -3,7 +3,6 @@ package pet.project.app.dto.book
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
-import org.hibernate.validator.constraints.Range
 import pet.project.app.validation.ValidObjectId
 import pet.project.app.validation.ValidPublishingYearRange
 import java.math.BigDecimal

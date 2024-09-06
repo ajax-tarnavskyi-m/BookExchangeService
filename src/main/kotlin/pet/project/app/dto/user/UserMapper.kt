@@ -23,5 +23,4 @@ class UserMapper {
         user.login ?: "",
         user.bookWishList,
     )
-
 }

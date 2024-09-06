@@ -11,5 +11,5 @@ import kotlin.reflect.KClass
 annotation class ValidPublishingYearRange(
     val message: String = "Publishing year must be between 1600 and the current year",
     val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = []
+    val payload: Array<KClass<out Payload>> = [],
 )
