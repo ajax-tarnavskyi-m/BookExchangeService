@@ -25,7 +25,6 @@ class BookServiceImpl(private val bookRepository: BookRepository) : BookService 
         } else {
             throw BookNotFoundException(book.id.toHexString(), "UPDATE request")
         }
-
     }
 
     override fun changeAmount(bookId: String, delta: Int): Int {

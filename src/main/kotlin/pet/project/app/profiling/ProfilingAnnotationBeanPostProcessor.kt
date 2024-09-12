@@ -49,5 +49,4 @@ class ProfilingAnnotationBeanPostProcessor(profilingConsumer: ProfilingConsumer)
             }
         }
     }
-
 }
