@@ -28,15 +28,6 @@ class BookServiceImpl(private val bookRepository: BookRepository) : BookService 
 
     }
 
-    fun updateTest(book: Book): Book {
-        if (bookRepository.existsById(book.id!!.toHexString())) {
-            return bookRepository.save(book)
-        } else {
-            throw BookNotFoundException(book.id.toHexString(), "UPDATE request")
-        }
-
-    }
-
     override fun changeAmount(bookId: String, delta: Int): Int {
         val book = getById(bookId)
         val updatedAmount = (book.amountAvailable ?: 0) + delta
