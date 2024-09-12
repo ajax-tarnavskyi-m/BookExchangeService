@@ -5,17 +5,17 @@ import org.springframework.stereotype.Component
 
 @Component
 class LoggingProfilingConsumer : ProfilingConsumer {
+
     override fun accept(profilingData: ProfilingData) {
         log.info(
             "Method [{}.{}] ran for {} ns",
             profilingData.method.declaringClass.simpleName,
             profilingData.method.name,
-            profilingData.duration.inWholeNanoseconds
+            profilingData.duration.inWholeNanoseconds,
         )
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(ProfilingAnnotationBeanPostProcessor::class.java)
     }
-
 }

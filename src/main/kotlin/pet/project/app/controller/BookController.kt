@@ -1,5 +1,6 @@
 package pet.project.app.controller
 
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,6 +18,7 @@ import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.service.BookService
+import pet.project.app.validation.ValidObjectId
 
 @RestController
 @RequestMapping("/book")
@@ -24,29 +26,29 @@ class BookController(private val bookService: BookService, private val mapper: B
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@RequestBody request: CreateBookRequest): ResponseBookDto {
+    fun create(@Valid @RequestBody request: CreateBookRequest): ResponseBookDto {
         val createdBook = bookService.create(mapper.toModel(request))
         return mapper.toDto(createdBook)
     }
 
     @GetMapping("/{id}")
-    fun getById(@PathVariable("id") id: String): ResponseBookDto = mapper.toDto(bookService.getById(id))
+    fun getById(@ValidObjectId @PathVariable("id") id: String) = mapper.toDto(bookService.getById(id))
 
     @PutMapping("/")
-    fun update(@RequestBody request: UpdateBookRequest): ResponseBookDto {
+    fun update(@Valid @RequestBody request: UpdateBookRequest): ResponseBookDto {
         val updatedBook = bookService.update(mapper.toModel(request))
         return mapper.toDto(updatedBook)
     }
 
     @PatchMapping("/{id}/amount")
     fun updateAmount(
-        @PathVariable("id") id: String,
-        @RequestBody request: UpdateAmountRequest,
+        @ValidObjectId @PathVariable("id") id: String,
+        @Valid @RequestBody request: UpdateAmountRequest,
     ): Int {
         return bookService.changeAmount(id, request.delta)
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable("id") id: String) = bookService.delete(id)
+    fun delete(@ValidObjectId @PathVariable("id") id: String) = bookService.delete(id)
 }

@@ -7,3 +7,6 @@ spring:
       database: myDatabase
 profiling:
   enabled: true
+validation:
+  params:
+    future-years-allowance: 5
