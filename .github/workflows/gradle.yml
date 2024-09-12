@@ -31,24 +31,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+#          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
           build-scan-publish: true
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
 
       - name: Run build
-        run: ./gradlew build --scan --build-cache -x deltaCoverage
+        run: ./gradlew build --scan -x deltaCoverage
 
       - name: Perform Delta coverage
         if: ${{ github.event_name == 'pull_request' && !cancelled() }}
         run: ./gradlew deltaCoverage -PdiffBase="refs/remotes/origin/$GITHUB_BASE_REF"
 
-      - name: Append Delta Coverage
-        if: ${{ github.event_name == 'pull_request' && !cancelled() }}
-        continue-on-error: true
-        uses: gw-kit/delta-coverage-plugin/actions/delta-coverage-report@main
-        with:
-          delta-coverage-report: build/reports/coverage-reports/delta-coverage/report.md
+#      - name: Append Delta Coverage
+#        if: ${{ github.event_name == 'pull_request' && !cancelled() }}
+#        continue-on-error: true
+#        uses: gw-kit/delta-coverage-plugin/actions/delta-coverage-report@main
+#        with:
+#          delta-coverage-report: build/reports/coverage-reports/delta-coverage/report.md
 
       - name: Publish Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2.15.1
