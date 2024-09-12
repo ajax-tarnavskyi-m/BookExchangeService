@@ -55,6 +55,10 @@ configure<DeltaCoverageConfiguration> {
     diffSource.byGit {
         compareWith(targetBranch)
     }
+    reports {
+        html = true
+        markdown = true
+    }
     violationRules.failIfCoverageLessThan(0.85)
 }
 
