@@ -3,7 +3,7 @@ spring:
     name: BookExchangeService
   data:
     mongodb:
-      uri: mongodb://mongoadmit:root@localhost:27017/
+      uri: mongodb://user:root@localhost:27017/
       database: myDatabase
 profiling:
   enabled: true
