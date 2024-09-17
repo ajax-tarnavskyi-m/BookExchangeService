@@ -55,9 +55,7 @@ metadata:
 spec:
   selector:
     app: book-x-app
-  type: NodePort
   ports:
     - protocol: TCP
       port: 8080
       targetPort: 8080
-      nodePort: 30080
