@@ -5,12 +5,13 @@ services:
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://user:root@mongo:27017/
     ports:
-      - "27017:8080"
+      - "8080:8080"
     depends_on:
       - mongo
   mongo:
-    image: mongo:7.0
+    image: mongo:7.0.14
     environment:
+      MONGO_INITDB_DATABASE: book_x_db
       MONGO_INITDB_ROOT_USERNAME: user
       MONGO_INITDB_ROOT_PASSWORD: root
     volumes:
