@@ -16,11 +16,14 @@ spec:
     spec:
       containers:
         - name: book-x-app
-          image: book-exchange-service:0.1
+          image: book-exchange-service:0.1.2
           imagePullPolicy: Never
           ports:
             - containerPort: 8080
+            - containerPort: 5005 # port for debug purpose
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
             - name: MONGO_USERNAME
               valueFrom:
                 secretKeyRef:

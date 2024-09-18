@@ -3,7 +3,11 @@ services:
   spring-app:
     image: book-exchange-service
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb://user:root@mongo:27017/
+        MONGO_USERNAME: user
+        MONGO_PASSWORD: root
+        MONGO_URL: mongo
+        MONGO_PORT: 27017
+        MONGO_DB_NAME: book_x_db
     ports:
       - "8080:8080"
     depends_on:
