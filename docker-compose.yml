@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   spring-app:
-    image: book-exchange-service
+    image: book-exchange-service:0.1.0
     ports:
       - "8080:8080"
     env_file:
@@ -19,10 +19,10 @@ services:
     env_file:
         - .env
     volumes:
-      - never_gona_give_you_up:/data/db
-      - never_gona_let_you_down:/data/configdb
+      - db_volume:/data/db
+      - config_volume:/data/configdb
 volumes:
-  never_gona_give_you_up:
+  db_volume:
     driver: local
-  never_gona_let_you_down:
+  config_volume:
     driver: local
