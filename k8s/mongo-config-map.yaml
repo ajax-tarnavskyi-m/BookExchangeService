@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-configmap
+data:
+  mongo_host: "mongodb-service"
+  mongo_port: "27017"
+  mongo_database_name: "book_x_db"

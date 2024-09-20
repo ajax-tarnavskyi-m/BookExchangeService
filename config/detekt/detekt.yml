@@ -1,0 +1,4 @@
+style:
+  VarCouldBeVal:
+    active: true
+    ignoreLateinitVar: true

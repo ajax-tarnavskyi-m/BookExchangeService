@@ -1,10 +1,30 @@
 version: '3.8'
 services:
-  mongo:
-    image: mongo:7.0
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: mongoadmit
-      MONGO_INITDB_ROOT_PASSWORD: root
+  book-x-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 27017:27017
-
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo:7.0.14
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    env_file:
+        - .env
+    volumes:
+      - db_volume:/data/db
+      - config_volume:/data/configdb
+volumes:
+  db_volume:
+    driver: local
+  config_volume:
+    driver: local

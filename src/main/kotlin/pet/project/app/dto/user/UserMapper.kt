@@ -20,7 +20,7 @@ class UserMapper {
 
     fun toDto(user: User) = ResponseUserDto(
         user.id!!.toHexString(),
-        user.login ?: "",
+        user.login.orEmpty(),
         user.bookWishList,
     )
 }

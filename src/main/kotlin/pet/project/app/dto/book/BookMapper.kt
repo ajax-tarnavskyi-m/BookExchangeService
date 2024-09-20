@@ -9,7 +9,7 @@ class BookMapper {
 
     fun toDto(book: Book) = ResponseBookDto(
         book.id!!.toHexString(),
-        book.title ?: "",
+        book.title.orEmpty(),
         book.description,
         book.yearOfPublishing ?: 0,
         book.price,
