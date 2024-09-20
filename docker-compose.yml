@@ -1,6 +1,6 @@
 version: '3.8'
 services:
-  spring-app:
+  book-x-app:
     build:
       context: .
       dockerfile: Dockerfile
