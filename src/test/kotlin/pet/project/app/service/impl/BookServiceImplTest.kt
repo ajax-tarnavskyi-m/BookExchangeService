@@ -10,20 +10,22 @@ import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.repository.findByIdOrNull
+import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.Book
 import pet.project.app.repository.BookRepository
+import pet.project.app.service.NotificationService
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class BookServiceImplTest {
-
     @MockK
     lateinit var bookRepositoryMock: BookRepository
-
+    @MockK
+    lateinit var notificationServiceMock: NotificationService
     @InjectMockKs
     lateinit var bookService: BookServiceImpl
 
@@ -32,13 +34,13 @@ class BookServiceImplTest {
         // GIVEN
         val inputBook = Book(null, "Title", "Description", 200, BigDecimal(20.99), 1)
         val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, BigDecimal(20.99), 1)
-        every { bookRepositoryMock.save(inputBook) } returns expected
+        every { bookRepositoryMock.insert(inputBook) } returns expected
 
         // WHEN
         val actual = bookService.create(inputBook)
 
         // THEN
-        verify { bookRepositoryMock.save(inputBook) }
+        verify { bookRepositoryMock.insert(inputBook) }
         assertEquals(expected, actual)
     }
 
@@ -71,91 +73,130 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check updating book`() {
+    fun `check updating book successfully`() {
         // GIVEN
         val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-        every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns true
-        every { bookRepositoryMock.save(book) } returns book
+        every { bookRepositoryMock.update(book) } returns 1L
 
         // WHEN
         val result = bookService.update(book)
 
         // THEN
         assertEquals(book, result)
-        verify { bookRepositoryMock.existsById(book.id!!.toHexString()) }
-        verify { bookRepositoryMock.save(book) }
+        verify { bookRepositoryMock.update(book) }
     }
 
     @Test
-    fun `check updating book throws exception when book not found`() {
+    fun `check updating book throws exception when match count is 0`() {
         // GIVEN
         val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-        every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns false
+        every { bookRepositoryMock.update(book) } returns 0
 
         // WHEN & THEN
         assertThrows(BookNotFoundException::class.java) {
             bookService.update(book)
         }
-        verify { bookRepositoryMock.existsById(book.id!!.toHexString()) }
+        verify { bookRepositoryMock.update(book) }
     }
 
     @Test
-    fun `check changing amount of book successfully`() {
-        // GIVEN
+    fun `check updating amount successfully`() {
         val bookId = ObjectId.get().toHexString()
-        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-        every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
-        every { bookRepositoryMock.save(any()) } returns book.copy(amountAvailable = 15)
+        val testRequest = UpdateAmountRequest(bookId, 1)
+        every { bookRepositoryMock.updateAmount(testRequest) } returns 1L
+        every { notificationServiceMock.notifySubscribedUsers(bookId) } just Runs
 
         // WHEN
-        val updatedAmount = bookService.changeAmount(bookId, 5)
+        val result = bookService.updateAmount(testRequest)
 
         // THEN
-        assertEquals(15, updatedAmount)
-        verify { bookRepositoryMock.findByIdOrNull(bookId) }
-        verify { bookRepositoryMock.save(any()) }
+        assertTrue(result)
+        verify { bookRepositoryMock.updateAmount(testRequest) }
+        verify { notificationServiceMock.notifySubscribedUsers(bookId) }
     }
 
     @Test
-    fun `check changing amount throws exception when insufficient books`() {
-        //GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, BigDecimal(20.99), 3)
-        every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
+    fun `check exchangeBooks and send books with increased amount succsessfully`() {
+        // GIVEN
+        val negativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -1)
+        val positiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 1)
+        val alsoNegativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -3)
+        val alsoPositiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 3)
+        val testRequests = listOf(negativeDeltaRequest, positiveDeltaRequest, alsoNegativeDeltaRequest, alsoPositiveDeltaRequest)
+        every { bookRepositoryMock.updateAmountMany(testRequests) } returns testRequests.size
+        every { notificationServiceMock.notifySubscribedUsers(
+            listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
+        ) } just Runs
+
+        // WHEN
+        val result = bookService.exchangeBooks(testRequests)
+
+        // THEN
+        assertTrue(result)
+        verify { bookRepositoryMock.updateAmountMany(testRequests) }
+        verify { notificationServiceMock.notifySubscribedUsers(
+            listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
+        ) }
+    }
+
+    @Test
+    fun `check exchangeBooks dont notify when requests have only negative delta`() {
+        val negativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -1)
+        val alsoNegativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -3)
+        val testRequests = listOf(negativeDeltaRequest, alsoNegativeDeltaRequest)
+        every { bookRepositoryMock.updateAmountMany(testRequests) } returns testRequests.size
+
+        // WHEN
+        val result = bookService.exchangeBooks(testRequests)
+
+        assertTrue(result)
+        verify { bookRepositoryMock.updateAmountMany(testRequests) }
+        verify(exactly = 0) { notificationServiceMock.notifySubscribedUsers(any<List<String>>())}
+    }
+
+    @Test
+    fun `should throw IllegalArgumentException when matched count is less than requests size`() {
+        // GIVEN
+        val requests = listOf(
+            UpdateAmountRequest(ObjectId.get().toHexString(), 3),
+            UpdateAmountRequest(ObjectId.get().toHexString(), 2)
+        )
+        val invalidMatchedCount = requests.size - 1
+        every { bookRepositoryMock.updateAmountMany(requests) } returns invalidMatchedCount
 
         // WHEN & THEN
-        assertThrows(IllegalStateException::class.java) {
-            bookService.changeAmount(bookId, -4)
+        val e = assertThrows(IllegalArgumentException::class.java) {
+            bookService.exchangeBooks(requests)
         }
-        verify { bookRepositoryMock.findByIdOrNull(bookId) }
+        assertEquals("Requested books absent or have less amount available that needed: $requests", e.message)
+        verify { bookRepositoryMock.updateAmountMany(requests) }
+    }
+
+    @Test
+    fun `check update amount throws exception when insufficient books`() {
+        //GIVEN
+        val bookId = ObjectId.get().toHexString()
+        val request = UpdateAmountRequest(bookId, -4)
+        every { bookRepositoryMock.updateAmount(request) } returns 0
+
+        // WHEN & THEN
+        val e = assertThrows(IllegalArgumentException::class.java) {
+            bookService.updateAmount(request)
+        }
+        assertEquals("Requested book absent or have less amount available that needed: $request", e.message)
+        verify { bookRepositoryMock.updateAmount(request) }
     }
 
     @Test
     fun `check deleting book`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.existsById(bookId) } returns true
-        every { bookRepositoryMock.deleteById(bookId) } just Runs
+        every { bookRepositoryMock.delete(bookId) } returns 1L
 
         // WHEN
         bookService.delete(bookId)
 
         // THEN
-        verify { bookRepositoryMock.existsById(bookId) }
-        verify { bookRepositoryMock.deleteById(bookId) }
-    }
-
-    @Test
-    fun `check deleting book when book does not exist`() {
-        // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.existsById(bookId) } returns false
-
-        // WHEN
-        bookService.delete(bookId)
-
-        // THEN
-        verify { bookRepositoryMock.existsById(bookId) }
-        verify(exactly = 0) { bookRepositoryMock.deleteById(bookId) }
+        verify { bookRepositoryMock.delete(bookId) }
     }
 }

@@ -9,3 +9,5 @@ profiling:
 validation:
   params:
     future-years-allowance: 5
+mongock:
+  migration-scan-package: pet.project.app.config

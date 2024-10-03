@@ -8,6 +8,7 @@ import io.mockk.runs
 import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -31,7 +32,7 @@ import java.math.BigDecimal
 
 @WebMvcTest(BookController::class)
 @Import(BookMapper::class)
-class BookControllerTest {
+internal class BookControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -112,15 +113,14 @@ class BookControllerTest {
     @Test
     fun `update book amount successfully`() {
         // GIVEN
-        val updateAmountRequest = UpdateAmountRequest(5)
         val bookId = "66bf6bf8039339103054e21a"
-        val newAmount = 15
+        val updateAmountRequest = UpdateAmountRequest(bookId,5 )
 
-        every { bookService.changeAmount(bookId, updateAmountRequest.delta) } returns newAmount
+        every { bookService.updateAmount(updateAmountRequest) } returns true
 
         // WHEN
         val result = mockMvc.perform(
-            patch("/book/{id}/amount", bookId)
+            patch("/book/amount")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateAmountRequest))
         )
@@ -128,9 +128,9 @@ class BookControllerTest {
             .andReturn()
 
         // THEN
-        val actualNewAmount = objectMapper.readValue(result.response.contentAsString, Int::class.java)
-        assertEquals(15, actualNewAmount)
-        verify { bookService.changeAmount(bookId, updateAmountRequest.delta) }
+        val resultValue = objectMapper.readValue(result.response.contentAsString, Boolean::class.java)
+        assertTrue(resultValue)
+        verify { bookService.updateAmount(updateAmountRequest) }
     }
 
     @Test

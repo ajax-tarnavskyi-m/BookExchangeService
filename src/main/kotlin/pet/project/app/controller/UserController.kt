@@ -44,9 +44,8 @@ class UserController(private val userService: UserService, private val mapper: U
     fun addBookToWishList(
         @ValidObjectId @PathVariable("id") userId: String,
         @ValidObjectId @RequestParam bookId: String,
-    ): ResponseUserDto {
-        val updatedUser = userService.addBookToWishList(userId, bookId)
-        return mapper.toDto(updatedUser)
+    ): Boolean {
+        return userService.addBookToWishList(userId, bookId)
     }
 
     @DeleteMapping("/{id}")

@@ -94,11 +94,10 @@ class BookMapperTest {
         // GIVEN
         val book = Book(
             ObjectId("507f1f77bcf86cd799439011"),
-            null, // Title is null
+            "",
             "Test Description",
             null,
             BigDecimal(20.99),
-            null
         )
         val expectedDto = ResponseBookDto(
             "507f1f77bcf86cd799439011",

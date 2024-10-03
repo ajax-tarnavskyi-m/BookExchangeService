@@ -1,11 +1,13 @@
 package pet.project.app.service.impl
 
-import io.mockk.Runs
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.just
 import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,7 +15,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.repository.findByIdOrNull
+import org.slf4j.LoggerFactory
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.exception.UserNotFoundException
 import pet.project.app.model.User
@@ -21,7 +23,7 @@ import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 
 @ExtendWith(MockKExtension::class)
-class UserServiceImplTest {
+open class UserServiceImplTest {
 
     @MockK
     lateinit var userRepositoryMock: UserRepository
@@ -33,23 +35,23 @@ class UserServiceImplTest {
     lateinit var userService: UserServiceImpl
 
     private val dummyWishlist = setOf(
-        "66bf6bf8039339103054e21a",
-        "66c3636647ff4c2f0242073d",
-        "66c3637847ff4c2f0242073e",
+        ObjectId("66bf6bf8039339103054e21a"),
+        ObjectId("66c3636647ff4c2f0242073d"),
+        ObjectId("66c3637847ff4c2f0242073e"),
     )
 
     @Test
     fun `check creates user`() {
         // GIVEN
-        val inputUser = User(login = "testUser123", bookWishList = dummyWishlist)
-        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", dummyWishlist)
-        every { userRepositoryMock.save(inputUser) } returns expected
+        val inputUser = User(login = "testUser123", email = "test.user@example.com", bookWishList = dummyWishlist)
+        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", "test.user@example.com", dummyWishlist)
+        every { userRepositoryMock.insert(inputUser) } returns expected
 
         // WHEN
         val actual = userService.create(inputUser)
 
         // THEN
-        verify { userRepositoryMock.save((inputUser)) }
+        verify { userRepositoryMock.insert((inputUser)) }
         assertEquals(expected, actual)
     }
 
@@ -57,7 +59,7 @@ class UserServiceImplTest {
     fun `check getting user`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", dummyWishlist)
+        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123","test.user@example.com", dummyWishlist)
         every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns expected
 
         // WHEN
@@ -87,42 +89,45 @@ class UserServiceImplTest {
     fun `check updating user`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
-        every { userRepositoryMock.existsById(testRequestUserId) } returns true
-        every { userRepositoryMock.save(user) } returns user
+        val user = User(ObjectId(testRequestUserId), "John Doe","test.user@example.com", dummyWishlist)
+        every { userRepositoryMock.update(user) } returns 1L
 
         // WHEN
         val result = userService.update(user)
 
         // THEN
         assertEquals(user, result)
-        verify { userRepositoryMock.existsById(testRequestUserId) }
-        verify { userRepositoryMock.save(user) }
+        verify { userRepositoryMock.update(user) }
     }
 
     @Test
-    fun `check updating user throws exception when user not found`() {
+    fun `check update logs warn when affected documents count is not 1`() {
         // GIVEN
-        val testRequestUserId = "66c35b050da7b9523070cb3a"
-        val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
-        every { userRepositoryMock.existsById(testRequestUserId) } returns false
+        val fooLogger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
+        val listAppender = ListAppender<ILoggingEvent>().apply { start() }
+        fooLogger.addAppender(listAppender)
+
+        val user = User(id = ObjectId.get(), login = "test_user", email = "test@example.com")
+        every { userRepositoryMock.update(user) } returns 0L
 
         // WHEN
-        assertThrows<UserNotFoundException> {
-            userService.update(user)
-        }
+        userService.update(user)
 
         // THEN
-        verify { userRepositoryMock.existsById(testRequestUserId) }
+        val logs = listAppender.list
+        val expectedMessage = "Affected 0 documents while trying to update user with id=${user.id}"
+        assertEquals(expectedMessage, logs.first().formattedMessage)
+        assertEquals(Level.WARN, logs.first().level)
     }
 
     @Test
-    fun `addBookToWishList should throw UserNotFoundException if user not found`() {
+    fun `addBookToWishList should throw UserNotFoundException if matchCount not equal 1`() {
         // GIVEN
         val userId = "nonexistentUserId"
         val bookId = "60f1b13e8f1b2c000b355777"
 
-        every { userRepositoryMock.findByIdOrNull(userId) } returns null
+        every { bookRepositoryMock.existsById(bookId) } returns true
+        every { userRepositoryMock.addBookToWishList(userId, bookId) } returns 0L
 
         // WHEN
         val exception = assertThrows<UserNotFoundException> {
@@ -137,23 +142,43 @@ class UserServiceImplTest {
     }
 
     @Test
+    fun `addBookToWishList should throw BookNotFoundException if book does not exist`() {
+        // GIVEN
+        val userId = "validUserId"
+        val bookId = "nonexistentBookId"
+
+        every { bookRepositoryMock.existsById(bookId) } returns false
+
+        // WHEN
+        val exception = assertThrows<BookNotFoundException> {
+            userService.addBookToWishList(userId, bookId)
+        }
+
+        // THEN
+        assertEquals(
+            "Book with id=$bookId was not found during adding book to wishlist of user with id=$userId",
+            exception.message
+        )
+
+        verify { bookRepositoryMock.existsById(bookId) }
+        verify(exactly = 0) { userRepositoryMock.addBookToWishList(any(), any()) }  // Ensure no wishlist update attempt was made
+    }
+
+    @Test
     fun `check adding book to wishlist`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
-        val user = User(ObjectId(testRequestUserId), "John Doe", setOf())
-        every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns user
         every { bookRepositoryMock.existsById(testRequestBookId) } returns true
-        every { userRepositoryMock.save(any()) } returns user.copy(bookWishList = setOf(testRequestBookId))
+        every { userRepositoryMock.addBookToWishList(testRequestUserId, testRequestBookId) } returns 1L
 
         // WHEN
         val result = userService.addBookToWishList(testRequestUserId, testRequestBookId)
 
         // THEN
-        assertTrue(result.bookWishList.contains(testRequestBookId))
-        verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
+        assertTrue(result)
         verify { bookRepositoryMock.existsById(testRequestBookId) }
-        verify { userRepositoryMock.save(any()) }
+        verify { userRepositoryMock.addBookToWishList(testRequestUserId, testRequestBookId) }
     }
 
     @Test
@@ -161,9 +186,7 @@ class UserServiceImplTest {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
-        val user = User(ObjectId(testRequestUserId), "John Doe", dummyWishlist)
 
-        every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns user
         every { bookRepositoryMock.existsById(testRequestBookId) } returns false
 
         // WHEN
@@ -172,7 +195,6 @@ class UserServiceImplTest {
         }
 
         // THEN
-        verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
         verify { bookRepositoryMock.existsById(testRequestBookId) }
     }
 
@@ -180,28 +202,32 @@ class UserServiceImplTest {
     fun `check delete user`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        every { userRepositoryMock.existsById(testRequestUserId) } returns true
-        every { userRepositoryMock.deleteById(testRequestUserId) } just Runs
+        every { userRepositoryMock.delete(testRequestUserId) } returns 1L
 
         // WHEN
         userService.delete(testRequestUserId)
 
         // THEN
-        verify { userRepositoryMock.existsById(testRequestUserId) }
-        verify { userRepositoryMock.deleteById(testRequestUserId) }
+        verify { userRepositoryMock.delete(testRequestUserId) }
     }
 
     @Test
-    fun `check deleting user when user does not exist`() {
+    fun `check delete logs warn when user is absent`() {
         // GIVEN
-        val testRequestUserId = "66c35b050da7b9523070cb3a"
-        every { userRepositoryMock.existsById(testRequestUserId) } returns false
+        val fooLogger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
+        val listAppender = ListAppender<ILoggingEvent>().apply { start() }
+        fooLogger.addAppender(listAppender)
 
-        // WHEN
-        userService.delete(testRequestUserId)
+        val userId = "66c35b050da7b9523070cb3a"
+        every { userRepositoryMock.delete(userId) } returns 0L
+
+        //WHEN
+        userService.delete(userId)
 
         // THEN
-        verify { userRepositoryMock.existsById(testRequestUserId) }
-        verify(exactly = 0) { userRepositoryMock.deleteById(testRequestUserId) }
+        val logs = listAppender.list
+        val expectedMessage = "Affected 0 documents while trying to delete user with id=$userId"
+        assertEquals(expectedMessage, logs.first().formattedMessage)
+        assertEquals(Level.WARN, logs.first().level)
     }
 }

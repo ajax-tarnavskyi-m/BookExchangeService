@@ -1,5 +1,6 @@
 package pet.project.app.dto.user
 
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import pet.project.app.validation.ValidObjectId
 
@@ -8,5 +9,7 @@ data class UpdateUserRequest(
     val id: String,
     @field:NotBlank(message = "User login must not be blank")
     val login: String,
+    @field:Email
+    val email: String,
     val bookWishList: Set<String> = emptySet(),
 )

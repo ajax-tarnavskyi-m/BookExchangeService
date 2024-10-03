@@ -18,13 +18,15 @@ class UserMapperTest {
         // GIVEN
         val request = CreateUserRequest(
             "testLogin",
-            setOf("60f1b13e8f1b2c000b355777", "60f1b13e8f1b2c000b355778")
+            "test.user@example.com",
+            setOf("60f1b13e8f1b2c000b355777", "60f1b13e8f1b2c000b355778"),
         )
 
         val expectedUser = User(
             null,
             "testLogin",
-            setOf("60f1b13e8f1b2c000b355777", "60f1b13e8f1b2c000b355778")
+            "test.user@example.com",
+            setOf(ObjectId("60f1b13e8f1b2c000b355777"), ObjectId("60f1b13e8f1b2c000b355778"))
         )
 
         // WHEN
@@ -40,13 +42,15 @@ class UserMapperTest {
         val request = UpdateUserRequest(
             "507f1f77bcf86cd799439011",
             "updatedLogin",
+            "test.user@example.com",
             setOf("60f1b13e8f1b2c000b355779")
         )
 
         val expectedUser = User(
             ObjectId("507f1f77bcf86cd799439011"),
             "updatedLogin",
-            setOf("60f1b13e8f1b2c000b355779")
+            "test.user@example.com",
+            setOf(ObjectId("60f1b13e8f1b2c000b355779"))
         )
 
         // WHEN
@@ -62,35 +66,15 @@ class UserMapperTest {
         val user = User(
             ObjectId("507f1f77bcf86cd799439011"),
             "testLogin",
-            setOf("60f1b13e8f1b2c000b355777", "60f1b13e8f1b2c000b355778")
+            "test.user@example.com",
+            setOf(ObjectId("60f1b13e8f1b2c000b355777"), ObjectId("60f1b13e8f1b2c000b355778"))
         )
 
         val expectedDto = ResponseUserDto(
             "507f1f77bcf86cd799439011",
             "testLogin",
+            "test.user@example.com",
             setOf("60f1b13e8f1b2c000b355777", "60f1b13e8f1b2c000b355778")
-        )
-
-        // WHEN
-        val actualDto = mapper.toDto(user)
-
-        // THEN
-        assertEquals(expectedDto, actualDto)
-    }
-
-    @Test
-    fun `toDto should handle null and default values correctly`() {
-        // GIVEN
-        val user = User(
-            ObjectId("507f1f77bcf86cd799439011"),
-            null,
-            setOf("60f1b13e8f1b2c000b355777")
-        )
-
-        val expectedDto = ResponseUserDto(
-            "507f1f77bcf86cd799439011",
-            "",
-            setOf("60f1b13e8f1b2c000b355777")
         )
 
         // WHEN

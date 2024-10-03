@@ -9,18 +9,21 @@ class UserMapper {
 
     fun toModel(request: CreateUserRequest) = User(
         login = request.login,
-        bookWishList = request.bookWishList,
+        email = request.email,
+        bookWishList = request.bookWishList.map { ObjectId(it) }.toSet()
     )
 
     fun toModel(request: UpdateUserRequest) = User(
         ObjectId(request.id),
         request.login,
-        request.bookWishList,
+        request.email,
+        request.bookWishList.map { ObjectId(it) }.toSet(),
     )
 
     fun toDto(user: User) = ResponseUserDto(
         user.id!!.toHexString(),
-        user.login.orEmpty(),
-        user.bookWishList,
+        user.login,
+        user.email,
+        user.bookWishList.map { it.toHexString() }.toSet(),
     )
 }

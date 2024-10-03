@@ -9,11 +9,11 @@ class BookMapper {
 
     fun toDto(book: Book) = ResponseBookDto(
         book.id!!.toHexString(),
-        book.title.orEmpty(),
+        book.title,
         book.description,
         book.yearOfPublishing ?: 0,
         book.price,
-        book.amountAvailable ?: 0,
+        book.amountAvailable,
     )
 
     fun toModel(request: CreateBookRequest) = Book(

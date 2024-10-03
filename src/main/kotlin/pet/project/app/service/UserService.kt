@@ -8,7 +8,7 @@ interface UserService {
 
     fun getById(userId: String): User
 
-    fun addBookToWishList(userId: String, bookId: String): User
+    fun addBookToWishList(userId: String, bookId: String): Boolean
 
     fun update(user: User): User
 

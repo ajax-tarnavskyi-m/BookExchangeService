@@ -5,13 +5,18 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.math.BigDecimal
 
-@Document
+@Document(collection = Book.COLLECTION_NAME)
 data class Book(
     @Id
     val id: ObjectId? = null,
-    val title: String?,
+    val title: String,
     val description: String?,
     val yearOfPublishing: Int?,
     val price: BigDecimal?,
-    val amountAvailable: Int?,
-)
+    val amountAvailable: Int = 0,
+    val shouldBeNotified: Boolean = false
+) {
+    companion object {
+        const val COLLECTION_NAME = "book"
+    }
+}

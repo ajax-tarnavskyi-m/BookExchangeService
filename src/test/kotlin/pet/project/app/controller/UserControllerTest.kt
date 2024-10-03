@@ -8,6 +8,7 @@ import io.mockk.runs
 import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -19,7 +20,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
@@ -49,9 +49,10 @@ class UserControllerTest {
     @Test
     fun `create user successfully`() {
         // GIVEN
-        val createUserRequest = CreateUserRequest("testUser", emptySet())
-        val mappedUser = User(null, "testUser", emptySet())
-        val initializedUser = User(ObjectId("66bf6bf8039339103054e21a"), "testUser", emptySet())
+        val createUserRequest = CreateUserRequest("testUser", "test.user@example.com", emptySet())
+        val mappedUser = User(null, "testUser", "test.user@example.com", emptySet())
+        val initializedUser =
+            User(ObjectId("66bf6bf8039339103054e21a"), "testUser", "test.user@example.com", emptySet())
         every { userService.create(mappedUser) } returns initializedUser
 
         // WHEN
@@ -65,7 +66,7 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66bf6bf8039339103054e21a", "testUser", emptySet())
+        val expected = ResponseUserDto("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
         assertEquals(expected, actual)
         verify { userService.create(mappedUser) }
     }
@@ -73,7 +74,7 @@ class UserControllerTest {
     @Test
     fun `get user by id successfully`() {
         // GIVEN
-        val user = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser", emptySet())
+        val user = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser", "test.user@example.com", emptySet())
 
         every { userService.getById("66c35b050da7b9523070cb3a") } returns user
 
@@ -84,7 +85,7 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "testUser", emptySet())
+        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
         assertEquals(expected, actual)
         verify { userService.getById("66c35b050da7b9523070cb3a") }
     }
@@ -92,8 +93,14 @@ class UserControllerTest {
     @Test
     fun `update user successfully`() {
         // GIVEN
-        val updateUserRequest = UpdateUserRequest("66c35b050da7b9523070cb3a", "updatedUser", dummyWishlist)
-        val mappedUser = User(ObjectId("66c35b050da7b9523070cb3a"), "updatedUser", dummyWishlist)
+        val updateUserRequest =
+            UpdateUserRequest("66c35b050da7b9523070cb3a", "updatedUser", "test.user@example.com", dummyWishlist)
+        val mappedUser = User(
+            ObjectId("66c35b050da7b9523070cb3a"),
+            "updatedUser",
+            "test.user@example.com",
+            dummyWishlist.map { ObjectId(it) }.toSet()
+        )
         every { userService.update(any()) } returns mappedUser
 
         // WHEN
@@ -107,7 +114,8 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "updatedUser", dummyWishlist)
+        val expected =
+            ResponseUserDto("66c35b050da7b9523070cb3a", "updatedUser", "test.user@example.com", dummyWishlist)
         assertEquals(expected, actual)
         verify { userService.update(any()) }
     }
@@ -117,18 +125,18 @@ class UserControllerTest {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val bookId = "66bf6bf8039339103054e21a"
-        val updatedUser = User(ObjectId(userId), "testUser", setOf(bookId))
-        every { userService.addBookToWishList(userId, bookId) } returns updatedUser
+        every { userService.addBookToWishList(userId, bookId) } returns true
 
         // WHEN
-        mockMvc.perform(
+        val result = mockMvc.perform(
             patch("/user/{id}/wishlist", userId)
                 .param("bookId", bookId)
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.bookWishList").value(bookId))
+            .andReturn()
 
         // THEN
+        assertTrue(objectMapper.readValue(result.response.contentAsString, Boolean::class.java))
         verify { userService.addBookToWishList(userId, bookId) }
     }
 

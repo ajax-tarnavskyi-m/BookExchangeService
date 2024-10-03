@@ -7,6 +7,9 @@ plugins {
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
     id("io.github.surpsg.delta-coverage") version "2.4.0"
+
+    kotlin("plugin.jpa") version "1.9.23"
+    jacoco
 }
 
 group = "pet.project"
@@ -29,6 +32,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("io.mongock:mongock-springboot-v3:5.4.4")
+    implementation("io.mongock:mongodb-springdata-v4-driver:5.4.4")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
@@ -36,8 +41,11 @@ dependencies {
         exclude(group = "org.mockito", module = "mockito-core")
     }
     testImplementation("com.ninja-squad:springmockk:3.0.1")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.testcontainers:mongodb:1.20.1")
+    testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("org.awaitility:awaitility:3.0.0")
+    testImplementation("org.awaitility:awaitility-proxy:3.0.0")
 }
 
 kotlin {

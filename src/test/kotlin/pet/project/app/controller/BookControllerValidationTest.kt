@@ -185,21 +185,22 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when updating book with zero delta`() {
         // GIVEN
-        val request = UpdateAmountRequest(0)
+        val request = UpdateAmountRequest("66bf6bf8039339103054e21a", 0)
 
         // WHEN
         val result = mockMvc.perform(
-            patch("/book/{id}/amount", "507f191e810c19729de860ea")
+            patch("/book/amount")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
 
         // THEN
-        assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
-        val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
-        assertEquals("delta: Delta value must not be zero", actualMessage)
-        verify(exactly = 0) { bookServiceMock.changeAmount(any(), any()) }
+        val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
+        assertEquals(1, response.invalidInputReports.size)
+        assertEquals("delta", response.invalidInputReports[0].field)
+        assertEquals("Delta value must not be zero", response.invalidInputReports[0].message)
+        verify(exactly = 0) { bookServiceMock.updateAmount(any()) }
     }
 
     @Test
@@ -216,7 +217,7 @@ class BookControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { bookServiceMock.delete(any()) }
     }
@@ -235,8 +236,8 @@ class BookControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { bookServiceMock.changeAmount(any(), any()) }
+        verify(exactly = 0) { bookServiceMock.updateAmount(any()) }
     }
 }

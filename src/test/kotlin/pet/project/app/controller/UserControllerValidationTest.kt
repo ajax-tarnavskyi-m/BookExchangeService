@@ -39,7 +39,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when creating user with empty login`() {
         // GIVEN
-        val request = CreateUserRequest("")
+        val request = CreateUserRequest("", "test.user@example.com")
 
         // WHEN
         val result = mockMvc.perform(
@@ -60,7 +60,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with invalid ObjectId`() {
         //GIVEN
-        val request = UpdateUserRequest("invalidObjectId", "UserLogin")
+        val request = UpdateUserRequest("invalidObjectId", "UserLogin","test.user@example.com")
 
         //WHEN
         val result = mockMvc.perform(
@@ -82,7 +82,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with empty login`() {
         // GIVEN
-        val request = UpdateUserRequest("507f191e810c19729de860ea", "")
+        val request = UpdateUserRequest("507f191e810c19729de860ea", "","test.user@example.com")
 
         // WHEN
         val result = mockMvc.perform(
@@ -116,7 +116,7 @@ class UserControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { userServiceMock.delete(any()) }
     }
@@ -137,7 +137,7 @@ class UserControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { userServiceMock.delete(any()) }
     }
@@ -175,7 +175,7 @@ class UserControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { userServiceMock.delete(any()) }
     }
