@@ -20,7 +20,7 @@ class UserServiceImpl(
     override fun create(user: User): User = userRepository.insert(user)
 
     override fun getById(userId: String): User =
-        userRepository.findByIdOrNull(userId) ?: throw UserNotFoundException(userId, "GET request")
+        userRepository.findById(userId) ?: throw UserNotFoundException(userId, "GET request")
 
     override fun update(user: User): User {
         val updatedDocumentsCount = userRepository.update(user)

@@ -33,7 +33,7 @@ class NotificationServiceImplTest {
             UserNotificationDetails("user2", "user2@example.com", setOf("Book Title 2"))
         )
 
-        every { bookRepository.setShouldBeNotified(bookId, false) } returns 1L
+        every { bookRepository.updateShouldBeNotified(bookId, false) } returns 1L
         every { userRepository.findAllBookSubscribers(bookId) } returns userDetailsList
 
         // WHEN
@@ -42,7 +42,7 @@ class NotificationServiceImplTest {
         // THEN
         await().atMost(5, TimeUnit.SECONDS).untilAsserted {
             verify { userRepository.findAllBookSubscribers(bookId) }
-            verify { bookRepository.setShouldBeNotified(bookId, false) }
+            verify { bookRepository.updateShouldBeNotified(bookId, false) }
         }
     }
 
@@ -50,14 +50,14 @@ class NotificationServiceImplTest {
     fun `notifySubscribedUsers should return false when no notification is needed`() {
         // GIVEN
         val bookId = "66faafae1d7c375ad3c2ab2d"
-        every { bookRepository.setShouldBeNotified(bookId, false) } returns 0L
+        every { bookRepository.updateShouldBeNotified(bookId, false) } returns 0L
 
         // WHEN
         notificationService.notifySubscribedUsers(bookId)
 
         // THEN
         await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify { bookRepository.setShouldBeNotified(bookId, false) }
+            verify { bookRepository.updateShouldBeNotified(bookId, false) }
         }
         verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
     }
@@ -71,8 +71,8 @@ class NotificationServiceImplTest {
             UserNotificationDetails("user2", "user2@example.com", setOf("Book Title 2"))
         )
 
-        every { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) } returns 1L
-        every { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) } returns 1L
+        every { bookRepository.updateShouldBeNotified(bookIds[0], false) } returns 1L
+        every { bookRepository.updateShouldBeNotified(bookIds[1], false) } returns 1L
         every { userRepository.findAllBookListSubscribers(bookIds) } returns userDetailsList
 
         // WHEN
@@ -82,8 +82,8 @@ class NotificationServiceImplTest {
         await().atMost(5, TimeUnit.SECONDS).untilAsserted {
             verify { userRepository.findAllBookListSubscribers(bookIds) }
         }
-        verify { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) }
-        verify { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) }
+        verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
+        verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
 
     @Test
@@ -91,8 +91,8 @@ class NotificationServiceImplTest {
         // GIVEN
         val bookIds = listOf("66faafae1d7c375ad3c2ab2d", "66faaf5e1d7c375ad3c2ab2c")
 
-        every { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) } returns 0L
-        every { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) } returns 0L
+        every { bookRepository.updateShouldBeNotified(bookIds[0], false) } returns 0L
+        every { bookRepository.updateShouldBeNotified(bookIds[1], false) } returns 0L
 
         // WHEN
         notificationService.notifySubscribedUsers(bookIds)
@@ -102,8 +102,8 @@ class NotificationServiceImplTest {
             verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
             verify(exactly = 0) { userRepository.findAllBookListSubscribers(any()) }
         }
-        verify { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) }
-        verify { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) }
+        verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
+        verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
 
     @Test
@@ -114,18 +114,18 @@ class NotificationServiceImplTest {
             UserNotificationDetails("user1", "user1@example.com", setOf("Book Title 1"))
         )
 
-        every { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) } returns 1L
-        every { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) } returns 0L
-        every { userRepository.findAllBookSubscribers("66faafae1d7c375ad3c2ab2d") } returns userDetailsList
+        every { bookRepository.updateShouldBeNotified(bookIds[0], false) } returns 1L
+        every { bookRepository.updateShouldBeNotified(bookIds[1], false) } returns 0L
+        every { userRepository.findAllBookSubscribers(bookIds[0]) } returns userDetailsList
 
         // WHEN
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
         await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify { userRepository.findAllBookSubscribers("66faafae1d7c375ad3c2ab2d") }
+            verify { userRepository.findAllBookSubscribers(bookIds[0]) }
         }
-        verify { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) }
-        verify { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) }
+        verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
+        verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
 }

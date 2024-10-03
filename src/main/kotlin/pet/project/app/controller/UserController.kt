@@ -50,5 +50,7 @@ class UserController(private val userService: UserService, private val mapper: U
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@ValidObjectId @PathVariable("id") userId: String) = userService.delete(userId)
+    fun delete(@ValidObjectId @PathVariable("id") userId: String) {
+        userService.delete(userId)
+    }
 }

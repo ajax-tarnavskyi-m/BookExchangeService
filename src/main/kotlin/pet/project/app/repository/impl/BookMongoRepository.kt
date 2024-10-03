@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.aggregation.AggregationUpdate.updat
 import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators.Add
 import org.springframework.data.mongodb.core.aggregation.ComparisonOperators.valueOf
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators.Cond
+import org.springframework.data.mongodb.core.aggregation.Fields
 import org.springframework.data.mongodb.core.aggregation.SetOperation
 import org.springframework.data.mongodb.core.exists
 import org.springframework.data.mongodb.core.query.Criteria.where
@@ -32,17 +33,18 @@ internal class BookMongoRepository(private val mongoTemplate: MongoTemplate) : B
         return mongoTemplate.insert(book)
     }
 
-    override fun findByIdOrNull(id: String): Book? {
+    override fun findById(id: String): Book? {
         return mongoTemplate.findById(id, Book::class.java)
     }
 
     override fun existsById(id: String): Boolean {
-        return mongoTemplate.exists<Book>(query(where("_id").isEqualTo(id)))
+        return mongoTemplate.exists<Book>(whereId(id))
     }
 
-    override fun updateAmount(request: UpdateAmountRequest): Long {
+    override fun updateAmount(request: UpdateAmountRequest): Boolean {
         val query = filterByIdAndValidAmountAvailable(request.bookId, request.delta)
-        return mongoTemplate.updateFirst<Book>(query, withAmountUpdatePipeline(request.delta)).modifiedCount
+        val result = mongoTemplate.updateFirst<Book>(query, withAmountUpdatePipeline(request.delta))
+        return result.modifiedCount == 1L
     }
 
     override fun updateAmountMany(requests: List<UpdateAmountRequest>): Int {
@@ -73,7 +75,7 @@ internal class BookMongoRepository(private val mongoTemplate: MongoTemplate) : B
     }
 
     private fun filterByIdAndValidAmountAvailable(bookId: String, delta: Int): Query {
-        val query = query(where("_id").isEqualTo(bookId))
+        val query = whereId(bookId)
         if (delta < 0) {
             val positiveDelta = -delta
             query.addCriteria(where("amountAvailable").gte(positiveDelta))
@@ -81,19 +83,19 @@ internal class BookMongoRepository(private val mongoTemplate: MongoTemplate) : B
         return query
     }
 
-    override fun setShouldBeNotified(bookId: String, boolValue: Boolean): Long {
-        val query = query(where("_id").isEqualTo(bookId))
+    override fun updateShouldBeNotified(bookId: String, boolValue: Boolean): Long {
         val update = Update().set("shouldBeNotified", boolValue)
-        return mongoTemplate.updateFirst<Book>(query, update).modifiedCount
+        return mongoTemplate.updateFirst<Book>(whereId(bookId), update).modifiedCount
     }
 
     override fun update(book: Book): Long {
-        val filterById = query(where("_id").isEqualTo(book.id))
+        val filterById = query(where(Fields.UNDERSCORE_ID).isEqualTo(book.id))
         return mongoTemplate.replace(filterById, book).modifiedCount
     }
 
     override fun delete(id: String): Long {
-        val filterById = query(where("_id").isEqualTo(id))
-        return mongoTemplate.remove<Book>(filterById).deletedCount
+        return mongoTemplate.remove<Book>(whereId(id)).deletedCount
     }
+
+    private fun whereId(bookId: String) = query(where(Fields.UNDERSCORE_ID).isEqualTo(bookId))
 }

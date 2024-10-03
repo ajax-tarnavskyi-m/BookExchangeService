@@ -5,7 +5,7 @@ import pet.project.app.model.User
 
 interface UserRepository {
     fun insert(user: User): User
-    fun findByIdOrNull(id: String): User?
+    fun findById(id: String): User?
     fun delete(id: String): Long
     fun update(user: User): Long
     fun findAllBookSubscribers(bookId: String): List<UserNotificationDetails>

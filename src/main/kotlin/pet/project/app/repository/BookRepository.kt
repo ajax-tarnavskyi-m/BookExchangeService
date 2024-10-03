@@ -5,11 +5,11 @@ import pet.project.app.model.Book
 
 interface BookRepository {
     fun insert(book: Book): Book
-    fun findByIdOrNull(id: String): Book?
+    fun findById(id: String): Book?
     fun update(book: Book): Long
     fun delete(id: String): Long
     fun existsById(id: String): Boolean
-    fun updateAmount(request: UpdateAmountRequest): Long
+    fun updateAmount(request: UpdateAmountRequest): Boolean
     fun updateAmountMany(requests: List<UpdateAmountRequest>): Int
-    fun setShouldBeNotified(bookId: String, boolValue: Boolean): Long
+    fun updateShouldBeNotified(bookId: String, boolValue: Boolean): Long
 }

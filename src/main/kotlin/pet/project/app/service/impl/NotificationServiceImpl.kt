@@ -42,7 +42,7 @@ class NotificationServiceImpl(
     }
 
     private fun updateShouldBeNotified(bookId: String) =
-        bookRepository.setShouldBeNotified(bookId, false) == 1L
+        bookRepository.updateShouldBeNotified(bookId, false) == 1L
 
     companion object {
         private val log = LoggerFactory.getLogger(NotificationServiceImpl::class.java)

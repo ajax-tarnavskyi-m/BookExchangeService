@@ -19,7 +19,6 @@ import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.service.BookService
 import pet.project.app.validation.ValidObjectId
-
 @RestController
 @RequestMapping("/book")
 class BookController(private val bookService: BookService, private val mapper: BookMapper) {
@@ -52,5 +51,8 @@ class BookController(private val bookService: BookService, private val mapper: B
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@ValidObjectId @PathVariable("id") id: String) = bookService.delete(id)
+    fun delete(@ValidObjectId @PathVariable("id") id: String) {
+        bookService.delete(id)
+    }
 }
+

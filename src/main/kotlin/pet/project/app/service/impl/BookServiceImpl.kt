@@ -14,13 +14,13 @@ import pet.project.app.service.NotificationService
 @Service
 class BookServiceImpl(
     private val bookRepository: BookRepository,
-    private val notificationService: NotificationService
+    private val notificationService: NotificationService,
 ) : BookService {
 
     override fun create(book: Book): Book = bookRepository.insert(book)
 
     override fun getById(bookId: String): Book =
-        bookRepository.findByIdOrNull(bookId) ?: throw BookNotFoundException(bookId, "GET request")
+        bookRepository.findById(bookId) ?: throw BookNotFoundException(bookId, "GET request")
 
     override fun update(book: Book): Book {
         val updatedDocumentsCount = bookRepository.update(book)
@@ -31,10 +31,9 @@ class BookServiceImpl(
     }
 
     override fun updateAmount(request: UpdateAmountRequest): Boolean {
-        val modifiedCount = bookRepository.updateAmount(request)
-        if (modifiedCount != 1L) {
-            throw IllegalArgumentException("Requested book absent or have less amount available that needed: $request")
-        }
+        val amountUpdated = bookRepository.updateAmount(request)
+        require(amountUpdated) { "Requested book absent or have less amount available that needed: $request"}
+
         if (request.delta > 0) {
             notificationService.notifySubscribedUsers(request.bookId)
         }
@@ -43,13 +42,11 @@ class BookServiceImpl(
 
     override fun exchangeBooks(requests: List<UpdateAmountRequest>): Boolean {
         val matchedCount = bookRepository.updateAmountMany(requests)
-        if (matchedCount != requests.size) {
-            throw IllegalArgumentException("Requested books absent or have less amount available that needed: $requests")
-        }
+        require (matchedCount == requests.size) { "Requested books absent or no enough available: $requests" }
 
-        val booksWithIncreasedAmount = requests.filter { it.delta > 0 }
+        val booksWithIncreasedAmount = requests.filter { it.delta > 0 }.map { it.bookId }
         if (booksWithIncreasedAmount.isNotEmpty()) {
-            notificationService.notifySubscribedUsers(booksWithIncreasedAmount.map { it.bookId })
+            notificationService.notifySubscribedUsers(booksWithIncreasedAmount)
         }
 
         return true

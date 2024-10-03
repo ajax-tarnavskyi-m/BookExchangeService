@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort.DEFAULT_DIRECTION
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.index.Index
+import org.springframework.data.mongodb.core.indexOps
 import pet.project.app.model.User
 
 
@@ -21,8 +22,9 @@ class DatabaseChangeLog {
 
     @RollbackExecution
     fun rollbackIndexForUserWishlist(mongoTemplate: MongoTemplate) {
-        val indexExists = mongoTemplate.getCollection(User.COLLECTION_NAME).listIndexes()
-            .any { it.getString("name") == INDEX_NAME }
+        val indexExists = mongoTemplate.indexOps<User>().indexInfo
+            .map { it.name }
+            .any { it == INDEX_NAME }
         if (indexExists) {
             mongoTemplate.indexOps(User.COLLECTION_NAME).dropIndex(INDEX_NAME)
             log.info("ROLLBACK: Index {} of collection {} successfully dropped", INDEX_NAME, User.COLLECTION_NAME)

@@ -23,7 +23,7 @@ import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 
 @ExtendWith(MockKExtension::class)
-open class UserServiceImplTest {
+class UserServiceImplTest {
 
     @MockK
     lateinit var userRepositoryMock: UserRepository
@@ -59,14 +59,14 @@ open class UserServiceImplTest {
     fun `check getting user`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", "test.user@example.com", dummyWishlist)
-        every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns expected
+        val expected = User(ObjectId(testRequestUserId), "testUser123", "test.user@example.com", dummyWishlist)
+        every { userRepositoryMock.findById(testRequestUserId) } returns expected
 
         // WHEN
         val actual = userService.getById(testRequestUserId)
 
         // THEN
-        verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
+        verify { userRepositoryMock.findById(testRequestUserId) }
         assertEquals(expected, actual)
     }
 
@@ -74,7 +74,7 @@ open class UserServiceImplTest {
     fun `check getting user by id throws exception when not found`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns null
+        every { userRepositoryMock.findById(testRequestUserId) } returns null
 
         // WHEN
         assertThrows<UserNotFoundException> {
@@ -82,7 +82,7 @@ open class UserServiceImplTest {
         }
 
         // THEN
-        verify { userRepositoryMock.findByIdOrNull(testRequestUserId) }
+        verify { userRepositoryMock.findById(testRequestUserId) }
     }
 
     @Test
@@ -103,9 +103,9 @@ open class UserServiceImplTest {
     @Test
     fun `check update logs warn when affected documents count is not 1`() {
         // GIVEN
-        val fooLogger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
+        val logger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }
-        fooLogger.addAppender(listAppender)
+        logger.addAppender(listAppender)
 
         val user = User(id = ObjectId.get(), login = "test_user", email = "test@example.com")
         every { userRepositoryMock.update(user) } returns 0L
@@ -166,7 +166,7 @@ open class UserServiceImplTest {
                 any(),
                 any()
             )
-        }  // Ensure no wishlist update attempt was made
+        }
     }
 
     @Test
@@ -219,9 +219,9 @@ open class UserServiceImplTest {
     @Test
     fun `check delete logs warn when user is absent`() {
         // GIVEN
-        val fooLogger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
+        val logger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }
-        fooLogger.addAppender(listAppender)
+        logger.addAppender(listAppender)
 
         val userId = "66c35b050da7b9523070cb3a"
         every { userRepositoryMock.delete(userId) } returns 0L
