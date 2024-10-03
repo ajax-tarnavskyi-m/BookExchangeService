@@ -59,7 +59,7 @@ open class UserServiceImplTest {
     fun `check getting user`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123","test.user@example.com", dummyWishlist)
+        val expected = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser123", "test.user@example.com", dummyWishlist)
         every { userRepositoryMock.findByIdOrNull(testRequestUserId) } returns expected
 
         // WHEN
@@ -89,7 +89,7 @@ open class UserServiceImplTest {
     fun `check updating user`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        val user = User(ObjectId(testRequestUserId), "John Doe","test.user@example.com", dummyWishlist)
+        val user = User(ObjectId(testRequestUserId), "John Doe", "test.user@example.com", dummyWishlist)
         every { userRepositoryMock.update(user) } returns 1L
 
         // WHEN
@@ -161,7 +161,12 @@ open class UserServiceImplTest {
         )
 
         verify { bookRepositoryMock.existsById(bookId) }
-        verify(exactly = 0) { userRepositoryMock.addBookToWishList(any(), any()) }  // Ensure no wishlist update attempt was made
+        verify(exactly = 0) {
+            userRepositoryMock.addBookToWishList(
+                any(),
+                any()
+            )
+        }  // Ensure no wishlist update attempt was made
     }
 
     @Test

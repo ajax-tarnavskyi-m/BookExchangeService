@@ -60,7 +60,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with invalid ObjectId`() {
         //GIVEN
-        val request = UpdateUserRequest("invalidObjectId", "UserLogin","test.user@example.com")
+        val request = UpdateUserRequest("invalidObjectId", "UserLogin", "test.user@example.com")
 
         //WHEN
         val result = mockMvc.perform(
@@ -82,7 +82,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with empty login`() {
         // GIVEN
-        val request = UpdateUserRequest("507f191e810c19729de860ea", "","test.user@example.com")
+        val request = UpdateUserRequest("507f191e810c19729de860ea", "", "test.user@example.com")
 
         // WHEN
         val result = mockMvc.perform(

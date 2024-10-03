@@ -32,7 +32,7 @@ import java.math.BigDecimal
 
 @WebMvcTest(BookController::class)
 @Import(BookMapper::class)
-internal class BookControllerTest {
+class BookControllerTest {
     @Autowired
     private lateinit var mockMvc: MockMvc
 
@@ -114,7 +114,7 @@ internal class BookControllerTest {
     fun `update book amount successfully`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
-        val updateAmountRequest = UpdateAmountRequest(bookId,5 )
+        val updateAmountRequest = UpdateAmountRequest(bookId, 5)
 
         every { bookService.updateAmount(updateAmountRequest) } returns true
 

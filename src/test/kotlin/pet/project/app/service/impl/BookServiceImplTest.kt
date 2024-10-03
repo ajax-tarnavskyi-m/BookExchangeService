@@ -24,8 +24,10 @@ import java.math.BigDecimal
 class BookServiceImplTest {
     @MockK
     lateinit var bookRepositoryMock: BookRepository
+
     @MockK
     lateinit var notificationServiceMock: NotificationService
+
     @InjectMockKs
     lateinit var bookService: BookServiceImpl
 
@@ -101,6 +103,7 @@ class BookServiceImplTest {
 
     @Test
     fun `check updating amount successfully`() {
+        // GIVEN
         val bookId = ObjectId.get().toHexString()
         val testRequest = UpdateAmountRequest(bookId, 1)
         every { bookRepositoryMock.updateAmount(testRequest) } returns 1L
@@ -122,11 +125,14 @@ class BookServiceImplTest {
         val positiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 1)
         val alsoNegativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -3)
         val alsoPositiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 3)
-        val testRequests = listOf(negativeDeltaRequest, positiveDeltaRequest, alsoNegativeDeltaRequest, alsoPositiveDeltaRequest)
+        val testRequests =
+            listOf(negativeDeltaRequest, positiveDeltaRequest, alsoNegativeDeltaRequest, alsoPositiveDeltaRequest)
         every { bookRepositoryMock.updateAmountMany(testRequests) } returns testRequests.size
-        every { notificationServiceMock.notifySubscribedUsers(
-            listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
-        ) } just Runs
+        every {
+            notificationServiceMock.notifySubscribedUsers(
+                listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
+            )
+        } just Runs
 
         // WHEN
         val result = bookService.exchangeBooks(testRequests)
@@ -134,13 +140,16 @@ class BookServiceImplTest {
         // THEN
         assertTrue(result)
         verify { bookRepositoryMock.updateAmountMany(testRequests) }
-        verify { notificationServiceMock.notifySubscribedUsers(
-            listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
-        ) }
+        verify {
+            notificationServiceMock.notifySubscribedUsers(
+                listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
+            )
+        }
     }
 
     @Test
     fun `check exchangeBooks dont notify when requests have only negative delta`() {
+        // GIVEN
         val negativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -1)
         val alsoNegativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -3)
         val testRequests = listOf(negativeDeltaRequest, alsoNegativeDeltaRequest)
@@ -151,7 +160,7 @@ class BookServiceImplTest {
 
         assertTrue(result)
         verify { bookRepositoryMock.updateAmountMany(testRequests) }
-        verify(exactly = 0) { notificationServiceMock.notifySubscribedUsers(any<List<String>>())}
+        verify(exactly = 0) { notificationServiceMock.notifySubscribedUsers(any<List<String>>()) }
     }
 
     @Test

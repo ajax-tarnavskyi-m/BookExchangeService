@@ -17,8 +17,10 @@ import java.util.concurrent.TimeUnit
 class NotificationServiceImplTest {
     @MockK
     private lateinit var bookRepository: BookRepository
+
     @MockK
     private lateinit var userRepository: UserRepository
+
     @InjectMockKs
     private lateinit var notificationService: NotificationServiceImpl
 
@@ -69,19 +71,19 @@ class NotificationServiceImplTest {
             UserNotificationDetails("user2", "user2@example.com", setOf("Book Title 2"))
         )
 
-        every {bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false)} returns 1L
-        every {bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false)} returns 1L
-        every {userRepository.findAllBookListSubscribers(bookIds)} returns userDetailsList
+        every { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) } returns 1L
+        every { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) } returns 1L
+        every { userRepository.findAllBookListSubscribers(bookIds) } returns userDetailsList
 
         // WHEN
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
         await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify {userRepository.findAllBookListSubscribers(bookIds) }
+            verify { userRepository.findAllBookListSubscribers(bookIds) }
         }
-        verify {bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false)}
-        verify {bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false)}
+        verify { bookRepository.setShouldBeNotified("66faafae1d7c375ad3c2ab2d", false) }
+        verify { bookRepository.setShouldBeNotified("66faaf5e1d7c375ad3c2ab2c", false) }
     }
 
     @Test

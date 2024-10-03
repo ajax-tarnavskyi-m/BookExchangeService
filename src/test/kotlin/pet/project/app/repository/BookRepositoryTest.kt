@@ -13,7 +13,6 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class BookRepositoryTest : AbstractMongoTestContainer {
-
     @Autowired
     private lateinit var bookRepository: BookRepository
 
@@ -106,9 +105,7 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val savedBook = bookRepository.insert(firstUnsavedBook)
         val updatedBook = savedBook.copy(
-            title = "Updated Title",
-            description = "Updated Description",
-            price = BigDecimal("25.99")
+            title = "Updated Title", description = "Updated Description", price = BigDecimal("25.99")
         )
 
         // WHEN

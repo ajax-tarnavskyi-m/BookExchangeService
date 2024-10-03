@@ -26,7 +26,7 @@ import pet.project.app.repository.BookRepository
 
 @Repository
 @Profiling
-class BookMongoRepository(private val mongoTemplate: MongoTemplate) : BookRepository {
+internal class BookMongoRepository(private val mongoTemplate: MongoTemplate) : BookRepository {
 
     override fun insert(book: Book): Book {
         return mongoTemplate.insert(book)

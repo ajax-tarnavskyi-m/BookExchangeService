@@ -29,7 +29,7 @@ import pet.project.app.repository.UserRepository
 
 @Repository
 @Profiling
-class UserMongoRepository(private val mongoTemplate: MongoTemplate) : UserRepository {
+internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : UserRepository {
 
     override fun insert(user: User): User {
         return mongoTemplate.insert(user)
@@ -102,6 +102,3 @@ class UserMongoRepository(private val mongoTemplate: MongoTemplate) : UserReposi
     }
 
 }
-
-
-

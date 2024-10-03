@@ -12,19 +12,14 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class UserRepositoryTest : AbstractMongoTestContainer {
-
     @Autowired
     private lateinit var userRepository: UserRepository
 
     @Autowired
     private lateinit var bookRepository: BookRepository
 
-
     private val unsavedUser = User(
-        id = null,
-        login = "test_user",
-        email = "test_user@example.com",
-        bookWishList = setOf()
+        id = null, login = "test_user", email = "test_user@example.com", bookWishList = setOf()
     )
 
     @Test
@@ -91,18 +86,32 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val updatedUser = userRepository.findByIdOrNull(savedUser.id.toString())
         assertEquals(1, modifiedCount, "The matched count should be 1")
         assertNotNull(updatedUser, "Updated user should be found")
-        assertTrue(updatedUser.bookWishList.contains(ObjectId(inputBookId)), "The book should be in the user's wish list")
+        assertTrue(
+            updatedUser.bookWishList.contains(ObjectId(inputBookId)),
+            "The book should be in the user's wish list"
+        )
     }
 
     @Test
     fun `findAllBookSubscribers should return users with matching book in wishList`() {
         // GIVEN
-        // Сохраняем несколько книг в базу
-        val firstBook = bookRepository.insert(Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10)))
-        val secondBook = bookRepository.insert(Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15)))
+        val firstBook = bookRepository.insert(
+            Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10))
+        )
+        val secondBook = bookRepository.insert(
+            Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15))
+        )
 
-        val firstUser = userRepository.insert(User(login = "firstUser", email = "firstUser@example.com", bookWishList = setOf(firstBook.id!!)))
-        val secondUser = userRepository.insert(User(login = "secondUser", email = "secondUser@example.com", bookWishList = setOf(secondBook.id!!, firstBook.id!!)))
+        val firstUser = userRepository.insert(
+            User(login = "firstUser", email = "firstUser@example.com", bookWishList = setOf(firstBook.id!!))
+        )
+        val secondUser = userRepository.insert(
+            User(
+                login = "secondUser",
+                email = "secondUser@example.com",
+                bookWishList = setOf(secondBook.id!!, firstBook.id!!)
+            )
+        )
 
         // WHEN
         val result = userRepository.findAllBookSubscribers(firstBook.id!!.toHexString())
@@ -122,10 +131,18 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookSubscribers should return empty list when no users have the book`() {
         // GIVEN
-        val firstBook = bookRepository.insert(Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10)))
-        val secondBook = bookRepository.insert(Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15)))
-        userRepository.insert(User(login = "firstUser", email = "firstUser@example.com", bookWishList = setOf(firstBook.id!!)))
-        userRepository.insert(User(login = "secondUser", email = "secondUser@example.com", bookWishList = setOf(secondBook.id!!)))
+        val firstBook = bookRepository.insert(
+            Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10))
+        )
+        val secondBook = bookRepository.insert(
+            Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15))
+        )
+        userRepository.insert(
+            User(login = "firstUser", email = "firstUser@example.com", bookWishList = setOf(firstBook.id!!))
+        )
+        userRepository.insert(
+            User(login = "secondUser", email = "secondUser@example.com", bookWishList = setOf(secondBook.id!!))
+        )
 
         // WHEN
         val result = userRepository.findAllBookSubscribers(ObjectId.get().toHexString())
@@ -137,16 +154,37 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookListSubscribers should return users with correct book titles`() {
         // GIVEN
-        val firstBook = bookRepository.insert(Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10)))
-        val secondBook = bookRepository.insert(Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15)))
-        val thirdBook = bookRepository.insert(Book(title = "Book Three", description = "Third book", yearOfPublishing = 2022, price = BigDecimal(20)))
+        val firstBook = bookRepository.insert(
+            Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10))
+        )
+        val secondBook = bookRepository.insert(
+            Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15))
+        )
+        val thirdBook = bookRepository.insert(
+            Book(title = "Book Three", description = "Third book", yearOfPublishing = 2022, price = BigDecimal(20))
+        )
 
-        val firstUser = userRepository.insert(User(login = "user1", email = "user1@example.com", bookWishList = setOf(firstBook.id!!, secondBook.id!!)))
-        val secondUser = userRepository.insert(User(login = "user2", email = "user2@example.com", bookWishList = setOf(secondBook.id!!, thirdBook.id!!, firstBook.id!!)))
-        val thirdUser = userRepository.insert(User(login = "user3", email = "user3@example.com", bookWishList = setOf(firstBook.id!!)))
+        val firstUser = userRepository.insert(
+            User(login = "user1", email = "user1@example.com", bookWishList = setOf(firstBook.id!!, secondBook.id!!))
+        )
+        val secondUser = userRepository.insert(
+            User(
+                login = "user2",
+                email = "user2@example.com",
+                bookWishList = setOf(secondBook.id!!, thirdBook.id!!, firstBook.id!!)
+            )
+        )
+        val thirdUser = userRepository.insert(
+            User(login = "user3", email = "user3@example.com", bookWishList = setOf(firstBook.id!!))
+        )
 
         // WHEN
-        val result = userRepository.findAllBookListSubscribers(listOf(secondBook.id!!.toHexString(), thirdBook.id!!.toHexString()))
+        val result = userRepository.findAllBookListSubscribers(
+            listOf(
+                secondBook.id!!.toHexString(),
+                thirdBook.id!!.toHexString()
+            )
+        )
 
         // THEN
         assertEquals(2, result.size)
@@ -164,8 +202,12 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookListSubscribers should return empty list when no matching books`() {
         // GIVEN
-        val firstBook = bookRepository.insert(Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10)))
-        val secondBook = bookRepository.insert(Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15)))
+        val firstBook = bookRepository.insert(
+            Book(title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10))
+        )
+        val secondBook = bookRepository.insert(
+            Book(title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15))
+        )
 
         userRepository.insert(User(login = "user1", email = "user1@example.com", bookWishList = setOf(firstBook.id!!)))
         userRepository.insert(User(login = "user2", email = "user2@example.com", bookWishList = setOf(secondBook.id!!)))
