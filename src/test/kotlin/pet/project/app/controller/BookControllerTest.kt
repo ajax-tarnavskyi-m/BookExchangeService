@@ -6,9 +6,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -21,12 +19,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import pet.project.app.dto.book.BookMapper
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
-import pet.project.app.model.Book
+import pet.project.app.mapper.BookMapper
+import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
 import java.math.BigDecimal
 
@@ -46,8 +44,8 @@ class BookControllerTest {
     fun `get book by id successfully`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
-        val initializedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.getById(bookId) } returns initializedBook
+        val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
+        every { bookService.getById(bookId) } returns initializedDomainBook
 
         // WHEN
         val result = mockMvc.perform(get("/book/{id}", bookId))
@@ -65,10 +63,9 @@ class BookControllerTest {
     fun `create book successfully`() {
         // GIVEN
         val createBookRequest = CreateBookRequest("Title", "Description", 2023, BigDecimal(20.0), 10)
-        val mappedBook = Book(null, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val bookId = "66bf6bf8039339103054e21a"
-        val initializedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.create(mappedBook) } returns initializedBook
+        val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
+        every { bookService.create(createBookRequest) } returns initializedDomainBook
 
         // WHEN
         val result = mockMvc.perform(
@@ -83,20 +80,20 @@ class BookControllerTest {
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
         val expected = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         assertEquals(expected, actual)
-        verify { bookService.create(mappedBook) }
+        verify { bookService.create(createBookRequest) }
     }
 
     @Test
     fun `update book successfully`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
-        val updateBookRequest = UpdateBookRequest(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        val updatedBook = Book(ObjectId(bookId), "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.update(updatedBook) } returns updatedBook
+        val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
+        val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
+        every { bookService.update(bookId, updateBookRequest) } returns updatedDomainBook
 
         // WHEN
         val result = mockMvc.perform(
-            put("/book/")
+            put("/book/{id}", bookId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateBookRequest))
         )
@@ -107,8 +104,9 @@ class BookControllerTest {
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseBookDto::class.java)
         val expected = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         assertEquals(expected, actual)
-        verify { bookService.update(any()) }
-    }
+        verify { bookService.update(bookId, updateBookRequest)}
+        }
+
 
     @Test
     fun `update book amount successfully`() {
@@ -119,17 +117,14 @@ class BookControllerTest {
         every { bookService.updateAmount(updateAmountRequest) } returns true
 
         // WHEN
-        val result = mockMvc.perform(
+        mockMvc.perform(
             patch("/book/amount")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateAmountRequest))
         )
-            .andExpect(status().isOk)
-            .andReturn()
+            .andExpect(status().isNoContent)
 
         // THEN
-        val resultValue = objectMapper.readValue(result.response.contentAsString, Boolean::class.java)
-        assertTrue(resultValue)
         verify { bookService.updateAmount(updateAmountRequest) }
     }
 

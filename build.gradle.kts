@@ -66,3 +66,7 @@ configure<DeltaCoverageConfiguration> {
 tasks.check {
     dependsOn(tasks.deltaCoverage)
 }
+
+detekt {
+    buildUponDefaultConfig = true
+}

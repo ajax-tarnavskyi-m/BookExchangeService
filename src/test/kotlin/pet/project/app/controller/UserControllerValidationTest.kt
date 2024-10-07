@@ -13,14 +13,13 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.dto.user.UserMapper
 import pet.project.app.exception.handler.ValidationExceptionResponse
+import pet.project.app.mapper.UserMapper
 import pet.project.app.service.UserService
 
 @WebMvcTest(UserController::class)
@@ -60,44 +59,22 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with invalid ObjectId`() {
         //GIVEN
-        val request = UpdateUserRequest("invalidObjectId", "UserLogin", "test.user@example.com")
+        val request = UpdateUserRequest( "UserLogin", "test.user@example.com", setOf())
+        val invalidUserId = "invalidUserId"
 
         //WHEN
         val result = mockMvc.perform(
-            put("/user/")
+            put("/user/{id}", invalidUserId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
 
         // THEN
-        val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
-        assertEquals(1, response.invalidInputReports.size)
-        assertEquals("id", response.invalidInputReports[0].field)
-        val actualMessage = response.invalidInputReports[0].message
+        assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
+        val exception = result.resolvedException as HandlerMethodValidationException
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { userServiceMock.update(any()) }
-    }
-
-    @Test
-    fun `should return bad request when updating user with empty login`() {
-        // GIVEN
-        val request = UpdateUserRequest("507f191e810c19729de860ea", "", "test.user@example.com")
-
-        // WHEN
-        val result = mockMvc.perform(
-            put("/user/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        ).andReturn()
-
-        // THEN
-        val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
-        assertEquals(1, response.invalidInputReports.size)
-        assertEquals("login", response.invalidInputReports[0].field)
-        assertEquals("User login must not be blank", response.invalidInputReports[0].message)
-        verify(exactly = 0) { userServiceMock.update(any()) }
+        verify(exactly = 0) { userServiceMock.update(any(), any()) }
     }
 
     @Test
@@ -108,7 +85,7 @@ class UserControllerValidationTest {
 
         // WHEN
         val result = mockMvc.perform(
-            patch("/user/{id}/wishlist", invalidUserId)
+            put("/user/{id}/wishlist", invalidUserId)
                 .param("bookId", bookId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()
@@ -129,7 +106,7 @@ class UserControllerValidationTest {
 
         //WHEN
         val result = mockMvc.perform(
-            patch("/user/{id}/wishlist", userId)
+            put("/user/{id}/wishlist", userId)
                 .param("bookId", invalidBookId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()

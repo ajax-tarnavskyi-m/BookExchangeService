@@ -3,10 +3,8 @@ package pet.project.app
 import io.mongock.runner.springboot.EnableMongock
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.scheduling.annotation.EnableAsync
 
 @EnableMongock
-@EnableAsync
 @SpringBootApplication
 class BookExchangeServiceApplication
 

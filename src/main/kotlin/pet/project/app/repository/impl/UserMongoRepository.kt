@@ -1,6 +1,7 @@
 package pet.project.app.repository.impl
 
 import org.bson.types.ObjectId
+import org.springframework.data.mongodb.core.FindAndModifyOptions.options
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation.match
 import org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation
@@ -24,39 +25,40 @@ import org.springframework.data.mongodb.core.remove
 import org.springframework.data.mongodb.core.updateFirst
 import org.springframework.stereotype.Repository
 import pet.project.app.annotation.Profiling
+import pet.project.app.dto.user.CreateUserRequest
+import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserNotificationDetails
-import pet.project.app.model.Book
-import pet.project.app.model.User
+import pet.project.app.mapper.UserMapper.toDomain
+import pet.project.app.mapper.UserMapper.toMongo
+import pet.project.app.mapper.UserMapper.toUpdate
+import pet.project.app.model.domain.DomainUser
+import pet.project.app.model.mongo.MongoBook
+import pet.project.app.model.mongo.MongoUser
 import pet.project.app.repository.UserRepository
 
 @Repository
 @Profiling
 internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : UserRepository {
 
-    override fun insert(user: User): User {
-        return mongoTemplate.insert(user)
+    override fun insert(createUserRequest: CreateUserRequest): DomainUser {
+        return mongoTemplate.insert(createUserRequest.toMongo()).toDomain()
     }
 
-    override fun findById(id: String): User? {
-        return mongoTemplate.findById(id, User::class.java)
-    }
-
-    override fun update(user: User): Long {
-        val updateResult = mongoTemplate.replace(query(where(Fields.UNDERSCORE_ID).isEqualTo(user.id)), user)
-        return updateResult.modifiedCount
+    override fun findById(id: String): DomainUser? {
+        return mongoTemplate.findById(id, MongoUser::class.java)?.toDomain()
     }
 
     override fun findAllBookSubscribers(bookId: String): List<UserNotificationDetails> {
         val newAggregation = newAggregation(
-            User::class.java,
-            match(where("bookWishList").`is`(ObjectId(bookId))),
+            MongoUser::class.java,
+            match(where(MongoUser::bookWishList.name).`is`(ObjectId(bookId))),
             LookupOperation(
-                Book.COLLECTION_NAME, null, AggregationPipeline.of(matchIdEqualTo(bookId)), field("bookDetails")
+                MongoBook.COLLECTION_NAME, null, AggregationPipeline.of(matchIdEqualTo(bookId)), field(BOOK_DETAILS)
             ),
-            project("login", "email").and("bookDetails.title").`as`("bookTitles")
+            project(MongoUser::login.name, MongoUser::email.name).and(BOOK_DETAILS_TITLE).`as`(BOOK_TITLES)
         )
 
-        return mongoTemplate.aggregate(newAggregation, User::class.java, UserNotificationDetails::class.java)
+        return mongoTemplate.aggregate(newAggregation, MongoUser::class.java, UserNotificationDetails::class.java)
             .mappedResults
     }
 
@@ -65,20 +67,20 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
 
     override fun findAllBookListSubscribers(booksIds: List<String>): List<UserNotificationDetails> {
         val bookObjectIds = booksIds.map { ObjectId(it) }
-        val let = Let.just(newVariable("wishListBook").forField("bookWishList"))
+        val let = Let.just(newVariable(WISHLIST_BOOK).forField(MongoUser::bookWishList.name))
         val newAggregation = newAggregation(
-            User::class.java,
-            match(where("bookWishList").`in`(bookObjectIds)),
+            MongoUser::class.java,
+            match(where(MongoUser::bookWishList.name).`in`(bookObjectIds)),
             LookupOperation(
-                "book",
+                MongoBook.COLLECTION_NAME,
                 let,
                 AggregationPipeline.of(matchIdContainsIn(bookObjectIds)),
-                field("bookDetails")
+                field(BOOK_DETAILS)
             ),
-            project("login", "email").and("bookDetails.title").`as`("bookTitles")
+            project(MongoUser::login.name, MongoUser::email.name).and(BOOK_DETAILS_TITLE).`as`(BOOK_TITLES)
         )
 
-        return mongoTemplate.aggregate(newAggregation, User::class.java, UserNotificationDetails::class.java)
+        return mongoTemplate.aggregate(newAggregation, MongoUser::class.java, UserNotificationDetails::class.java)
             .mappedResults
     }
 
@@ -86,7 +88,7 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
         return match(
             Expr.valueOf(
                 and(
-                    In.arrayOf("\$\$wishListBook").containsValue(Fields.UNDERSCORE_ID_REF),
+                    In.arrayOf(WISHLIST_BOOK_REF_REF).containsValue(Fields.UNDERSCORE_ID_REF),
                     In.arrayOf(bookIds).containsValue(Fields.UNDERSCORE_ID_REF)
                 )
             )
@@ -94,15 +96,27 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
     }
 
     override fun addBookToWishList(userId: String, bookId: String): Long {
-        val update = Update().addToSet("bookWishList", ObjectId(bookId))
-        return mongoTemplate.updateFirst<User>(whereId(userId), update).matchedCount
+        val update = Update().addToSet(MongoUser::bookWishList.name, ObjectId(bookId))
+        return mongoTemplate.updateFirst<MongoUser>(whereId(userId), update).matchedCount
+    }
+
+    override fun update(userId: String, request: UpdateUserRequest): DomainUser? {
+        val op = options().returnNew(true)
+        return mongoTemplate.findAndModify(whereId(userId), request.toUpdate(), op, MongoUser::class.java)?.toDomain()
     }
 
     override fun delete(id: String): Long {
-        val deleteResult = mongoTemplate.remove<User>(whereId(id))
-        return deleteResult.deletedCount
+        return mongoTemplate.remove<MongoUser>(whereId(id)).deletedCount
     }
 
     private infix fun whereId(userId: String) = query(where(Fields.UNDERSCORE_ID).isEqualTo(userId))
+
+    companion object {
+        const val BOOK_DETAILS = "bookDetails"
+        const val BOOK_DETAILS_TITLE = "bookDetails.title"
+        const val BOOK_TITLES = "bookTitles"
+        const val WISHLIST_BOOK = "wishListBook"
+        const val WISHLIST_BOOK_REF_REF = "\$\$" + WISHLIST_BOOK
+    }
 
 }

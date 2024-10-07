@@ -1,7 +1,6 @@
 package pet.project.app.service.impl
 
 import org.slf4j.LoggerFactory
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import pet.project.app.annotation.Profiling
 import pet.project.app.dto.user.UserNotificationDetails
@@ -16,7 +15,6 @@ class NotificationServiceImpl(
     private val userRepository: UserRepository,
 ) : NotificationService {
 
-    @Async
     override fun notifySubscribedUsers(bookId: String) {
         if (updateShouldBeNotified(bookId)) {
             val userNotificationDetailsList = userRepository.findAllBookSubscribers(bookId)
@@ -24,7 +22,6 @@ class NotificationServiceImpl(
         }
     }
 
-    @Async
     override fun notifySubscribedUsers(bookIds: List<String>) {
         val bookIdsForNotification = bookIds.filter { updateShouldBeNotified(it) }
         val userNotificationDetailsList = when(bookIdsForNotification.size) {

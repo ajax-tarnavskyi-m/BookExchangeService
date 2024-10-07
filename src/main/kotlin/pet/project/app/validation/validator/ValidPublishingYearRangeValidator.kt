@@ -20,7 +20,10 @@ import java.time.Year
 class ValidPublishingYearRangeValidator(
     @Value("\${validation.params.future-years-allowance:5}") private val futureYearsAllowance: Int,
 ) : ConstraintValidator<ValidPublishingYearRange, Int> {
-    override fun isValid(value: Int, context: ConstraintValidatorContext?): Boolean {
+    override fun isValid(value: Int?, context: ConstraintValidatorContext?): Boolean {
+        if (value == null) {
+            return true
+        }
         val maxYear = Year.now().value + futureYearsAllowance
         return value in MIN_YEAR..maxYear
     }

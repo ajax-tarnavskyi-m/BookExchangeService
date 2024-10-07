@@ -3,8 +3,9 @@ package pet.project.app.repository
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
-import pet.project.app.model.Book
-import pet.project.app.model.User
+import pet.project.app.dto.book.CreateBookRequest
+import pet.project.app.dto.user.CreateUserRequest
+import pet.project.app.dto.user.UpdateUserRequest
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -18,34 +19,28 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Autowired
     private lateinit var bookRepository: BookRepository
 
-    private val firstUnsavedUser = User(login = "test_user", email = "test_user@example.com")
-    private val secondUnsavedUser = User(login = "secondUser", email = "secondUser@example.com")
-    private val firstUnsavedBook = Book(
-        title = "Book One", description = "First book", yearOfPublishing = 2020, price = BigDecimal(10)
-    )
-    private val secondUnsavedBook = Book(
-        title = "Book Two", description = "Second book", yearOfPublishing = 2021, price = BigDecimal(15)
-    )
-    private val thirdUnsavedBook = Book(
-        title = "Book Three", description = "Third book", yearOfPublishing = 2022, price = BigDecimal(20)
-    )
+    private val firstCreateUserRequest = CreateUserRequest(login = "test_user", email = "test_user@example.com")
+    private val secondUserCreateRequest = CreateUserRequest(login = "secondUser", email = "secondUser@example.com")
+    private val firstCreateBookRequest = CreateBookRequest("Book One", "First book", 2020, BigDecimal(10), 0)
+    private val secondCreateBookRequest = CreateBookRequest("Book Two", "Second book", 2021, BigDecimal(15), 0)
+    private val thirdCreateBookRequest = CreateBookRequest("Book Three", "Third book", 2022, BigDecimal(20), 0)
 
     @Test
     fun `insert should save user and assign id`() {
         // WHEN
-        val savedUser = userRepository.insert(firstUnsavedUser)
+        val savedUser = userRepository.insert(firstCreateUserRequest)
 
         // THEN
         assertNotNull(savedUser.id, "Id should not be null after save")
-        assertEquals(firstUnsavedUser.login, savedUser.login)
-        assertEquals(firstUnsavedUser.email, savedUser.email)
-        assertEquals(firstUnsavedUser.bookWishList, savedUser.bookWishList)
+        assertEquals(firstCreateUserRequest.login, savedUser.login)
+        assertEquals(firstCreateUserRequest.email, savedUser.email)
+        assertEquals(firstCreateUserRequest.bookWishList, savedUser.bookWishList)
     }
 
     @Test
     fun `findByIdOrNull should return saved user`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstUnsavedUser)
+        val savedUser = userRepository.insert(firstCreateUserRequest)
 
         // WHEN
         val actualUser = userRepository.findById(savedUser.id.toString())
@@ -67,35 +62,33 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `update should modify user successfully`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstUnsavedUser.copy(login = "old_login"))
-        val updatedUser = savedUser.copy(login = "new_login")
+        val savedUser = userRepository.insert(firstCreateUserRequest.copy(login = "old_login"))
+        val updateRequest = UpdateUserRequest(login = "new_login", null, null)
 
         // WHEN
-        val modifiedCount = userRepository.update(updatedUser)
+        val updatedUser = userRepository.update(savedUser.id, updateRequest)
 
         // THEN
-        val actualUser = userRepository.findById(savedUser.id.toString())
-        assertEquals(1, modifiedCount, "Modified count should be 1")
-        assertNotNull(actualUser)
-        assertEquals("new_login", actualUser.login, "Login should be updated")
+        assertNotNull(updatedUser)
+        assertEquals("new_login", updatedUser.login, "Login should be updated")
     }
 
 
     @Test
     fun `addBookToWishList should add bookId to user's wish list`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstUnsavedUser)
+        val savedUser = userRepository.insert(firstCreateUserRequest)
         val inputBookId = ObjectId.get().toHexString()
 
         // WHEN
-        val modifiedCount = userRepository.addBookToWishList(savedUser.id.toString(), inputBookId)
+        val modifiedCount = userRepository.addBookToWishList(savedUser.id, inputBookId)
 
         // THEN
-        val updatedUser = userRepository.findById(savedUser.id.toString())
+        val updatedUser = userRepository.findById(savedUser.id)
         assertEquals(1, modifiedCount, "The matched count should be 1")
         assertNotNull(updatedUser, "Updated user should be found")
         assertTrue(
-            updatedUser.bookWishList.contains(ObjectId(inputBookId)),
+            updatedUser.bookWishList.contains(inputBookId),
             "The book should be in the user's wish list"
         )
     }
@@ -103,17 +96,17 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookSubscribers should return users with matching book in wishList`() {
         // GIVEN
-        val firstBook = bookRepository.insert(firstUnsavedBook)
-        val secondBook = bookRepository.insert(secondUnsavedBook)
+        val firstBook = bookRepository.insert(firstCreateBookRequest)
+        val secondBook = bookRepository.insert(secondCreateBookRequest)
         val firstUser = userRepository.insert(
-            firstUnsavedUser.copy(bookWishList = setOf(secondBook.id!!, firstBook.id!!))
+            firstCreateUserRequest.copy(bookWishList = setOf(secondBook.id, firstBook.id))
         )
         val secondUser = userRepository.insert(
-            secondUnsavedUser.copy(bookWishList = setOf(firstBook.id!!, secondBook.id!!))
+            secondUserCreateRequest.copy(bookWishList = setOf(firstBook.id, secondBook.id))
         )
 
         // WHEN
-        val result = userRepository.findAllBookSubscribers(firstBook.id!!.toHexString())
+        val result = userRepository.findAllBookSubscribers(firstBook.id)
 
         // THEN
         assertEquals(2, result.size, "User details should contains both users info")
@@ -130,10 +123,10 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookSubscribers should return empty list when no users have the book`() {
         // GIVEN
-        val firstBook = bookRepository.insert(firstUnsavedBook)
-        val secondBook = bookRepository.insert(secondUnsavedBook)
-        userRepository.insert(firstUnsavedUser.copy(bookWishList = setOf(firstBook.id!!)))
-        userRepository.insert(secondUnsavedUser.copy(bookWishList = setOf(secondBook.id!!)))
+        val firstBook = bookRepository.insert(firstCreateBookRequest)
+        val secondBook = bookRepository.insert(secondCreateBookRequest)
+        userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id)))
+        userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id)))
 
         // WHEN
         val result = userRepository.findAllBookSubscribers(ObjectId.get().toHexString())
@@ -145,26 +138,26 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookListSubscribers should return users with correct book titles`() {
         // GIVEN
-        val firstBook = bookRepository.insert(firstUnsavedBook)
-        val secondBook = bookRepository.insert(secondUnsavedBook)
-        val thirdBook = bookRepository.insert(thirdUnsavedBook)
+        val firstBook = bookRepository.insert(firstCreateBookRequest)
+        val secondBook = bookRepository.insert(secondCreateBookRequest)
+        val thirdBook = bookRepository.insert(thirdCreateBookRequest)
         val firstUser = userRepository.insert(
-            firstUnsavedUser.copy(bookWishList = setOf(firstBook.id!!, secondBook.id!!))
+            firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id, secondBook.id))
         )
         val secondUser = userRepository.insert(
-            secondUnsavedUser.copy(bookWishList = setOf(secondBook.id!!, thirdBook.id!!, firstBook.id!!))
+            secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id, thirdBook.id, firstBook.id))
         )
-        val thirdUser = userRepository.insert(
-            User(login = "user3", email = "user3@example.com", bookWishList = setOf(firstBook.id!!))
+        val thirdDomainUser = userRepository.insert(
+            CreateUserRequest(login = "user3", email = "user3@example.com", bookWishList = setOf(firstBook.id))
         )
-        val requestIds = listOf(secondBook.id!!.toHexString(), thirdBook.id!!.toHexString())
+        val requestIds = listOf(secondBook.id, thirdBook.id)
 
         // WHEN
         val result = userRepository.findAllBookListSubscribers(requestIds)
 
         // THEN
         assertEquals(2, result.size)
-        assertNull(result.find { it.login == thirdUser.login })
+        assertNull(result.find { it.login == thirdDomainUser.login })
 
         val firstUserDetails = result.find { it.login == firstUser.login }
         assertNotNull(firstUserDetails, "User details should not be null")
@@ -178,11 +171,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `findAllBookListSubscribers should return empty list when no matching books`() {
         // GIVEN
-        val firstBook = bookRepository.insert(firstUnsavedBook)
-        val secondBook = bookRepository.insert(firstUnsavedBook)
+        val firstBook = bookRepository.insert(firstCreateBookRequest)
+        val secondBook = bookRepository.insert(firstCreateBookRequest)
 
-        userRepository.insert(firstUnsavedUser.copy(bookWishList = setOf(firstBook.id!!)))
-        userRepository.insert(secondUnsavedUser.copy(bookWishList = setOf(secondBook.id!!)))
+        userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id)))
+        userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id)))
 
         // WHEN
         val result = userRepository.findAllBookListSubscribers(listOf(ObjectId.get().toHexString()))
@@ -194,7 +187,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `delete should remove user by id`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstUnsavedUser)
+        val savedUser = userRepository.insert(firstCreateUserRequest)
 
         // WHEN
         val deleteCount = userRepository.delete(savedUser.id.toString())

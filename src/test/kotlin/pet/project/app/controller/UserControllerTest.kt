@@ -6,9 +6,7 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -17,15 +15,14 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.dto.user.UserMapper
-import pet.project.app.model.User
+import pet.project.app.mapper.UserMapper
+import pet.project.app.model.domain.DomainUser
 import pet.project.app.service.UserService
 
 @WebMvcTest(UserController::class)
@@ -50,10 +47,9 @@ class UserControllerTest {
     fun `create user successfully`() {
         // GIVEN
         val createUserRequest = CreateUserRequest("testUser", "test.user@example.com", emptySet())
-        val mappedUser = User(null, "testUser", "test.user@example.com", emptySet())
-        val initializedUser =
-            User(ObjectId("66bf6bf8039339103054e21a"), "testUser", "test.user@example.com", emptySet())
-        every { userService.create(mappedUser) } returns initializedUser
+        val initializedDomainUser =
+            DomainUser("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
+        every { userService.create(createUserRequest) } returns initializedDomainUser
 
         // WHEN
         val result = mockMvc.perform(
@@ -68,15 +64,14 @@ class UserControllerTest {
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
         val expected = ResponseUserDto("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
         assertEquals(expected, actual)
-        verify { userService.create(mappedUser) }
+        verify { userService.create(createUserRequest) }
     }
 
     @Test
     fun `get user by id successfully`() {
         // GIVEN
-        val user = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser", "test.user@example.com", emptySet())
-
-        every { userService.getById("66c35b050da7b9523070cb3a") } returns user
+        val domainUser = DomainUser("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
+        every { userService.getById("66c35b050da7b9523070cb3a") } returns domainUser
 
         // WHEN
         val result = mockMvc.perform(get("/user/{id}", "66c35b050da7b9523070cb3a"))
@@ -93,19 +88,14 @@ class UserControllerTest {
     @Test
     fun `update user successfully`() {
         // GIVEN
-        val updateUserRequest =
-            UpdateUserRequest("66c35b050da7b9523070cb3a", "updatedUser", "test.user@example.com", dummyWishlist)
-        val mappedUser = User(
-            ObjectId("66c35b050da7b9523070cb3a"),
-            "updatedUser",
-            "test.user@example.com",
-            dummyWishlist.map { ObjectId(it) }.toSet()
-        )
-        every { userService.update(any()) } returns mappedUser
+        val userId = "66c35b050da7b9523070cb3a"
+        val updateUserRequest = UpdateUserRequest("updatedUser", "test.user@example.com", dummyWishlist)
+        val mappedDomainUser = DomainUser(userId, "updatedUser", "test.user@example.com", dummyWishlist)
+        every { userService.update(userId, updateUserRequest) } returns mappedDomainUser
 
         // WHEN
         val result = mockMvc.perform(
-            put("/user/")
+            put("/user/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateUserRequest))
         )
@@ -114,10 +104,9 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected =
-            ResponseUserDto("66c35b050da7b9523070cb3a", "updatedUser", "test.user@example.com", dummyWishlist)
+        val expected = ResponseUserDto(userId, "updatedUser", "test.user@example.com", dummyWishlist)
         assertEquals(expected, actual)
-        verify { userService.update(any()) }
+        verify { userService.update(userId, updateUserRequest) }
     }
 
     @Test
@@ -128,15 +117,13 @@ class UserControllerTest {
         every { userService.addBookToWishList(userId, bookId) } returns true
 
         // WHEN
-        val result = mockMvc.perform(
-            patch("/user/{id}/wishlist", userId)
+        mockMvc.perform(
+            put("/user/{id}/wishlist", userId)
                 .param("bookId", bookId)
         )
-            .andExpect(status().isOk)
-            .andReturn()
+            .andExpect(status().isNoContent)
 
         // THEN
-        assertTrue(objectMapper.readValue(result.response.contentAsString, Boolean::class.java))
         verify { userService.addBookToWishList(userId, bookId) }
     }
 
@@ -144,7 +131,6 @@ class UserControllerTest {
     fun `delete user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
-
         every { userService.delete(userId) } just runs
 
         // WHEN

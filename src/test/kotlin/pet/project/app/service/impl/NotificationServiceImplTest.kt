@@ -5,13 +5,11 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
-import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockKExtension::class)
 class NotificationServiceImplTest {
@@ -40,10 +38,8 @@ class NotificationServiceImplTest {
         notificationService.notifySubscribedUsers(bookId)
 
         // THEN
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify { userRepository.findAllBookSubscribers(bookId) }
-            verify { bookRepository.updateShouldBeNotified(bookId, false) }
-        }
+        verify { userRepository.findAllBookSubscribers(bookId) }
+        verify { bookRepository.updateShouldBeNotified(bookId, false) }
     }
 
     @Test
@@ -56,9 +52,7 @@ class NotificationServiceImplTest {
         notificationService.notifySubscribedUsers(bookId)
 
         // THEN
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify { bookRepository.updateShouldBeNotified(bookId, false) }
-        }
+        verify { bookRepository.updateShouldBeNotified(bookId, false) }
         verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
     }
 
@@ -79,9 +73,7 @@ class NotificationServiceImplTest {
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify { userRepository.findAllBookListSubscribers(bookIds) }
-        }
+        verify { userRepository.findAllBookListSubscribers(bookIds) }
         verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
         verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
@@ -98,10 +90,8 @@ class NotificationServiceImplTest {
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
-            verify(exactly = 0) { userRepository.findAllBookListSubscribers(any()) }
-        }
+        verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
+        verify(exactly = 0) { userRepository.findAllBookListSubscribers(any()) }
         verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
         verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
@@ -122,9 +112,7 @@ class NotificationServiceImplTest {
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
-        await().atMost(5, TimeUnit.SECONDS).untilAsserted {
-            verify { userRepository.findAllBookSubscribers(bookIds[0]) }
-        }
+        verify { userRepository.findAllBookSubscribers(bookIds[0]) }
         verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
         verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
