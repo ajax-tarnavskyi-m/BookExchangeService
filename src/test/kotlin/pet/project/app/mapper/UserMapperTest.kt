@@ -13,7 +13,7 @@ import pet.project.app.model.mongo.MongoUser
 class UserMapperTest {
 
     @Test
-    fun `toDomain should map all fields correctly`() {
+    fun `should map all fields correctly in toDomain`() {
         // GIVEN
         val bookWishList = setOf(ObjectId.get(), ObjectId.get())
         val mongoUser = MongoUser(
@@ -34,7 +34,7 @@ class UserMapperTest {
     }
 
     @Test
-    fun `toDomain should handle null values correctly`() {
+    fun `should handle null values correctly in toDomain`() {
         // GIVEN
         val mongoUser = MongoUser()
 
@@ -48,7 +48,7 @@ class UserMapperTest {
     }
 
     @Test
-    fun `toUpdate should set all fields correctly`() {
+    fun `should set all fields correctly in toUpdate`() {
         // GIVEN
         val updateUserRequest = UpdateUserRequest(
             login = "newLogin",
@@ -66,7 +66,7 @@ class UserMapperTest {
     }
 
     @Test
-    fun `toUpdate should not set fields when they are null`() {
+    fun `should not set fields when they are null in toUpdate`() {
         // GIVEN
         val updateUserRequest = UpdateUserRequest(
             login = null,

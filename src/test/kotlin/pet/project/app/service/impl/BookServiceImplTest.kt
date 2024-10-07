@@ -45,7 +45,7 @@ class BookServiceImplTest {
     )
 
     @Test
-    fun `check create book`() {
+    fun `should create book successfully`() {
         // GIVEN
         val createBookRequest = CreateBookRequest("Test Book", "Description", 2023, BigDecimal(20.99), 10)
 
@@ -60,7 +60,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check getting book by id`() {
+    fun `should get book by id successfully`() {
         // GIVEN
         val testId = ObjectId.get().toHexString()
         val expected = exampleDomainBook.copy(id = testId)
@@ -75,7 +75,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check getting book by id throws exception when not found`() {
+    fun `should throw exception when book not found by id`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
         every { bookRepositoryMock.findById(bookId) } returns null
@@ -88,7 +88,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check updating book successfully`() {
+    fun `should update book successfully`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
@@ -104,7 +104,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check updating book throws exception when attempting update absent book`() {
+    fun `should throw exception when updating non-existent book`() {
         // GIVEN
         every { bookRepositoryMock.update(any(), any()) } returns null
         val notExistingObjectId = ObjectId.get().toHexString()
@@ -118,7 +118,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check updating amount successfully`() {
+    fun `should update amount and notify subscribed users`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
         val testRequest = UpdateAmountRequest(bookId, 1)
@@ -137,7 +137,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check exchangeBooks and send books with increased amount succsessfully`() {
+    fun `should exchange books and notify successfully when amount increased`() {
         // GIVEN
         val negativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -1)
         val positiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 1)
@@ -161,7 +161,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `should throw IllegalArgumentException when matched count is less than requests size`() {
+    fun `should throw exception when matched count is less than request size`() {
         // GIVEN
         val requests = listOf(
             UpdateAmountRequest(ObjectId.get().toHexString(), 3),
@@ -179,7 +179,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check update amount throws exception when insufficient books`() {
+    fun `should throw exception when insufficient books for update`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
         val request = UpdateAmountRequest(bookId, -4)
@@ -194,7 +194,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check deleting book`() {
+    fun `should delete book successfully`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
         every { bookRepositoryMock.delete(bookId) } returns 1L
@@ -207,7 +207,7 @@ class BookServiceImplTest {
     }
 
     @Test
-    fun `check update logs warn when affected documents count is not 1`() {
+    fun `should log warning when affected documents count is not 1 during delete`() {
         // GIVEN
         val logger: Logger = LoggerFactory.getLogger(BookServiceImpl::class.java) as Logger
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }

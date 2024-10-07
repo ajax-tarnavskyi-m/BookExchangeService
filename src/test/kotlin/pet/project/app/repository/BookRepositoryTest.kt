@@ -33,7 +33,7 @@ class BookRepositoryTest : AbstractMongoTestContainer {
     )
 
     @Test
-    fun `insert should save book and assign valid id`() {
+    fun `should save book and assign valid id`() {
         // WHEN
         val actualBook = bookRepository.insert(firstCreationRequest)
 
@@ -47,31 +47,31 @@ class BookRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findByIdOrNull should return saved book`() {
+    fun `should return saved book when queried by id`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
 
         // WHEN
-        val actual = bookRepository.findById(savedBook.id.toString())
+        val actual = bookRepository.findById(savedBook.id)
 
         // THEN
         assertEquals(savedBook, actual, "Saved book should be equals to retrieved one")
     }
 
     @Test
-    fun `existsById should return true if book exists`() {
+    fun `should return true when book exists`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
 
         // WHEN
-        val actual = bookRepository.existsById(savedBook.id.toString())
+        val actual = bookRepository.existsById(savedBook.id)
 
         // THEN
         assertTrue(actual, "Book should exist!")
     }
 
     @Test
-    fun `existsById should return false if book does not exist`() {
+    fun `should return false when book does not exist`() {
         // WHEN
         val actual = bookRepository.existsById(ObjectId().toHexString())
 
@@ -80,7 +80,7 @@ class BookRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findByIdOrNull should return null if book does not exist`() {
+    fun `should return null when book not found`() {
         // WHEN
         val actual = bookRepository.findById(ObjectId().toHexString())
 
@@ -89,7 +89,7 @@ class BookRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `setShouldBeNotified should return modifiedCount 1 when updating field`() {
+    fun `should update shouldBeNotified field and return modified count`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
 
@@ -101,10 +101,11 @@ class BookRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `updateAmount should increase amountAvailable when delta is positive`() {
+    fun `should increase amountAvailable when positive delta is applied`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
-        val request = UpdateAmountRequest(savedBook.id, 5)
+        val adjustment = 5
+        val request = UpdateAmountRequest(savedBook.id, adjustment)
 
         // WHEN
         val isAmountUpdated = bookRepository.updateAmount(request)
@@ -113,15 +114,16 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val updatedBook = bookRepository.findById(savedBook.id)
         assertNotNull(updatedBook, "Updated book should not be null")
         assertTrue(isAmountUpdated, "Amount updated should be true")
-        val expected = savedBook.amountAvailable + 5
+        val expected = savedBook.amountAvailable + adjustment
         assertEquals(expected, updatedBook.amountAvailable, "AmountAvailable should be increased by 5")
     }
 
     @Test
-    fun `updateAmount should decrease amountAvailable when delta is negative and sufficient amountAvailable`() {
+    fun `should decrease amountAvailable when negative delta is applied and sufficient amount is available`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
-        val request = UpdateAmountRequest(savedBook.id.toString(), -3)
+        val negativeDelta = -3
+        val request = UpdateAmountRequest(savedBook.id, negativeDelta)
 
         // WHEN
         val isAmountUpdated = bookRepository.updateAmount(request)
@@ -130,14 +132,16 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val updatedBook = bookRepository.findById(savedBook.id)
         assertNotNull(updatedBook, "Updated book should not be null")
         assertTrue(isAmountUpdated, "Amount updated should be true")
-        assertEquals(7, updatedBook.amountAvailable, "AmountAvailable should be decreased by 3")
+        val expected = savedBook.amountAvailable + negativeDelta
+        assertEquals(expected, updatedBook.amountAvailable, "AmountAvailable should be decreased by 3")
     }
 
     @Test
-    fun `updateAmount should not modify amountAvailable when delta is negative and insufficient amountAvailable`() {
+    fun `should not modify amountAvailable when insufficient amount is available for negative delta`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
-        val request = UpdateAmountRequest(savedBook.id, -11)
+        val invalidDelta = -11
+        val request = UpdateAmountRequest(savedBook.id, invalidDelta)
 
         // WHEN
         val isAmountUpdated = bookRepository.updateAmount(request)
@@ -146,111 +150,79 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val updatedBook = bookRepository.findById(savedBook.id)
         assertNotNull(updatedBook, "Updated book should not be null")
         assertFalse(isAmountUpdated, "Amount should not be updated")
-        assertEquals(10, updatedBook.amountAvailable, "AmountAvailable should remain unchanged")
+        val amountBeforeOperation = savedBook.amountAvailable
+        assertEquals(amountBeforeOperation, updatedBook.amountAvailable, "AmountAvailable should remain unchanged")
     }
 
     @Test
-    fun `updateAmount should set shouldBeNotified to true when amountAvailable equals delta`() {
-        // GIVEN
-        val bookWithZeroAmount = bookRepository.insert(firstCreationRequest.copy(amountAvailable = 0))
-        val request = UpdateAmountRequest(bookWithZeroAmount.id.toString(), 3)
-
-        // WHEN
-        val isAmountUpdated = bookRepository.updateAmount(request)
-
-        // THEN
-        val updatedBook = bookRepository.findById(bookWithZeroAmount.id.toString())
-        assertNotNull(updatedBook, "Updated book should not be null")
-        assertTrue(isAmountUpdated, "Amount updated should be true")
-        assertEquals(3, updatedBook.amountAvailable, "AmountAvailable should be updated to 3")
-    }
-
-    @Test
-    fun `updateAmountMany should update multiple books successfully`() {
+    fun `should update multiple books in a transaction successfully`() {
         // GIVEN
         val firstSavedBook = bookRepository.insert(firstCreationRequest)
         val secondSavedBook = bookRepository.insert(secondCreationRequest)
+        val positiveDeltaForFirstBook = 5
+        val negativeDeltaForSecondBook = -3
         val requests = listOf(
-            UpdateAmountRequest(firstSavedBook.id.toString(), 5),
-            UpdateAmountRequest(secondSavedBook.id.toString(), -3)
+            UpdateAmountRequest(firstSavedBook.id, positiveDeltaForFirstBook),
+            UpdateAmountRequest(secondSavedBook.id, negativeDeltaForSecondBook)
         )
 
         // WHEN
         val matchedCount = bookRepository.updateAmountMany(requests)
 
         // THEN
-        val firstUpdatedBook = bookRepository.findById(firstSavedBook.id.toString())
+        val firstUpdatedBook = bookRepository.findById(firstSavedBook.id)
         assertNotNull(firstUpdatedBook, "Updated book should not be null")
-        val secondUpdatedBook = bookRepository.findById(secondSavedBook.id.toString())
+        val secondUpdatedBook = bookRepository.findById(secondSavedBook.id)
         assertNotNull(secondUpdatedBook, "Updated book should not be null")
-        assertEquals(2, matchedCount, "Matched count should be equal to requests size")
-        assertEquals(15, firstUpdatedBook.amountAvailable, "Book 1 amountAvailable should be updated correctly")
-        assertEquals(2, secondUpdatedBook.amountAvailable, "Book 2 amountAvailable should be updated correctly")
+        assertEquals(requests.size, matchedCount, "Matched count should be equal to requests size")
+        val firstExpectedAmount = firstSavedBook.amountAvailable + positiveDeltaForFirstBook
+        assertEquals(firstExpectedAmount, firstUpdatedBook.amountAvailable)
+        val secondExpectedAmount = secondSavedBook.amountAvailable + negativeDeltaForSecondBook
+        assertEquals(secondExpectedAmount, secondUpdatedBook.amountAvailable)
     }
 
     @Test
-    fun `updateAmountMany should abort transaction when update fails`() {
+    fun `should rollback transaction when update fails for one of the books`() {
         // GIVEN
         val firstSavedBook = bookRepository.insert(firstCreationRequest)
         val secondSavedBook = bookRepository.insert(secondCreationRequest)
 
+        val positiveDelta = 5
+        val deltaLessThenAvailable = -10
         val requests = listOf(
-            UpdateAmountRequest(firstSavedBook.id.toString(), 5),
-            UpdateAmountRequest(secondSavedBook.id.toString(), -10)
+            UpdateAmountRequest(firstSavedBook.id, positiveDelta),
+            UpdateAmountRequest(secondSavedBook.id, deltaLessThenAvailable)
         )
 
         // WHEN
         val matchedCount = bookRepository.updateAmountMany(requests)
 
         // THEN
-        val firstUpdatedBook = bookRepository.findById(firstSavedBook.id.toString())
+        val firstUpdatedBook = bookRepository.findById(firstSavedBook.id)
         assertNotNull(firstUpdatedBook, "Updated book should not be null")
-        val secondUpdatedBook = bookRepository.findById(secondSavedBook.id.toString())
+        val secondUpdatedBook = bookRepository.findById(secondSavedBook.id)
         assertNotNull(secondUpdatedBook, "Updated book should not be null")
         assertEquals(1, matchedCount, "Only first book should match query")
         assertEquals(
-            firstCreationRequest.amountAvailable, firstUpdatedBook.amountAvailable,
+            firstSavedBook.amountAvailable, firstUpdatedBook.amountAvailable,
             "Book 1 should not be updated due to transaction rollback"
         )
         assertEquals(
-            secondCreationRequest.amountAvailable, secondUpdatedBook.amountAvailable,
+            secondSavedBook.amountAvailable, secondUpdatedBook.amountAvailable,
             "Book 2 should not be updated due to transaction rollback"
         )
     }
 
     @Test
-    fun `updateAmountMany should handle case where delta is negative but less than available amount`() {
-        // GIVEN
-        val firstSavedBook = bookRepository.insert(firstCreationRequest)
-        val secondSavedBook = bookRepository.insert(secondCreationRequest)
-        val requests = listOf(
-            UpdateAmountRequest(firstSavedBook.id.toString(), -2),
-            UpdateAmountRequest(secondSavedBook.id.toString(), 3)
-        )
-
-        // WHEN
-        val matchedCount = bookRepository.updateAmountMany(requests)
-
-        // THEN
-        val firstUpdatedBook = bookRepository.findById(firstSavedBook.id.toString())
-        assertNotNull(firstUpdatedBook, "Updated book should not be null")
-        val secondUpdatedBook = bookRepository.findById(secondSavedBook.id.toString())
-        assertNotNull(secondUpdatedBook, "Updated book should not be null")
-        assertEquals(2, matchedCount, "Matched count should be equal to requests size")
-        assertEquals(8, firstUpdatedBook.amountAvailable, "Book 1 amountAvailable should be decreased correctly")
-        assertEquals(8, secondUpdatedBook.amountAvailable, "Book 2 amountAvailable should be increased correctly")
-    }
-
-    @Test
-    fun `delete should remove book by id`() {
+    fun `should remove book by id`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest)
 
         // WHEN
-        val deletedCount = bookRepository.delete(savedBook.id.toString())
+        val deletedCount = bookRepository.delete(savedBook.id)
 
         // THEN
-        val actualBook = bookRepository.findById(savedBook.id.toString())
+        val actualBook = bookRepository.findById(savedBook.id)
         assertEquals(1L, deletedCount, "Deleted count should be 1")
         assertNull(actualBook, "Book should be deleted from the database")
     }

@@ -26,7 +26,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     private val thirdCreateBookRequest = CreateBookRequest("Book Three", "Third book", 2022, BigDecimal(20), 0)
 
     @Test
-    fun `insert should save user and assign id`() {
+    fun `should save user and assign id`() {
         // WHEN
         val savedUser = userRepository.insert(firstCreateUserRequest)
 
@@ -38,7 +38,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findByIdOrNull should return saved user`() {
+    fun `should return saved user by id`() {
         // GIVEN
         val savedUser = userRepository.insert(firstCreateUserRequest)
 
@@ -51,7 +51,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findByIdOrNull should return null for non-existing user`() {
+    fun `should return null for non-existing user`() {
         // WHEN
         val foundUser = userRepository.findById(ObjectId.get().toHexString())
 
@@ -60,7 +60,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `update should modify user successfully`() {
+    fun `should update user fields successfully`() {
         // GIVEN
         val savedUser = userRepository.insert(firstCreateUserRequest.copy(login = "old_login"))
         val updateRequest = UpdateUserRequest(login = "new_login", null, null)
@@ -73,9 +73,21 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         assertEquals("new_login", updatedUser.login, "Login should be updated")
     }
 
+    @Test
+    fun `should return null if user does not exist during update`() {
+        // GIVEN
+        val nonExistentUserId = "nonexistent_user_id"
+        val updateRequest = UpdateUserRequest(login = "new_login", email = null, bookWishList = null)
+
+        // WHEN
+        val result = userRepository.update(nonExistentUserId, updateRequest)
+
+        // THEN
+        assertNull(result, "Result should be null if the user is not found")
+    }
 
     @Test
-    fun `addBookToWishList should add bookId to user's wish list`() {
+    fun `should add book id to user's wishlist`() {
         // GIVEN
         val savedUser = userRepository.insert(firstCreateUserRequest)
         val inputBookId = ObjectId.get().toHexString()
@@ -94,7 +106,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findAllBookSubscribers should return users with matching book in wishList`() {
+    fun `should return users with matching book in wishlist`() {
         // GIVEN
         val firstBook = bookRepository.insert(firstCreateBookRequest)
         val secondBook = bookRepository.insert(secondCreateBookRequest)
@@ -121,7 +133,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findAllBookSubscribers should return empty list when no users have the book`() {
+    fun `should return empty list when no users have the book in wishlist`() {
         // GIVEN
         val firstBook = bookRepository.insert(firstCreateBookRequest)
         val secondBook = bookRepository.insert(secondCreateBookRequest)
@@ -136,7 +148,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findAllBookListSubscribers should return users with correct book titles`() {
+    fun `should return users with correct book titles in their wishlist`() {
         // GIVEN
         val firstBook = bookRepository.insert(firstCreateBookRequest)
         val secondBook = bookRepository.insert(secondCreateBookRequest)
@@ -156,7 +168,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val result = userRepository.findAllBookListSubscribers(requestIds)
 
         // THEN
-        assertEquals(2, result.size)
+        assertEquals(requestIds.size, result.size)
         assertNull(result.find { it.login == thirdDomainUser.login })
 
         val firstUserDetails = result.find { it.login == firstUser.login }
@@ -169,7 +181,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `findAllBookListSubscribers should return empty list when no matching books`() {
+    fun `should return empty list when no matching books are found in wishlist`() {
         // GIVEN
         val firstBook = bookRepository.insert(firstCreateBookRequest)
         val secondBook = bookRepository.insert(firstCreateBookRequest)
@@ -185,7 +197,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `delete should remove user by id`() {
+    fun `should remove user by id`() {
         // GIVEN
         val savedUser = userRepository.insert(firstCreateUserRequest)
 

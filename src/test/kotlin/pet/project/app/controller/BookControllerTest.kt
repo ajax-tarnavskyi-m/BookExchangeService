@@ -41,7 +41,7 @@ class BookControllerTest {
     private lateinit var objectMapper: ObjectMapper
 
     @Test
-    fun `get book by id successfully`() {
+    fun `should return book details when book id is valid`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
         val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
@@ -60,7 +60,7 @@ class BookControllerTest {
     }
 
     @Test
-    fun `create book successfully`() {
+    fun `should create book successfully when request is valid`() {
         // GIVEN
         val createBookRequest = CreateBookRequest("Title", "Description", 2023, BigDecimal(20.0), 10)
         val bookId = "66bf6bf8039339103054e21a"
@@ -84,7 +84,7 @@ class BookControllerTest {
     }
 
     @Test
-    fun `update book successfully`() {
+    fun `should update book details when request is valid`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
@@ -109,7 +109,7 @@ class BookControllerTest {
 
 
     @Test
-    fun `update book amount successfully`() {
+    fun `should update book amount when request is valid`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
         val updateAmountRequest = UpdateAmountRequest(bookId, 5)
@@ -129,7 +129,7 @@ class BookControllerTest {
     }
 
     @Test
-    fun `delete book successfully`() {
+    fun `should delete book when book id is valid`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
 

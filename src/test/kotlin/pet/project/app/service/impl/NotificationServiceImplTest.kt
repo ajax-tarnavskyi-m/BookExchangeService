@@ -23,7 +23,7 @@ class NotificationServiceImplTest {
     private lateinit var notificationService: NotificationServiceImpl
 
     @Test
-    fun `notifySubscribedUsers should notify users when book is available`() {
+    fun `should notify users when book is available`() {
         // GIVEN
         val bookId = "66faafae1d7c375ad3c2ab2d"
         val userDetailsList = listOf(
@@ -43,7 +43,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    fun `notifySubscribedUsers should return false when no notification is needed`() {
+    fun `should not notify users when no notification is needed for the book`() {
         // GIVEN
         val bookId = "66faafae1d7c375ad3c2ab2d"
         every { bookRepository.updateShouldBeNotified(bookId, false) } returns 0L
@@ -57,7 +57,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    fun `notifySubscribedUsers with multiple books should notify users`() {
+    fun `should notify users when multiple books require notification`() {
         // GIVEN
         val bookIds = listOf("66faafae1d7c375ad3c2ab2d", "66faaf5e1d7c375ad3c2ab2c")
         val userDetailsList = listOf(
@@ -79,7 +79,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    fun `notifySubscribedUsers should not notify users when no books require notification`() {
+    fun `should not notify users when no books require notification`() {
         // GIVEN
         val bookIds = listOf("66faafae1d7c375ad3c2ab2d", "66faaf5e1d7c375ad3c2ab2c")
 
@@ -97,7 +97,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    fun `notifySubscribedUsers should notify users when only one book requires notification`() {
+    fun `should notify users when only one book requires notification`() {
         // GIVEN
         val bookIds = listOf("66faafae1d7c375ad3c2ab2d", "66faaf5e1d7c375ad3c2ab2c")
         val userDetailsList = listOf(

@@ -68,7 +68,7 @@ class BookControllerValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("squares")
+    @MethodSource("invalidYears")
     fun `should return bad request when creating book with invalid year`(invalidYear: Int) {
         // GIVEN
         val request = CreateBookRequest("Title", "Description", invalidYear, BigDecimal(20.99), 10)
@@ -94,7 +94,7 @@ class BookControllerValidationTest {
         @Value("\${validation.params.future-years-allowance:5}")
 
         @JvmStatic
-        fun squares() = listOf(
+        fun invalidYears() = listOf(
             Arguments.of(1599),
             Arguments.of(Year.now().value + 6)
         )

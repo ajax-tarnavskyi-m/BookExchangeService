@@ -44,7 +44,7 @@ class UserControllerTest {
     )
 
     @Test
-    fun `create user successfully`() {
+    fun `should create user successfully`() {
         // GIVEN
         val createUserRequest = CreateUserRequest("testUser", "test.user@example.com", emptySet())
         val initializedDomainUser =
@@ -68,7 +68,7 @@ class UserControllerTest {
     }
 
     @Test
-    fun `get user by id successfully`() {
+    fun `should get user by id successfully`() {
         // GIVEN
         val domainUser = DomainUser("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
         every { userService.getById("66c35b050da7b9523070cb3a") } returns domainUser
@@ -86,7 +86,7 @@ class UserControllerTest {
     }
 
     @Test
-    fun `update user successfully`() {
+    fun `should update user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val updateUserRequest = UpdateUserRequest("updatedUser", "test.user@example.com", dummyWishlist)
@@ -110,7 +110,7 @@ class UserControllerTest {
     }
 
     @Test
-    fun `add book to wishlist successfully`() {
+    fun `should add book to wishlist successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val bookId = "66bf6bf8039339103054e21a"
@@ -128,7 +128,7 @@ class UserControllerTest {
     }
 
     @Test
-    fun `delete user successfully`() {
+    fun `should delete user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         every { userService.delete(userId) } just runs

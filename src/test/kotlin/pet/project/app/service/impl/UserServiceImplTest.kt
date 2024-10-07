@@ -40,7 +40,7 @@ class UserServiceImplTest {
         setOf("66bf6bf8039339103054e21a", "66c3636647ff4c2f0242073d", "66c3637847ff4c2f0242073e")
 
     @Test
-    fun `check creates user`() {
+    fun `should create user successfully`() {
         // GIVEN
         val userId = ObjectId.get().toHexString()
         val expectedUser = DomainUser(userId, "testUser123", "test.user@test.com", dummyStringWishList)
@@ -56,7 +56,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check getting user`() {
+    fun `should retrieve user by id`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val expected = DomainUser(userId, "testUser123", "test.user@example.com", dummyStringWishList)
@@ -71,7 +71,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check getting user by id throws exception when not found`() {
+    fun `should throw exception when user not found by id`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         every { userRepositoryMock.findById(testRequestUserId) } returns null
@@ -86,7 +86,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check updating user`() {
+    fun `should update user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val updateUserRequest = UpdateUserRequest("John Doe", "test.user@example.com", dummyStringWishList)
@@ -102,7 +102,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `addBookToWishList should throw UserNotFoundException if matchCount not equal 1`() {
+    fun `should throw UserNotFoundException when user not found while adding book to wishlist`() {
         // GIVEN
         val userId = "nonexistentUserId"
         val bookId = "60f1b13e8f1b2c000b355777"
@@ -123,7 +123,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `addBookToWishList should throw BookNotFoundException if book does not exist`() {
+    fun `should throw BookNotFoundException when book does not exist while adding to wishlist`() {
         // GIVEN
         val userId = "validUserId"
         val bookId = "nonexistentBookId"
@@ -151,7 +151,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check adding book to wishlist`() {
+    fun `should add book to user's wishlist successfully`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
@@ -168,7 +168,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check adding book to wishlist throws exception when book not found`() {
+    fun `should throw BookNotFoundException when adding book to wishlist if book is not found`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
@@ -185,7 +185,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check delete user`() {
+    fun `should delete user successfully`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         every { userRepositoryMock.delete(testRequestUserId) } returns 1L
@@ -198,7 +198,7 @@ class UserServiceImplTest {
     }
 
     @Test
-    fun `check delete logs warn when user is absent`() {
+    fun `should log warning when trying to delete non-existent user`() {
         // GIVEN
         val logger: Logger = LoggerFactory.getLogger(UserServiceImpl::class.java) as Logger
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }

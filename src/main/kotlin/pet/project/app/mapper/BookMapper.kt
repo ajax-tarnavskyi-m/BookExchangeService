@@ -42,7 +42,7 @@ object BookMapper {
     fun UpdateBookRequest.toUpdate() : Update {
         val update = Update()
         title?.let { update.set(MongoBook::title.name, it) }
-        description?.let { update.set(MongoBook::title.name, it) }
+        description?.let { update.set(MongoBook::description.name, it) }
         yearOfPublishing?.let { update.set(MongoBook::yearOfPublishing.name, it) }
         price?.let { update.set(MongoBook::price.name, it) }
         return update
