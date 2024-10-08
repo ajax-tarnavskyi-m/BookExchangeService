@@ -4,18 +4,18 @@ import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
-import io.mockk.every
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Sort.*
+import org.springframework.data.domain.Sort.Direction
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.indexOps
 import pet.project.app.config.DatabaseChangeLog.Companion.INDEX_NAME
 import pet.project.app.model.mongo.MongoUser
 import pet.project.app.repository.AbstractMongoTestContainer
-import pet.project.app.service.impl.UserServiceImpl
 
 class DatabaseChangeLogTest : AbstractMongoTestContainer {
     @Autowired
@@ -53,8 +53,8 @@ class DatabaseChangeLogTest : AbstractMongoTestContainer {
         assertTrue(indexInfoAfterRollback.isEmpty(), "No index with $INDEX_NAME should be found after rollback")
 
         val logs = listAppender.list
-        val expectedMessage = "ROLLBACK: Index $INDEX_NAME of collection ${MongoUser.COLLECTION_NAME} successfully dropped"
-        assertEquals(expectedMessage, logs.first().formattedMessage)
+        val expected = "ROLLBACK: Index $INDEX_NAME of collection ${MongoUser.COLLECTION_NAME} successfully dropped"
+        assertEquals(expected, logs.first().formattedMessage)
         assertEquals(Level.INFO, logs.first().level)
     }
 }
