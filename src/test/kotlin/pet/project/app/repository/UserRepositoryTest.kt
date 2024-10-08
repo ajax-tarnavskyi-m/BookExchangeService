@@ -118,7 +118,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         )
 
         // WHEN
-        val result = userRepository.findAllBookSubscribers(firstBook.id)
+        val result = userRepository.findAllSubscribersOf(firstBook.id)
 
         // THEN
         assertEquals(2, result.size, "User details should contains both users info")
@@ -141,7 +141,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id)))
 
         // WHEN
-        val result = userRepository.findAllBookSubscribers(ObjectId.get().toHexString())
+        val result = userRepository.findAllSubscribersOf(ObjectId.get().toHexString())
 
         // THEN
         assertTrue(result.isEmpty(), "Expected empty result when no users have the book in their wishList")
@@ -165,7 +165,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val requestIds = listOf(secondBook.id, thirdBook.id)
 
         // WHEN
-        val result = userRepository.findAllBookListSubscribers(requestIds)
+        val result = userRepository.findAllSubscribersOf(requestIds)
 
         // THEN
         assertEquals(requestIds.size, result.size)
@@ -190,7 +190,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id)))
 
         // WHEN
-        val result = userRepository.findAllBookListSubscribers(listOf(ObjectId.get().toHexString()))
+        val result = userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString()))
 
         // THEN
         assertTrue(result.isEmpty(), "Expected empty result when no users have the book in their wishList")

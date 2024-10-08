@@ -17,17 +17,17 @@ class DatabaseChangeLog {
 
     @Execution
     fun createIndexForUserWishlist(mongoTemplate: MongoTemplate) {
-        mongoTemplate.indexOps(MongoUser.COLLECTION_NAME)
+        mongoTemplate.indexOps<MongoUser>()
             .ensureIndex(Index(MongoUser::bookWishList.name, DEFAULT_DIRECTION).named(INDEX_NAME))
     }
 
     @RollbackExecution
     fun rollbackIndexForUserWishlist(mongoTemplate: MongoTemplate) {
-        val indexExists = mongoTemplate.indexOps<DomainUser>().indexInfo
+        val indexExists = mongoTemplate.indexOps<MongoUser>().indexInfo
             .map { it.name }
             .any { it == INDEX_NAME }
         if (indexExists) {
-            mongoTemplate.indexOps(MongoUser.COLLECTION_NAME).dropIndex(INDEX_NAME)
+            mongoTemplate.indexOps<MongoUser>().dropIndex(INDEX_NAME)
             log.info("ROLLBACK: Index {} of collection {} successfully dropped", INDEX_NAME, MongoUser.COLLECTION_NAME)
         } else {
             log.info("ROLLBACK: Index {} of collection {} is not found", INDEX_NAME, MongoUser.COLLECTION_NAME)

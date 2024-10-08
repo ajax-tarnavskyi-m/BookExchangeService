@@ -15,16 +15,14 @@ interface AbstractMongoTestContainer {
 
     companion object {
         val mongoContainer = MongoDBContainer("mongo:7.0.14")
-            .apply { start() }
     }
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
             mongoContainer.start()
 
-            TestPropertyValues.of(
-                "spring.data.mongodb.uri=${mongoContainer.replicaSetUrl}"
-            ).applyTo(configurableApplicationContext.environment)
+            TestPropertyValues.of("spring.data.mongodb.uri=${mongoContainer.replicaSetUrl}")
+                .applyTo(configurableApplicationContext.environment)
         }
     }
 }

@@ -48,10 +48,10 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
         return mongoTemplate.findById(id, MongoUser::class.java)?.toDomain()
     }
 
-    override fun findAllBookSubscribers(bookId: String): List<UserNotificationDetails> {
+    override fun findAllSubscribersOf(bookId: String): List<UserNotificationDetails> {
         val newAggregation = newAggregation(
             MongoUser::class.java,
-            match(where(MongoUser::bookWishList.name).`is`(ObjectId(bookId))),
+            match(where(MongoUser::bookWishList.name).isEqualTo(ObjectId(bookId))),
             LookupOperation(
                 MongoBook.COLLECTION_NAME, null, AggregationPipeline.of(matchIdEqualTo(bookId)), field(BOOK_DETAILS)
             ),
@@ -65,7 +65,7 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
     private fun matchIdEqualTo(bookId: String) =
         match(Expr.valueOf(Eq.valueOf(Fields.UNDERSCORE_ID_REF).equalToValue(ObjectId(bookId))))
 
-    override fun findAllBookListSubscribers(booksIds: List<String>): List<UserNotificationDetails> {
+    override fun findAllSubscribersOf(booksIds: List<String>): List<UserNotificationDetails> {
         val bookObjectIds = booksIds.map { ObjectId(it) }
         val let = Let.just(newVariable(WISHLIST_BOOK).forField(MongoUser::bookWishList.name))
         val newAggregation = newAggregation(

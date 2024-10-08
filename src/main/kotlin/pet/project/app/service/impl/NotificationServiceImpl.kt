@@ -17,7 +17,7 @@ class NotificationServiceImpl(
 
     override fun notifySubscribedUsers(bookId: String) {
         if (updateShouldBeNotified(bookId)) {
-            val userNotificationDetailsList = userRepository.findAllBookSubscribers(bookId)
+            val userNotificationDetailsList = userRepository.findAllSubscribersOf(bookId)
             notifyUsers(userNotificationDetailsList)
         }
     }
@@ -26,8 +26,8 @@ class NotificationServiceImpl(
         val bookIdsForNotification = bookIds.filter { updateShouldBeNotified(it) }
         val userNotificationDetailsList = when(bookIdsForNotification.size) {
             0 -> return
-            1 -> userRepository.findAllBookSubscribers(bookIdsForNotification.first())
-            else -> userRepository.findAllBookListSubscribers(bookIdsForNotification)
+            1 -> userRepository.findAllSubscribersOf(bookIdsForNotification.first())
+            else -> userRepository.findAllSubscribersOf(bookIdsForNotification)
         }
         notifyUsers(userNotificationDetailsList)
     }

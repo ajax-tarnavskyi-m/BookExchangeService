@@ -32,13 +32,13 @@ class NotificationServiceImplTest {
         )
 
         every { bookRepository.updateShouldBeNotified(bookId, false) } returns 1L
-        every { userRepository.findAllBookSubscribers(bookId) } returns userDetailsList
+        every { userRepository.findAllSubscribersOf(bookId) } returns userDetailsList
 
         // WHEN
         notificationService.notifySubscribedUsers(bookId)
 
         // THEN
-        verify { userRepository.findAllBookSubscribers(bookId) }
+        verify { userRepository.findAllSubscribersOf(bookId) }
         verify { bookRepository.updateShouldBeNotified(bookId, false) }
     }
 
@@ -53,7 +53,7 @@ class NotificationServiceImplTest {
 
         // THEN
         verify { bookRepository.updateShouldBeNotified(bookId, false) }
-        verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
+        verify(exactly = 0) { userRepository.findAllSubscribersOf(any<String>()) }
     }
 
     @Test
@@ -67,13 +67,13 @@ class NotificationServiceImplTest {
 
         every { bookRepository.updateShouldBeNotified(bookIds[0], false) } returns 1L
         every { bookRepository.updateShouldBeNotified(bookIds[1], false) } returns 1L
-        every { userRepository.findAllBookListSubscribers(bookIds) } returns userDetailsList
+        every { userRepository.findAllSubscribersOf(bookIds) } returns userDetailsList
 
         // WHEN
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
-        verify { userRepository.findAllBookListSubscribers(bookIds) }
+        verify { userRepository.findAllSubscribersOf(bookIds) }
         verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
         verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
@@ -90,8 +90,8 @@ class NotificationServiceImplTest {
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
-        verify(exactly = 0) { userRepository.findAllBookSubscribers(any()) }
-        verify(exactly = 0) { userRepository.findAllBookListSubscribers(any()) }
+        verify(exactly = 0) { userRepository.findAllSubscribersOf(any<String>()) }
+        verify(exactly = 0) { userRepository.findAllSubscribersOf(any<List<String>>()) }
         verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
         verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }
@@ -106,13 +106,13 @@ class NotificationServiceImplTest {
 
         every { bookRepository.updateShouldBeNotified(bookIds[0], false) } returns 1L
         every { bookRepository.updateShouldBeNotified(bookIds[1], false) } returns 0L
-        every { userRepository.findAllBookSubscribers(bookIds[0]) } returns userDetailsList
+        every { userRepository.findAllSubscribersOf(bookIds[0]) } returns userDetailsList
 
         // WHEN
         notificationService.notifySubscribedUsers(bookIds)
 
         // THEN
-        verify { userRepository.findAllBookSubscribers(bookIds[0]) }
+        verify { userRepository.findAllSubscribersOf(bookIds[0]) }
         verify { bookRepository.updateShouldBeNotified(bookIds[0], false) }
         verify { bookRepository.updateShouldBeNotified(bookIds[1], false) }
     }

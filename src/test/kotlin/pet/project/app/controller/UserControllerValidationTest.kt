@@ -50,7 +50,7 @@ class UserControllerValidationTest {
         // THEN
         val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
         assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
-        assertEquals(1, response.invalidInputReports.size)
+        assertEquals(1, response.invalidInputReports.size, "should have only one validation exception report")
         assertEquals("login", response.invalidInputReports[0].field)
         assertEquals("User login must not be blank", response.invalidInputReports[0].message)
         verify(exactly = 0) { userServiceMock.create(any()) }
@@ -133,7 +133,7 @@ class UserControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { userServiceMock.delete(any()) }
     }
