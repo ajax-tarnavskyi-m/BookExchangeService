@@ -1,5 +1,9 @@
 package pet.project.app.service.impl
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -7,155 +11,219 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.just
 import io.mockk.verify
+import org.awaitility.Awaitility.await
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.repository.findByIdOrNull
+import org.slf4j.LoggerFactory
+import pet.project.app.dto.book.CreateBookRequest
+import pet.project.app.dto.book.UpdateAmountRequest
+import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.exception.BookNotFoundException
-import pet.project.app.model.Book
+import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
+import pet.project.app.service.NotificationService
 import java.math.BigDecimal
+import java.util.concurrent.TimeUnit
 
 @ExtendWith(MockKExtension::class)
 class BookServiceImplTest {
-
     @MockK
     lateinit var bookRepositoryMock: BookRepository
+
+    @MockK
+    lateinit var notificationServiceMock: NotificationService
 
     @InjectMockKs
     lateinit var bookService: BookServiceImpl
 
+    private val exampleDomainBook = DomainBook(
+        ObjectId.get().toHexString(), "Test Book", "Description", 2023, BigDecimal(20.99), 10
+    )
+
     @Test
-    fun `check create book`() {
+    fun `should create book successfully`() {
         // GIVEN
-        val inputBook = Book(null, "Title", "Description", 200, BigDecimal(20.99), 1)
-        val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, BigDecimal(20.99), 1)
-        every { bookRepositoryMock.save(inputBook) } returns expected
+        val createBookRequest = CreateBookRequest("Test Book", "Description", 2023, BigDecimal(20.99), 10)
+
+        every { bookRepositoryMock.insert(createBookRequest) } returns exampleDomainBook
 
         // WHEN
-        val actual = bookService.create(inputBook)
+        val actual = bookService.create(createBookRequest)
 
         // THEN
-        verify { bookRepositoryMock.save(inputBook) }
+        verify { bookRepositoryMock.insert(createBookRequest) }
+        assertEquals(exampleDomainBook, actual)
+    }
+
+    @Test
+    fun `should get book by id successfully`() {
+        // GIVEN
+        val testId = ObjectId.get().toHexString()
+        val expected = exampleDomainBook.copy(id = testId)
+        every { bookRepositoryMock.findById(testId) } returns expected
+
+        // WHEN
+        val actual = bookService.getById(testId)
+
+        // THEN
+        verify { bookRepositoryMock.findById(testId) }
         assertEquals(expected, actual)
     }
 
     @Test
-    fun `check getting book by id`() {
-        // GIVEN
-        val testRequestBookId = "66c3637847ff4c2f0242073e"
-        val expected = Book(ObjectId("66c3637847ff4c2f0242073e"), "Title", "Description", 200, BigDecimal(20.99), 1)
-        every { bookRepositoryMock.findByIdOrNull(testRequestBookId) } returns expected
-
-        // WHEN
-        val actual = bookService.getById(testRequestBookId)
-
-        // THEN
-        verify { bookRepositoryMock.findByIdOrNull(testRequestBookId) }
-        assertEquals(expected, actual)
-    }
-
-    @Test
-    fun `check getting book by id throws exception when not found`() {
+    fun `should throw exception when book not found by id`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.findByIdOrNull(bookId) } returns null
+        every { bookRepositoryMock.findById(bookId) } returns null
 
         // WHEN & THEN
         assertThrows(BookNotFoundException::class.java) {
             bookService.getById(bookId)
         }
-        verify { bookRepositoryMock.findByIdOrNull(bookId) }
+        verify { bookRepositoryMock.findById(bookId) }
     }
 
     @Test
-    fun `check updating book`() {
+    fun `should update book successfully`() {
         // GIVEN
-        val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-        every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns true
-        every { bookRepositoryMock.save(book) } returns book
+        val bookId = "66bf6bf8039339103054e21a"
+        val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
+        val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
+        every { bookRepositoryMock.update(bookId, updateBookRequest) } returns updatedDomainBook
 
         // WHEN
-        val result = bookService.update(book)
+        val result = bookService.update(bookId, updateBookRequest)
 
         // THEN
-        assertEquals(book, result)
-        verify { bookRepositoryMock.existsById(book.id!!.toHexString()) }
-        verify { bookRepositoryMock.save(book) }
+        assertEquals(updatedDomainBook, result)
+        verify { bookRepositoryMock.update(bookId, updateBookRequest) }
     }
 
     @Test
-    fun `check updating book throws exception when book not found`() {
+    fun `should throw exception when updating non-existent book`() {
         // GIVEN
-        val book = Book(ObjectId.get(), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-        every { bookRepositoryMock.existsById(book.id!!.toHexString()) } returns false
+        every { bookRepositoryMock.update(any(), any()) } returns null
+        val notExistingObjectId = ObjectId.get().toHexString()
+        val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
 
         // WHEN & THEN
         assertThrows(BookNotFoundException::class.java) {
-            bookService.update(book)
+            bookService.update(notExistingObjectId, updateBookRequest)
         }
-        verify { bookRepositoryMock.existsById(book.id!!.toHexString()) }
+        verify { bookRepositoryMock.update(any(), any()) }
     }
 
     @Test
-    fun `check changing amount of book successfully`() {
+    fun `should update amount and notify subscribed users`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
-        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, BigDecimal(20.99), 10)
-        every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
-        every { bookRepositoryMock.save(any()) } returns book.copy(amountAvailable = 15)
+        val testRequest = UpdateAmountRequest(bookId, 1)
+        every { bookRepositoryMock.updateAmount(testRequest) } returns true
+        every { notificationServiceMock.notifySubscribedUsers(bookId) } just Runs
 
         // WHEN
-        val updatedAmount = bookService.changeAmount(bookId, 5)
+        val result = bookService.updateAmount(testRequest)
 
         // THEN
-        assertEquals(15, updatedAmount)
-        verify { bookRepositoryMock.findByIdOrNull(bookId) }
-        verify { bookRepositoryMock.save(any()) }
+        assertTrue(result, "updateAmount() Should return true if operation succesfull")
+        verify { bookRepositoryMock.updateAmount(testRequest) }
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted {
+            verify { notificationServiceMock.notifySubscribedUsers(bookId) }
+        }
     }
 
     @Test
-    fun `check changing amount throws exception when insufficient books`() {
-        //GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val book = Book(ObjectId(bookId), "Test Book", "Description", 2023, BigDecimal(20.99), 3)
-        every { bookRepositoryMock.findByIdOrNull(bookId) } returns book
+    fun `should exchange books and notify successfully when amount increased`() {
+        // GIVEN
+        val negativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -1)
+        val positiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 1)
+        val alsoNegativeDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), -3)
+        val alsoPositiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 3)
+        val testRequests =
+            listOf(negativeDeltaRequest, positiveDeltaRequest, alsoNegativeDeltaRequest, alsoPositiveDeltaRequest)
+        every { bookRepositoryMock.updateAmountMany(testRequests) } returns testRequests.size
+        val expectedList = listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
+        every { notificationServiceMock.notifySubscribedUsers(expectedList) } just Runs
+
+        // WHEN
+        val result = bookService.exchangeBooks(testRequests)
+
+        // THEN
+        assertTrue(result, "exchangeBooks() Should return true if operation succesfull")
+        verify { bookRepositoryMock.updateAmountMany(testRequests) }
+        await().atMost(3, TimeUnit.SECONDS).untilAsserted {
+            verify { notificationServiceMock.notifySubscribedUsers(expectedList) }
+        }
+    }
+
+    @Test
+    fun `should throw exception when matched count is less than request size`() {
+        // GIVEN
+        val requests = listOf(
+            UpdateAmountRequest(ObjectId.get().toHexString(), 3),
+            UpdateAmountRequest(ObjectId.get().toHexString(), 2)
+        )
+        val invalidMatchedCount = requests.size - 1
+        every { bookRepositoryMock.updateAmountMany(requests) } returns invalidMatchedCount
 
         // WHEN & THEN
-        assertThrows(IllegalStateException::class.java) {
-            bookService.changeAmount(bookId, -4)
+        val e = assertThrows(IllegalArgumentException::class.java) {
+            bookService.exchangeBooks(requests)
         }
-        verify { bookRepositoryMock.findByIdOrNull(bookId) }
+        assertEquals("Requested books absent or no enough available: $requests", e.message)
+        verify { bookRepositoryMock.updateAmountMany(requests) }
     }
 
     @Test
-    fun `check deleting book`() {
+    fun `should throw exception when insufficient books for update`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.existsById(bookId) } returns true
-        every { bookRepositoryMock.deleteById(bookId) } just Runs
+        val request = UpdateAmountRequest(bookId, -4)
+        every { bookRepositoryMock.updateAmount(request) } returns false
+
+        // WHEN & THEN
+        val e = assertThrows(IllegalArgumentException::class.java) {
+            bookService.updateAmount(request)
+        }
+        assertEquals("Requested book absent or have less amount available that needed: $request", e.message)
+        verify { bookRepositoryMock.updateAmount(request) }
+    }
+
+    @Test
+    fun `should delete book successfully`() {
+        // GIVEN
+        val bookId = ObjectId.get().toHexString()
+        every { bookRepositoryMock.delete(bookId) } returns 1L
 
         // WHEN
         bookService.delete(bookId)
 
         // THEN
-        verify { bookRepositoryMock.existsById(bookId) }
-        verify { bookRepositoryMock.deleteById(bookId) }
+        verify { bookRepositoryMock.delete(bookId) }
     }
 
     @Test
-    fun `check deleting book when book does not exist`() {
+    fun `should log warning when affected documents count is not 1 during delete`() {
         // GIVEN
+        val logger: Logger = LoggerFactory.getLogger(BookServiceImpl::class.java) as Logger
+        val listAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(listAppender)
+
         val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.existsById(bookId) } returns false
+        every { bookRepositoryMock.delete(bookId) } returns 0L
 
         // WHEN
         bookService.delete(bookId)
 
         // THEN
-        verify { bookRepositoryMock.existsById(bookId) }
-        verify(exactly = 0) { bookRepositoryMock.deleteById(bookId) }
+        verify { bookRepositoryMock.delete(bookId) }
+        val logs = listAppender.list
+        val expectedMessage = "Affected 0 documents while trying to delete book with id=$bookId"
+        assertEquals(expectedMessage, logs.first().formattedMessage)
+        assertEquals(Level.WARN, logs.first().level)
     }
 }

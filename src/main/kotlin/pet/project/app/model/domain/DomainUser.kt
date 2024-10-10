@@ -1,6 +1,6 @@
-package pet.project.app.dto.user
+package pet.project.app.model.domain
 
-data class ResponseUserDto(
+data class DomainUser(
     val id: String,
     val login: String,
     val email: String,

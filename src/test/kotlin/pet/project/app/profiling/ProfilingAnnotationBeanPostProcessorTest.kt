@@ -29,7 +29,7 @@ class ProfilingAnnotationBeanPostProcessorTest {
     private lateinit var processor: ProfilingAnnotationBeanPostProcessor
 
     @Test
-    fun `postProcessAfterInitialization should return CGLIB proxy when bean is annotated with Profiling`() {
+    fun `should return CGLIB proxy when bean is annotated with Profiling`() {
         // GIVEN
         val bean = ProfilingAnnotatedClass()
         val beanName = "testBean"
@@ -48,7 +48,7 @@ class ProfilingAnnotationBeanPostProcessorTest {
     open class ProfilingAnnotatedClass
 
     @Test
-    fun `postProcessAfterInitialization should return original bean when not annotated with Profiling`() {
+    fun `should return original bean when not annotated with Profiling`() {
         // GIVEN
         val bean = NonProfilingAnnotatedClass()
         val beanName = "testBean"
@@ -84,7 +84,7 @@ class ProfilingAnnotationBeanPostProcessorTest {
         }
 
         @Test
-        fun `invoke should profile method execution and return result`() {
+        fun `should profile method execution and return result`() {
             //GIVEN
             val method = InterceptedExampleClass::class.java.getDeclaredMethod("profiledMethod")
             val methodInvocationSpy = CustomMethodInvocation(InterceptedExampleClass(), method, emptyArray())

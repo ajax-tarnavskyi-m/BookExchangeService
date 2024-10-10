@@ -12,43 +12,51 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import pet.project.app.dto.book.BookMapper
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
+import pet.project.app.mapper.BookMapper.toDto
 import pet.project.app.service.BookService
 import pet.project.app.validation.ValidObjectId
 
 @RestController
 @RequestMapping("/book")
-class BookController(private val bookService: BookService, private val mapper: BookMapper) {
+class BookController(private val bookService: BookService) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody request: CreateBookRequest): ResponseBookDto {
-        val createdBook = bookService.create(mapper.toModel(request))
-        return mapper.toDto(createdBook)
+        return bookService.create(request).toDto()
     }
 
     @GetMapping("/{id}")
-    fun getById(@ValidObjectId @PathVariable("id") id: String) = mapper.toDto(bookService.getById(id))
+    fun getById(@ValidObjectId @PathVariable("id") id: String) = bookService.getById(id).toDto()
 
-    @PutMapping("/")
-    fun update(@Valid @RequestBody request: UpdateBookRequest): ResponseBookDto {
-        val updatedBook = bookService.update(mapper.toModel(request))
-        return mapper.toDto(updatedBook)
+    @PutMapping("/{id}")
+    fun update(
+        @ValidObjectId @PathVariable("id") id: String,
+        @Valid @RequestBody request: UpdateBookRequest,
+    ): ResponseBookDto {
+        return bookService.update(id, request).toDto()
     }
 
-    @PatchMapping("/{id}/amount")
-    fun updateAmount(
-        @ValidObjectId @PathVariable("id") id: String,
-        @Valid @RequestBody request: UpdateAmountRequest,
-    ): Int {
-        return bookService.changeAmount(id, request.delta)
+    @PatchMapping("/amount")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun updateAmount(@Valid @RequestBody request: UpdateAmountRequest) {
+        bookService.updateAmount(request)
+    }
+
+    @PostMapping("/amount")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun exchangeBooks(@Valid @RequestBody requests: List<UpdateAmountRequest>) {
+        bookService.exchangeBooks(requests)
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@ValidObjectId @PathVariable("id") id: String) = bookService.delete(id)
+    fun delete(@ValidObjectId @PathVariable("id") id: String) {
+        bookService.delete(id)
+    }
 }
+

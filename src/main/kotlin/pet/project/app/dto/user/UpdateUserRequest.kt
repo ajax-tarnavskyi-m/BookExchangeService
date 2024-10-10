@@ -1,12 +1,10 @@
 package pet.project.app.dto.user
 
-import jakarta.validation.constraints.NotBlank
-import pet.project.app.validation.ValidObjectId
+import jakarta.validation.constraints.Email
 
 data class UpdateUserRequest(
-    @field:ValidObjectId(message = "The provided ID must be a valid ObjectId hex String")
-    val id: String,
-    @field:NotBlank(message = "User login must not be blank")
-    val login: String,
-    val bookWishList: Set<String> = emptySet(),
+    val login: String?,
+    @field:Email
+    val email: String?,
+    val bookWishList: Set<String>?,
 )

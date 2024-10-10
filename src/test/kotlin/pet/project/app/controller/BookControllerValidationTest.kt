@@ -2,6 +2,7 @@ package pet.project.app.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
 import io.mockk.verify
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -20,12 +21,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.method.annotation.HandlerMethodValidationException
-import pet.project.app.dto.book.BookMapper
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.exception.handler.ValidationExceptionResponse
+import pet.project.app.mapper.BookMapper
+import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
 import java.math.BigDecimal
 import java.time.Year
@@ -65,7 +68,7 @@ class BookControllerValidationTest {
     }
 
     @ParameterizedTest
-    @MethodSource("squares")
+    @MethodSource("invalidYears")
     fun `should return bad request when creating book with invalid year`(invalidYear: Int) {
         // GIVEN
         val request = CreateBookRequest("Title", "Description", invalidYear, BigDecimal(20.99), 10)
@@ -91,7 +94,7 @@ class BookControllerValidationTest {
         @Value("\${validation.params.future-years-allowance:5}")
 
         @JvmStatic
-        fun squares() = listOf(
+        fun invalidYears() = listOf(
             Arguments.of(1599),
             Arguments.of(Year.now().value + 6)
         )
@@ -142,54 +145,12 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when updating book with invalid ObjectId`() {
         // GIVEN
-        val request = UpdateBookRequest("invalidObjectId", "Title", "Description", 2020, BigDecimal(20.99), 10)
+        val bookId = "InvalidObjectId"
+        val request = UpdateBookRequest( "Title", "Description", 2020, BigDecimal(20.99))
 
         // WHEN
         val result = mockMvc.perform(
-            put("/book/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        ).andReturn()
-
-        // THEN
-        val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
-        assertEquals(1, response.invalidInputReports.size)
-        assertEquals("id", response.invalidInputReports[0].field)
-        val actualMessage = response.invalidInputReports[0].message
-        assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { bookServiceMock.update(any()) }
-    }
-
-    @Test
-    fun `should return bad request when updating book with empty title`() {
-        // GIVEN
-        val request = UpdateBookRequest("507f191e810c19729de860ea", "", "Description", 2020, BigDecimal(20.99), 10)
-
-        // WHEN
-        val result = mockMvc.perform(
-            put("/book/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request))
-        ).andReturn()
-
-        // THEN
-        val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
-        assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
-        assertEquals(1, response.invalidInputReports.size)
-        assertEquals("title", response.invalidInputReports[0].field)
-        assertEquals("Book title must not be blank", response.invalidInputReports[0].message)
-        verify(exactly = 0) { bookServiceMock.update(any()) }
-    }
-
-    @Test
-    fun `should return bad request when updating book with zero delta`() {
-        // GIVEN
-        val request = UpdateAmountRequest(0)
-
-        // WHEN
-        val result = mockMvc.perform(
-            patch("/book/{id}/amount", "507f191e810c19729de860ea")
+            put("/book/{id}", bookId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
@@ -197,9 +158,49 @@ class BookControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
-        assertEquals("delta: Delta value must not be zero", actualMessage)
-        verify(exactly = 0) { bookServiceMock.changeAmount(any(), any()) }
+        val actualMessage = exception.detailMessageArguments[0]
+        assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
+        verify(exactly = 0) { bookServiceMock.update(any(), any()) }
+    }
+
+    @Test
+    fun `should update book successfully when yearOfPublishing is null`() {
+        // GIVEN
+        val bookId = "66bf6bf8039339103054e21a"
+        val request = UpdateBookRequest( "Title", "Updated", null, BigDecimal(20.99))
+        val updated = DomainBook(bookId, "Title", "Updated", 2020, BigDecimal(20.99), 10)
+        every { bookServiceMock.update(bookId, request) } returns updated
+
+        // WHEN
+        mockMvc.perform(
+            put("/book/{id}", bookId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        ).andExpect(status().isOk)
+
+        // THEN
+        verify { bookServiceMock.update(bookId, request) }
+    }
+
+    @Test
+    fun `should return bad request when updating book with zero delta`() {
+        // GIVEN
+        val request = UpdateAmountRequest("66bf6bf8039339103054e21a", 0)
+
+        // WHEN
+        val result = mockMvc.perform(
+            patch("/book/amount")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+        ).andReturn()
+
+        // THEN
+        val response = objectMapper.readValue(result.response.contentAsString, ValidationExceptionResponse::class.java)
+        assertEquals(HttpStatus.BAD_REQUEST.value(), response.status)
+        assertEquals(1, response.invalidInputReports.size)
+        assertEquals("delta", response.invalidInputReports[0].field)
+        assertEquals("Delta value must not be zero", response.invalidInputReports[0].message)
+        verify(exactly = 0) { bookServiceMock.updateAmount(any()) }
     }
 
     @Test
@@ -216,7 +217,7 @@ class BookControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
         verify(exactly = 0) { bookServiceMock.delete(any()) }
     }
@@ -235,8 +236,8 @@ class BookControllerValidationTest {
         // THEN
         assertEquals(HttpStatus.BAD_REQUEST.value(), result.response.status)
         val exception = result.resolvedException as HandlerMethodValidationException
-        val actualMessage = exception.detailMessageArguments.get(0)
+        val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { bookServiceMock.changeAmount(any(), any()) }
+        verify(exactly = 0) { bookServiceMock.updateAmount(any()) }
     }
 }

@@ -1,16 +1,18 @@
 package pet.project.app.service
 
-import pet.project.app.model.User
+import pet.project.app.dto.user.CreateUserRequest
+import pet.project.app.dto.user.UpdateUserRequest
+import pet.project.app.model.domain.DomainUser
 
 interface UserService {
 
-    fun create(user: User): User
+    fun create(createUserRequest: CreateUserRequest): DomainUser
 
-    fun getById(userId: String): User
+    fun getById(userId: String): DomainUser
 
-    fun addBookToWishList(userId: String, bookId: String): User
+    fun addBookToWishList(userId: String, bookId: String): Boolean
 
-    fun update(user: User): User
+    fun update(userId: String, request: UpdateUserRequest): DomainUser
 
     fun delete(userId: String)
 }

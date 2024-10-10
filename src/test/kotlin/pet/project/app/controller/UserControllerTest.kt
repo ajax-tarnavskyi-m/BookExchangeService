@@ -6,7 +6,6 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.runs
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,16 +15,14 @@ import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.dto.user.UserMapper
-import pet.project.app.model.User
+import pet.project.app.mapper.UserMapper
+import pet.project.app.model.domain.DomainUser
 import pet.project.app.service.UserService
 
 @WebMvcTest(UserController::class)
@@ -47,12 +44,12 @@ class UserControllerTest {
     )
 
     @Test
-    fun `create user successfully`() {
+    fun `should create user successfully`() {
         // GIVEN
-        val createUserRequest = CreateUserRequest("testUser", emptySet())
-        val mappedUser = User(null, "testUser", emptySet())
-        val initializedUser = User(ObjectId("66bf6bf8039339103054e21a"), "testUser", emptySet())
-        every { userService.create(mappedUser) } returns initializedUser
+        val createUserRequest = CreateUserRequest("testUser", "test.user@example.com", emptySet())
+        val initializedDomainUser =
+            DomainUser("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
+        every { userService.create(createUserRequest) } returns initializedDomainUser
 
         // WHEN
         val result = mockMvc.perform(
@@ -65,17 +62,16 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66bf6bf8039339103054e21a", "testUser", emptySet())
+        val expected = ResponseUserDto("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
         assertEquals(expected, actual)
-        verify { userService.create(mappedUser) }
+        verify { userService.create(createUserRequest) }
     }
 
     @Test
-    fun `get user by id successfully`() {
+    fun `should get user by id successfully`() {
         // GIVEN
-        val user = User(ObjectId("66c35b050da7b9523070cb3a"), "testUser", emptySet())
-
-        every { userService.getById("66c35b050da7b9523070cb3a") } returns user
+        val domainUser = DomainUser("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
+        every { userService.getById("66c35b050da7b9523070cb3a") } returns domainUser
 
         // WHEN
         val result = mockMvc.perform(get("/user/{id}", "66c35b050da7b9523070cb3a"))
@@ -84,21 +80,22 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "testUser", emptySet())
+        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
         assertEquals(expected, actual)
         verify { userService.getById("66c35b050da7b9523070cb3a") }
     }
 
     @Test
-    fun `update user successfully`() {
+    fun `should update user successfully`() {
         // GIVEN
-        val updateUserRequest = UpdateUserRequest("66c35b050da7b9523070cb3a", "updatedUser", dummyWishlist)
-        val mappedUser = User(ObjectId("66c35b050da7b9523070cb3a"), "updatedUser", dummyWishlist)
-        every { userService.update(any()) } returns mappedUser
+        val userId = "66c35b050da7b9523070cb3a"
+        val updateUserRequest = UpdateUserRequest("updatedUser", "test.user@example.com", dummyWishlist)
+        val mappedDomainUser = DomainUser(userId, "updatedUser", "test.user@example.com", dummyWishlist)
+        every { userService.update(userId, updateUserRequest) } returns mappedDomainUser
 
         // WHEN
         val result = mockMvc.perform(
-            put("/user/")
+            put("/user/{id}", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateUserRequest))
         )
@@ -107,36 +104,33 @@ class UserControllerTest {
 
         // THEN
         val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "updatedUser", dummyWishlist)
+        val expected = ResponseUserDto(userId, "updatedUser", "test.user@example.com", dummyWishlist)
         assertEquals(expected, actual)
-        verify { userService.update(any()) }
+        verify { userService.update(userId, updateUserRequest) }
     }
 
     @Test
-    fun `add book to wishlist successfully`() {
+    fun `should add book to wishlist successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val bookId = "66bf6bf8039339103054e21a"
-        val updatedUser = User(ObjectId(userId), "testUser", setOf(bookId))
-        every { userService.addBookToWishList(userId, bookId) } returns updatedUser
+        every { userService.addBookToWishList(userId, bookId) } returns true
 
         // WHEN
         mockMvc.perform(
-            patch("/user/{id}/wishlist", userId)
+            put("/user/{id}/wishlist", userId)
                 .param("bookId", bookId)
         )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.bookWishList").value(bookId))
+            .andExpect(status().isNoContent)
 
         // THEN
         verify { userService.addBookToWishList(userId, bookId) }
     }
 
     @Test
-    fun `delete user successfully`() {
+    fun `should delete user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
-
         every { userService.delete(userId) } just runs
 
         // WHEN

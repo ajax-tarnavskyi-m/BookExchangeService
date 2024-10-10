@@ -1,8 +1,16 @@
 package pet.project.app.repository
 
-import org.springframework.data.mongodb.repository.MongoRepository
-import org.springframework.stereotype.Repository
-import pet.project.app.model.User
+import pet.project.app.dto.user.CreateUserRequest
+import pet.project.app.dto.user.UpdateUserRequest
+import pet.project.app.dto.user.UserNotificationDetails
+import pet.project.app.model.domain.DomainUser
 
-@Repository
-interface UserRepository : MongoRepository<User, String>
+interface UserRepository {
+    fun insert(createUserRequest: CreateUserRequest): DomainUser
+    fun findById(id: String): DomainUser?
+    fun findAllSubscribersOf(bookId: String): List<UserNotificationDetails>
+    fun findAllSubscribersOf(booksIds: List<String>): List<UserNotificationDetails>
+    fun addBookToWishList(userId: String, bookId: String): Long
+    fun update(userId: String, request: UpdateUserRequest): DomainUser?
+    fun delete(id: String): Long
+}

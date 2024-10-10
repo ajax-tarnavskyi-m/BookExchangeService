@@ -15,10 +15,13 @@ class BookExchangeServiceApplicationTests {
 
     @Autowired
     lateinit var bookController: BookController
+
     @Autowired
     lateinit var userController: UserController
+
     @Autowired
     lateinit var bookService: BookService
+
     @Autowired
     lateinit var userService: UserService
 
@@ -30,3 +33,4 @@ class BookExchangeServiceApplicationTests {
         assertNotNull(userService)
     }
 }
+
