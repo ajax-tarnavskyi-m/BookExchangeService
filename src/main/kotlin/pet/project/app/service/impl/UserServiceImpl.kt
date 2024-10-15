@@ -11,6 +11,7 @@ import pet.project.app.model.domain.DomainUser
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 import pet.project.app.service.UserService
+import reactor.core.publisher.Mono
 
 @Profiling
 @Service
@@ -19,34 +20,42 @@ class UserServiceImpl(
     private val bookRepository: BookRepository,
 ) : UserService {
 
-    override fun create(createUserRequest: CreateUserRequest): DomainUser = userRepository.insert(createUserRequest)
+    override fun create(createUserRequest: CreateUserRequest): Mono<DomainUser> =
+        userRepository.insert(createUserRequest)
 
-    override fun getById(userId: String): DomainUser =
-        userRepository.findById(userId) ?: throw UserNotFoundException(userId, "GET request")
+    override fun getById(userId: String): Mono<DomainUser> =
+        userRepository.findById(userId)
+            .switchIfEmpty(Mono.error { UserNotFoundException(userId, "GET request") })
 
-    override fun addBookToWishList(userId: String, bookId: String): Boolean {
-        if (!bookRepository.existsById(bookId)) {
-            throw BookNotFoundException(bookId, "adding book to wishlist of user with id=$userId")
-        }
-        val matchCount: Long = userRepository.addBookToWishList(userId, bookId)
-        if (matchCount != 1L) {
-            throw UserNotFoundException(userId, "adding book with id=$bookId into user wishlist")
-        }
-        return true
+    override fun addBookToWishList(userId: String, bookId: String): Mono<Unit> {
+        return bookRepository.existsById(bookId)
+            .flatMap { isBookExist ->
+                when (isBookExist) {
+                    true -> userRepository.addBookToWishList(userId, bookId)
+                    else -> Mono.error { BookNotFoundException(bookId, "adding book to users (id=$userId) wishlist") }
+                }
+            }
+            .handle<Unit?> { matchCount, sink ->
+                if (matchCount != 1L) {
+                    sink.error(UserNotFoundException(userId, "adding book with id=$bookId into user wishlist"))
+                }
+            }
+            .thenReturn(Unit)
     }
 
-    override fun update(userId: String, request: UpdateUserRequest): DomainUser {
-        return userRepository.update(userId, request) ?: throw UserNotFoundException(userId, "UPDATE request")
+    override fun update(userId: String, request: UpdateUserRequest): Mono<DomainUser> {
+        return userRepository.update(userId, request)
+            .switchIfEmpty(Mono.error { UserNotFoundException(userId, "UPDATE request") })
     }
 
-    override fun delete(userId: String) {
-        val modifiedCount = userRepository.delete(userId)
-        if (modifiedCount != 1L) {
-            log.warn("Affected {} documents while trying to delete user with id={}", modifiedCount, userId)
-        }
+    override fun delete(userId: String): Mono<Unit> {
+        return userRepository.delete(userId)
+            .doOnNext { modifiedCount -> if (modifiedCount != 1L) log.warn(DELETE_WARN_MESSAGE, modifiedCount, userId) }
+            .thenReturn(Unit)
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(UserServiceImpl::class.java)
+        private const val DELETE_WARN_MESSAGE = "Affected {} documents while trying to delete user with id={}"
     }
 }

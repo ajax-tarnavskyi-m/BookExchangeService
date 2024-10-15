@@ -12,7 +12,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -27,14 +26,13 @@ import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.exception.handler.ValidationExceptionResponse
-import pet.project.app.mapper.BookMapper
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
+import reactor.core.publisher.Mono
 import java.math.BigDecimal
 import java.time.Year
 
 @WebMvcTest(BookController::class)
-@Import(BookMapper::class)
 class BookControllerValidationTest {
 
     @Autowired
@@ -169,7 +167,7 @@ class BookControllerValidationTest {
         val bookId = "66bf6bf8039339103054e21a"
         val request = UpdateBookRequest( "Title", "Updated", null, BigDecimal(20.99))
         val updated = DomainBook(bookId, "Title", "Updated", 2020, BigDecimal(20.99), 10)
-        every { bookServiceMock.update(bookId, request) } returns updated
+        every { bookServiceMock.update(bookId, request) } returns Mono.just(updated)
 
         // WHEN
         mockMvc.perform(

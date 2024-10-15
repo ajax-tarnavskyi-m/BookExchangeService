@@ -11,3 +11,7 @@ validation:
     future-years-allowance: 5
 mongock:
   migration-scan-package: pet.project.app.config
+notification:
+  buffer:
+    interval: PT10S
+    items-max-amount: 100

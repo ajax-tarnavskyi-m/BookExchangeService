@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -19,11 +18,9 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.exception.handler.ValidationExceptionResponse
-import pet.project.app.mapper.UserMapper
 import pet.project.app.service.UserService
 
 @WebMvcTest(UserController::class)
-@Import(UserMapper::class)
 class UserControllerValidationTest {
 
     @Autowired

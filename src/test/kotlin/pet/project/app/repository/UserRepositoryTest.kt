@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.UpdateUserRequest
+import pet.project.app.dto.user.UserNotificationDetails
+import reactor.test.StepVerifier
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -27,77 +29,73 @@ class UserRepositoryTest : AbstractMongoTestContainer {
 
     @Test
     fun `should save user and assign id`() {
-        // WHEN
-        val savedUser = userRepository.insert(firstCreateUserRequest)
-
-        // THEN
-        assertNotNull(savedUser.id, "Id should not be null after save")
-        assertEquals(firstCreateUserRequest.login, savedUser.login)
-        assertEquals(firstCreateUserRequest.email, savedUser.email)
-        assertEquals(firstCreateUserRequest.bookWishList, savedUser.bookWishList)
+        // WHEN & THEN
+        StepVerifier.create(userRepository.insert(firstCreateUserRequest))
+            .consumeNextWith { savedUser ->
+                assertNotNull(savedUser.id, "Id should not be null after save")
+                assertEquals(firstCreateUserRequest.login, savedUser.login)
+                assertEquals(firstCreateUserRequest.email, savedUser.email)
+                assertEquals(firstCreateUserRequest.bookWishList, savedUser.bookWishList)
+            }
+            .verifyComplete()
     }
 
     @Test
     fun `should return saved user by id`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstCreateUserRequest)
+        val savedUser = userRepository.insert(firstCreateUserRequest).block()!!
 
-        // WHEN
-        val actualUser = userRepository.findById(savedUser.id.toString())
-
-        // THEN
-        assertNotNull(actualUser, "User should be found")
-        assertEquals(savedUser, actualUser)
+        // WHEN & THEN
+        StepVerifier.create(userRepository.findById(savedUser.id))
+            .expectNext(savedUser)
+            .verifyComplete()
     }
 
     @Test
-    fun `should return null for non-existing user`() {
+    fun `should return empty mono for non-existing user`() {
         // WHEN
-        val foundUser = userRepository.findById(ObjectId.get().toHexString())
-
-        // THEN
-        assertNull(foundUser, "User should not be found")
+        StepVerifier.create(userRepository.findById(ObjectId.get().toHexString()))
+            .verifyComplete()
     }
 
     @Test
     fun `should update user fields successfully`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstCreateUserRequest.copy(login = "old_login"))
+        val savedUser = userRepository.insert(firstCreateUserRequest.copy(login = "old_login")).block()!!
         val updateRequest = UpdateUserRequest(login = "new_login", null, null)
+        val expectedUpdatedUser = savedUser.copy(login = "new_login")
 
-        // WHEN
-        val updatedUser = userRepository.update(savedUser.id, updateRequest)
-
-        // THEN
-        assertNotNull(updatedUser)
-        assertEquals("new_login", updatedUser.login, "Login should be updated")
+        // WHEN & THEN
+        StepVerifier.create(userRepository.update(savedUser.id, updateRequest))
+            .expectNext(expectedUpdatedUser)
+            .verifyComplete()
     }
 
     @Test
-    fun `should return null if user does not exist during update`() {
+    fun `should return empty mono if user does not exist during update`() {
         // GIVEN
         val nonExistentUserId = "nonexistent_user_id"
         val updateRequest = UpdateUserRequest(login = "new_login", email = null, bookWishList = null)
 
-        // WHEN
-        val result = userRepository.update(nonExistentUserId, updateRequest)
-
-        // THEN
-        assertNull(result, "Result should be null if the user is not found")
+        // WHEN & THEN
+        StepVerifier.create(userRepository.update(nonExistentUserId, updateRequest))
+            .verifyComplete()
     }
 
     @Test
     fun `should add book id to user's wishlist`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstCreateUserRequest)
+        val savedUser = userRepository.insert(firstCreateUserRequest).block()!!
         val inputBookId = ObjectId.get().toHexString()
+        val expectedModifiedCount = 1L
 
-        // WHEN
-        val modifiedCount = userRepository.addBookToWishList(savedUser.id, inputBookId)
+        // WHEN & THEN
+        StepVerifier.create(userRepository.addBookToWishList(savedUser.id, inputBookId))
+            .expectNext(expectedModifiedCount)
+            .verifyComplete()
 
         // THEN
-        val updatedUser = userRepository.findById(savedUser.id)
-        assertEquals(1, modifiedCount, "The matched count should be 1")
+        val updatedUser = userRepository.findById(savedUser.id).block()!!
         assertNotNull(updatedUser, "Updated user should be found")
         assertTrue(
             updatedUser.bookWishList.contains(inputBookId),
@@ -106,107 +104,56 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     }
 
     @Test
-    fun `should return users with matching book in wishlist`() {
-        // GIVEN
-        val firstBook = bookRepository.insert(firstCreateBookRequest)
-        val secondBook = bookRepository.insert(secondCreateBookRequest)
-        val firstUser = userRepository.insert(
-            firstCreateUserRequest.copy(bookWishList = setOf(secondBook.id, firstBook.id))
-        )
-        val secondUser = userRepository.insert(
-            secondUserCreateRequest.copy(bookWishList = setOf(firstBook.id, secondBook.id))
-        )
-
-        // WHEN
-        val result = userRepository.findAllSubscribersOf(firstBook.id)
-
-        // THEN
-        assertEquals(2, result.size, "User details should contains both users info")
-
-        val firstUserDetails = result.find { it.login == firstUser.login }
-        assertNotNull(firstUserDetails, "User details should not be null")
-        assertEquals(setOf(firstBook.title), firstUserDetails.bookTitles)
-
-        val secondUserDetails = result.find { it.login == secondUser.login }
-        assertNotNull(secondUserDetails, "User details should not be null")
-        assertEquals(setOf(firstBook.title), secondUserDetails.bookTitles)
-    }
-
-    @Test
-    fun `should return empty list when no users have the book in wishlist`() {
-        // GIVEN
-        val firstBook = bookRepository.insert(firstCreateBookRequest)
-        val secondBook = bookRepository.insert(secondCreateBookRequest)
-        userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id)))
-        userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id)))
-
-        // WHEN
-        val result = userRepository.findAllSubscribersOf(ObjectId.get().toHexString())
-
-        // THEN
-        assertTrue(result.isEmpty(), "Expected empty result when no users have the book in their wishList")
-    }
-
-    @Test
     fun `should return users with correct book titles in their wishlist`() {
         // GIVEN
-        val firstBook = bookRepository.insert(firstCreateBookRequest)
-        val secondBook = bookRepository.insert(secondCreateBookRequest)
-        val thirdBook = bookRepository.insert(thirdCreateBookRequest)
+        val firstBook = bookRepository.insert(firstCreateBookRequest).block()!!
+        val secondBook = bookRepository.insert(secondCreateBookRequest).block()!!
+        val thirdBook = bookRepository.insert(thirdCreateBookRequest).block()!!
         val firstUser = userRepository.insert(
             firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id, secondBook.id))
-        )
+        ).block()!!
         val secondUser = userRepository.insert(
             secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id, thirdBook.id, firstBook.id))
-        )
-        val thirdDomainUser = userRepository.insert(
-            CreateUserRequest(login = "user3", email = "user3@example.com", bookWishList = setOf(firstBook.id))
-        )
+        ).block()!!
         val requestIds = listOf(secondBook.id, thirdBook.id)
+        val firstExpected = UserNotificationDetails(firstUser.login, firstUser.email, setOf(secondBook.title))
+        val secondExpected = UserNotificationDetails(
+            secondUser.login, secondUser.email, setOf(secondBook.title, thirdBook.title)
+        )
 
-        // WHEN
-        val result = userRepository.findAllSubscribersOf(requestIds)
-
-        // THEN
-        assertEquals(requestIds.size, result.size)
-        assertNull(result.find { it.login == thirdDomainUser.login })
-
-        val firstUserDetails = result.find { it.login == firstUser.login }
-        assertNotNull(firstUserDetails, "User details should not be null")
-        assertEquals(setOf(secondBook.title), firstUserDetails.bookTitles)
-
-        val secondUserDetails = result.find { it.login == secondUser.login }
-        assertNotNull(secondUserDetails, "User details should not be null")
-        assertEquals(setOf(secondBook.title, thirdBook.title), secondUserDetails.bookTitles)
+        // WHEN & THEN
+        StepVerifier.create(userRepository.findAllSubscribersOf(requestIds))
+            .expectNext(firstExpected, secondExpected)
+            .verifyComplete()
     }
 
     @Test
-    fun `should return empty list when no matching books are found in wishlist`() {
+    fun `should return empty flux when no matching books are found in wishlist`() {
         // GIVEN
-        val firstBook = bookRepository.insert(firstCreateBookRequest)
-        val secondBook = bookRepository.insert(firstCreateBookRequest)
+        val firstBook = bookRepository.insert(firstCreateBookRequest).block()!!
+        val secondBook = bookRepository.insert(firstCreateBookRequest).block()!!
 
-        userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id)))
-        userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id)))
+        userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id))).block()!!
+        userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id))).block()!!
 
-        // WHEN
-        val result = userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString()))
-
-        // THEN
-        assertTrue(result.isEmpty(), "Expected empty result when no users have the book in their wishList")
+        // WHEN & THEN
+        StepVerifier.create(userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString())))
+            .verifyComplete()
     }
 
     @Test
     fun `should remove user by id`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstCreateUserRequest)
+        val savedUser = userRepository.insert(firstCreateUserRequest).block()!!
+        val expectedDeleteCount = 1L
 
-        // WHEN
-        val deleteCount = userRepository.delete(savedUser.id.toString())
+        // WHEN & THEN
+        StepVerifier.create(userRepository.delete(savedUser.id))
+            .expectNext(expectedDeleteCount)
+            .verifyComplete()
 
         // THEN
-        val foundUser = userRepository.findById(savedUser.id.toString())
-        assertEquals(1, deleteCount, "Deleted count should be 1")
+        val foundUser = userRepository.findById(savedUser.id).block()
         assertNull(foundUser, "User should not be found after deletion")
     }
 }

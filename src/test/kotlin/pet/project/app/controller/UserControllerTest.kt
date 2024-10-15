@@ -1,41 +1,28 @@
 package pet.project.app.controller
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import io.mockk.just
-import io.mockk.runs
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.context.annotation.Import
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.reactive.server.WebTestClient
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.mapper.UserMapper
+import pet.project.app.mapper.UserMapper.toDto
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.service.UserService
+import reactor.core.publisher.Mono
 
-@WebMvcTest(UserController::class)
-@Import(UserMapper::class)
+@WebFluxTest(UserController::class)
 class UserControllerTest {
     @Autowired
-    private lateinit var mockMvc: MockMvc
+    private lateinit var webTestClient: WebTestClient
 
     @MockkBean
     private lateinit var userService: UserService
-
-    @Autowired
-    private lateinit var objectMapper: ObjectMapper
 
     private val dummyWishlist = setOf(
         "66bf6bf8039339103054e21a",
@@ -47,42 +34,39 @@ class UserControllerTest {
     fun `should create user successfully`() {
         // GIVEN
         val createUserRequest = CreateUserRequest("testUser", "test.user@example.com", emptySet())
-        val initializedDomainUser =
-            DomainUser("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
-        every { userService.create(createUserRequest) } returns initializedDomainUser
+        val user = DomainUser("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
+        every { userService.create(createUserRequest) } returns Mono.just(user)
+        val expectedResponse = user.toDto()
 
-        // WHEN
-        val result = mockMvc.perform(
-            post("/user/")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createUserRequest))
-        )
-            .andExpect(status().isCreated)
-            .andReturn()
-
-        // THEN
-        val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66bf6bf8039339103054e21a", "testUser", "test.user@example.com", emptySet())
-        assertEquals(expected, actual)
+        // WHEN & THEN
+        webTestClient.post()
+            .uri("/user/")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(createUserRequest)
+            .exchange()
+            .expectStatus().isCreated
+            .expectBody(ResponseUserDto::class.java)
+            .isEqualTo(expectedResponse)
         verify { userService.create(createUserRequest) }
     }
 
     @Test
     fun `should get user by id successfully`() {
         // GIVEN
-        val domainUser = DomainUser("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
-        every { userService.getById("66c35b050da7b9523070cb3a") } returns domainUser
+        val userId = "66c35b050da7b9523070cb3a"
+        val domainUser = DomainUser(userId, "testUser", "test.user@example.com", emptySet())
+        every { userService.getById(userId) } returns Mono.just(domainUser)
+        val expectedResponse = domainUser.toDto()
 
-        // WHEN
-        val result = mockMvc.perform(get("/user/{id}", "66c35b050da7b9523070cb3a"))
-            .andExpect(status().isOk)
-            .andReturn()
+        // WHEN & THEN
+        webTestClient.get()
+            .uri("/user/{id}", userId)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(ResponseUserDto::class.java)
+            .isEqualTo(expectedResponse)
 
-        // THEN
-        val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto("66c35b050da7b9523070cb3a", "testUser", "test.user@example.com", emptySet())
-        assertEquals(expected, actual)
-        verify { userService.getById("66c35b050da7b9523070cb3a") }
+        verify { userService.getById(userId) }
     }
 
     @Test
@@ -91,21 +75,20 @@ class UserControllerTest {
         val userId = "66c35b050da7b9523070cb3a"
         val updateUserRequest = UpdateUserRequest("updatedUser", "test.user@example.com", dummyWishlist)
         val mappedDomainUser = DomainUser(userId, "updatedUser", "test.user@example.com", dummyWishlist)
-        every { userService.update(userId, updateUserRequest) } returns mappedDomainUser
+        every { userService.update(userId, updateUserRequest) } returns Mono.just(mappedDomainUser)
+        val expectedResponseUserDto = mappedDomainUser.toDto()
 
-        // WHEN
-        val result = mockMvc.perform(
-            put("/user/{id}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateUserRequest))
-        )
-            .andExpect(status().isOk)
-            .andReturn()
+        // WHEN & THEN
+        webTestClient.put()
+            .uri("/user/{id}", userId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(updateUserRequest)  // Устанавливаем тело запроса
+            .exchange()  // Выполняем запрос
+            .expectStatus().isOk  // Ожидаем статус 200 OK
+            .expectBody(ResponseUserDto::class.java)
+            .isEqualTo(expectedResponseUserDto)
 
         // THEN
-        val actual = objectMapper.readValue(result.response.contentAsString, ResponseUserDto::class.java)
-        val expected = ResponseUserDto(userId, "updatedUser", "test.user@example.com", dummyWishlist)
-        assertEquals(expected, actual)
         verify { userService.update(userId, updateUserRequest) }
     }
 
@@ -114,14 +97,17 @@ class UserControllerTest {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val bookId = "66bf6bf8039339103054e21a"
-        every { userService.addBookToWishList(userId, bookId) } returns true
+        every { userService.addBookToWishList(userId, bookId) } returns Mono.just(Unit)
 
-        // WHEN
-        mockMvc.perform(
-            put("/user/{id}/wishlist", userId)
-                .param("bookId", bookId)
-        )
-            .andExpect(status().isNoContent)
+        // WHEN & THEN
+        webTestClient.put()
+            .uri { builder ->
+                builder.path("/user/{id}/wishlist")
+                    .queryParam("bookId", bookId)  // Передаём bookId как параметр запроса
+                    .build(userId)
+            }
+            .exchange()  // Выполняем запрос
+            .expectStatus().isNoContent  // Ожидаем статус 204 No Content
 
         // THEN
         verify { userService.addBookToWishList(userId, bookId) }
@@ -131,14 +117,16 @@ class UserControllerTest {
     fun `should delete user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
-        every { userService.delete(userId) } just runs
+        every { userService.delete(userId) } returns Mono.just(Unit)
 
-        // WHEN
-        mockMvc.perform(delete("/user/{id}", userId))
-            .andExpect(status().isNoContent)
+        // WHEN & THEN
+        webTestClient.delete()
+            .uri("/user/{id}", userId)  // Отправляем DELETE запрос
+            .exchange()  // Выполняем запрос
+            .expectStatus().isNoContent  // Ожидаем статус 204 No Content
 
         // THEN
-        verify { userService.delete(userId) }
+        verify { userService.delete(userId) }  // Проверяем вызов метода delete
     }
 
 }

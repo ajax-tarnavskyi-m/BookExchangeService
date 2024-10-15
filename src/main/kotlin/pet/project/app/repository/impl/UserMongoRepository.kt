@@ -3,6 +3,7 @@ package pet.project.app.repository.impl
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.FindAndModifyOptions.options
 import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation.match
 import org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation
 import org.springframework.data.mongodb.core.aggregation.Aggregation.project
@@ -35,37 +36,24 @@ import pet.project.app.model.domain.DomainUser
 import pet.project.app.model.mongo.MongoBook
 import pet.project.app.model.mongo.MongoUser
 import pet.project.app.repository.UserRepository
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
 @Repository
 @Profiling
-internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : UserRepository {
+internal class UserMongoRepository(private val mongoTemplate: ReactiveMongoTemplate) : UserRepository {
 
-    override fun insert(createUserRequest: CreateUserRequest): DomainUser {
-        return mongoTemplate.insert(createUserRequest.toMongo()).toDomain()
+    override fun insert(createUserRequest: CreateUserRequest): Mono<DomainUser> {
+        return mongoTemplate.insert(createUserRequest.toMongo())
+            .map { mongoUser -> mongoUser.toDomain() }
     }
 
-    override fun findById(id: String): DomainUser? {
-        return mongoTemplate.findById(id, MongoUser::class.java)?.toDomain()
+    override fun findById(id: String): Mono<DomainUser> {
+        return mongoTemplate.findById(id, MongoUser::class.java)
+            .map { mongoUser -> mongoUser.toDomain() }
     }
 
-    override fun findAllSubscribersOf(bookId: String): List<UserNotificationDetails> {
-        val newAggregation = newAggregation(
-            MongoUser::class.java,
-            match(where(MongoUser::bookWishList.name).isEqualTo(ObjectId(bookId))),
-            LookupOperation(
-                MongoBook.COLLECTION_NAME, null, AggregationPipeline.of(matchIdEqualTo(bookId)), field(BOOK_DETAILS)
-            ),
-            project(MongoUser::login.name, MongoUser::email.name).and(BOOK_DETAILS_TITLE).`as`(BOOK_TITLES)
-        )
-
-        return mongoTemplate.aggregate(newAggregation, MongoUser::class.java, UserNotificationDetails::class.java)
-            .mappedResults
-    }
-
-    private fun matchIdEqualTo(bookId: String) =
-        match(Expr.valueOf(Eq.valueOf(Fields.UNDERSCORE_ID_REF).equalToValue(ObjectId(bookId))))
-
-    override fun findAllSubscribersOf(booksIds: List<String>): List<UserNotificationDetails> {
+    override fun findAllSubscribersOf(booksIds: List<String>): Flux<UserNotificationDetails> {
         val bookObjectIds = booksIds.map { ObjectId(it) }
         val let = Let.just(newVariable(WISHLIST_BOOK).forField(MongoUser::bookWishList.name))
         val newAggregation = newAggregation(
@@ -81,7 +69,6 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
         )
 
         return mongoTemplate.aggregate(newAggregation, MongoUser::class.java, UserNotificationDetails::class.java)
-            .mappedResults
     }
 
     private fun matchIdContainsIn(bookIds: List<ObjectId?>): AggregationOperation {
@@ -95,18 +82,21 @@ internal class UserMongoRepository(private val mongoTemplate: MongoTemplate) : U
         )
     }
 
-    override fun addBookToWishList(userId: String, bookId: String): Long {
+    override fun addBookToWishList(userId: String, bookId: String): Mono<Long> {
         val update = Update().addToSet(MongoUser::bookWishList.name, ObjectId(bookId))
-        return mongoTemplate.updateFirst<MongoUser>(whereId(userId), update).matchedCount
+        return mongoTemplate.updateFirst<MongoUser>(whereId(userId), update)
+            .map { it.matchedCount }
     }
 
-    override fun update(userId: String, request: UpdateUserRequest): DomainUser? {
+    override fun update(userId: String, request: UpdateUserRequest): Mono<DomainUser> {
         val op = options().returnNew(true)
-        return mongoTemplate.findAndModify(whereId(userId), request.toUpdate(), op, MongoUser::class.java)?.toDomain()
+        return mongoTemplate.findAndModify(whereId(userId), request.toUpdate(), op, MongoUser::class.java)
+            .map { mongoUser -> mongoUser.toDomain() }
     }
 
-    override fun delete(id: String): Long {
-        return mongoTemplate.remove<MongoUser>(whereId(id)).deletedCount
+    override fun delete(id: String): Mono<Long> {
+        return mongoTemplate.remove<MongoUser>(whereId(id))
+            .map { it.deletedCount }
     }
 
     private infix fun whereId(userId: String) = query(where(Fields.UNDERSCORE_ID).isEqualTo(userId))

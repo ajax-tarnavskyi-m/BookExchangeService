@@ -10,56 +10,61 @@ import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
 import pet.project.app.service.BookService
-import pet.project.app.service.NotificationService
-import java.util.concurrent.CompletableFuture
+import reactor.core.publisher.Mono
+import reactor.core.publisher.Sinks
 
 @Profiling
 @Service
 class BookServiceImpl(
     private val bookRepository: BookRepository,
-    private val notificationService: NotificationService,
+    private val availableBooksSink: Sinks.Many<String>,
 ) : BookService {
 
-    override fun create(createBookRequest: CreateBookRequest): DomainBook {
+    override fun create(createBookRequest: CreateBookRequest): Mono<DomainBook> {
         return bookRepository.insert(createBookRequest)
     }
 
-    override fun getById(bookId: String): DomainBook =
-        bookRepository.findById(bookId) ?: throw BookNotFoundException(bookId, "GET request")
-
-    override fun updateAmount(request: UpdateAmountRequest): Boolean {
-        val amountUpdated = bookRepository.updateAmount(request)
-        require(amountUpdated) { "Requested book absent or have less amount available that needed: $request" }
-
-        if (request.delta > 0) {
-            CompletableFuture.runAsync { notificationService.notifySubscribedUsers(request.bookId) }
-        }
-        return true
+    override fun getById(bookId: String): Mono<DomainBook> {
+        return bookRepository.findById(bookId)
+            .switchIfEmpty(Mono.error { BookNotFoundException(bookId, "GET request") })
     }
 
-    override fun exchangeBooks(requests: List<UpdateAmountRequest>): Boolean {
-        val matchedCount = bookRepository.updateAmountMany(requests)
-        require(matchedCount == requests.size) { "Requested books absent or no enough available: $requests" }
-
-        val booksWithIncreasedAmount = requests.filter { it.delta > 0 }.map { it.bookId }
-        if (booksWithIncreasedAmount.isNotEmpty()) {
-            CompletableFuture.runAsync { notificationService.notifySubscribedUsers(booksWithIncreasedAmount) }
-        }
-        return true
+    override fun updateAmount(request: UpdateAmountRequest): Mono<Unit> {
+        return bookRepository.updateAmount(request)
+            .handle<Unit?> { isUpdated, sink ->
+                when (isUpdated) {
+                    true -> if (request.delta > 0) availableBooksSink.tryEmitNext(request.bookId)
+                    false -> sink.error(IllegalArgumentException("Book absent or no enough available: $request"))
+                }
+            }
+            .thenReturn(Unit)
     }
 
-    override fun update(bookId: String, request: UpdateBookRequest): DomainBook {
-        return bookRepository.update(bookId, request) ?: throw BookNotFoundException(bookId, "Update request")
+    override fun exchangeBooks(requests: List<UpdateAmountRequest>): Mono<Unit> {
+        return bookRepository.updateAmountMany(requests)
+            .doOnSuccess { notifyAboutNewBooks(requests) }
+            .thenReturn(Unit)
     }
 
-    override fun delete(bookId: String) {
-        val deleteCount = bookRepository.delete(bookId)
-        if (deleteCount != 1L) {
-            log.warn("Affected {} documents while trying to delete book with id={}", deleteCount, bookId)
-        }
+    private fun notifyAboutNewBooks(requests: List<UpdateAmountRequest>) {
+        requests.filter { request -> request.delta > 0 }
+            .forEach { request -> availableBooksSink.tryEmitNext(request.bookId) }
+    }
+
+    override fun update(bookId: String, request: UpdateBookRequest): Mono<DomainBook> {
+        return bookRepository.update(bookId, request)
+            .switchIfEmpty(Mono.error { BookNotFoundException(bookId, "Update request") })
+    }
+
+    override fun delete(bookId: String): Mono<Unit> {
+        return bookRepository.delete(bookId)
+            .doOnNext { deleteCount -> if (deleteCount != 1L) log.warn(DELETE_WARN_MESSAGE, deleteCount, bookId) }
+            .thenReturn(Unit)
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(BookServiceImpl::class.java)
+        private const val DELETE_WARN_MESSAGE = "Affected {} documents while trying to delete book with id={}"
     }
 }
+
