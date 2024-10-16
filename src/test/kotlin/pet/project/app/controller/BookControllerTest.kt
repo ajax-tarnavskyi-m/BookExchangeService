@@ -16,6 +16,7 @@ import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
 import reactor.core.publisher.Mono
 import java.math.BigDecimal
+import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(BookController::class)
 class BookControllerTest {
@@ -31,7 +32,7 @@ class BookControllerTest {
         val bookId = "66bf6bf8039339103054e21a"
         val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.getById(bookId) } returns Mono.just(initializedDomainBook)
+        every { bookService.getById(bookId) } returns initializedDomainBook.toMono()
 
         // WHEN & THEN
         webTestClient.get()
@@ -51,11 +52,11 @@ class BookControllerTest {
         val bookId = "66bf6bf8039339103054e21a"
         val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.create(createBookRequest) } returns Mono.just(initializedDomainBook)
+        every { bookService.create(createBookRequest) } returns initializedDomainBook.toMono()
 
         // WHEN & THEN
         webTestClient.post()
-            .uri("/book/")
+            .uri("/book")
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(createBookRequest)
             .exchange()
@@ -73,7 +74,7 @@ class BookControllerTest {
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
         val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.update(bookId, updateBookRequest) } returns Mono.just(updatedDomainBook)
+        every { bookService.update(bookId, updateBookRequest) } returns updatedDomainBook.toMono()
 
         // WHEN & THEN
         webTestClient.put()
@@ -93,7 +94,7 @@ class BookControllerTest {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
         val updateAmountRequest = UpdateAmountRequest(bookId, 5)
-        every { bookService.updateAmount(updateAmountRequest) } returns Mono.just(Unit)
+        every { bookService.updateAmount(updateAmountRequest) } returns Unit.toMono()
 
         // WHEN & THEN
         webTestClient.patch()
@@ -110,7 +111,7 @@ class BookControllerTest {
     fun `should delete book when book id is valid`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
-        every { bookService.delete(bookId) } returns Mono.just(Unit)
+        every { bookService.delete(bookId) } returns Unit.toMono()
 
         // WHEN & THEN
         webTestClient.delete()

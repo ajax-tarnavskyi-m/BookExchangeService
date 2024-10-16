@@ -22,14 +22,15 @@ import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
-import reactor.test.StepVerifier
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.test.test
 import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class BookServiceImplTest {
     @MockK
-    lateinit var bookRepositoryMock: BookRepository
 
+    lateinit var bookRepositoryMock: BookRepository
     @MockK
     lateinit var availableBooksSink: Sinks.Many<String>
 
@@ -45,10 +46,13 @@ class BookServiceImplTest {
         // GIVEN
         val createBookRequest = CreateBookRequest("Test Book", "Description", 2023, BigDecimal(20.99), 10)
 
-        every { bookRepositoryMock.insert(createBookRequest) } returns Mono.just(exampleDomainBook)
+        every { bookRepositoryMock.insert(createBookRequest) } returns exampleDomainBook.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.create(createBookRequest))
+        // WHEN
+        val actualMono = bookService.create(createBookRequest)
+
+        // THEN
+        actualMono.test()
             .expectNext(exampleDomainBook)
             .verifyComplete()
         verify { bookRepositoryMock.insert(createBookRequest) }
@@ -60,14 +64,16 @@ class BookServiceImplTest {
         // GIVEN
         val testId = ObjectId.get().toHexString()
         val expected = exampleDomainBook.copy(id = testId)
-        every { bookRepositoryMock.findById(testId) } returns Mono.just(expected)
+        every { bookRepositoryMock.findById(testId) } returns expected.toMono()
 
         // WHEN
-        StepVerifier.create(bookService.getById(testId))
+        val actualMono = bookService.getById(testId)
+
+        // THEN
+        actualMono.test()
             .expectNext(expected)
             .verifyComplete()
 
-        // THEN
         verify { bookRepositoryMock.findById(testId) }
     }
 
@@ -77,8 +83,11 @@ class BookServiceImplTest {
         val bookId = ObjectId.get().toHexString()
         every { bookRepositoryMock.findById(bookId) } returns Mono.empty()
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.getById(bookId))
+        // WHEN
+        val actualMono = bookService.getById(bookId)
+
+        // THEN
+        actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(BookNotFoundException::class.java, ex.javaClass)
                 assertEquals("Book with id=${bookId} was not found during GET request", ex.message)
@@ -92,10 +101,13 @@ class BookServiceImplTest {
         val bookId = "66bf6bf8039339103054e21a"
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
         val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookRepositoryMock.update(bookId, updateBookRequest) } returns Mono.just(updatedDomainBook)
+        every { bookRepositoryMock.update(bookId, updateBookRequest) } returns updatedDomainBook.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.update(bookId, updateBookRequest))
+        // WHEN
+        val actualMono = bookService.update(bookId, updateBookRequest)
+
+        // THEN
+        actualMono.test()
             .expectNext(updatedDomainBook)
             .verifyComplete()
         verify { bookRepositoryMock.update(bookId, updateBookRequest) }
@@ -108,10 +120,12 @@ class BookServiceImplTest {
         val notExistingObjectId = ObjectId.get().toHexString()
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.update(notExistingObjectId, updateBookRequest))
-            .expectError(BookNotFoundException::class.java)
-            .verify()
+        // WHEN
+        val actualMono = bookService.update(notExistingObjectId, updateBookRequest)
+
+        // THEN
+        actualMono.test()
+            .verifyError(BookNotFoundException::class.java)
         verify { bookRepositoryMock.update(any(), any()) }
     }
 
@@ -120,15 +134,17 @@ class BookServiceImplTest {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
         val testRequest = UpdateAmountRequest(bookId, 1)
-        every { bookRepositoryMock.updateAmount(testRequest) } returns Mono.just(true)
+        every { bookRepositoryMock.updateAmount(testRequest) } returns true.toMono()
         every { availableBooksSink.tryEmitNext(bookId) } returns Sinks.EmitResult.OK
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.updateAmount(testRequest))
+        // WHEN
+        val actualMono = bookService.updateAmount(testRequest)
+
+        // THEN
+        actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
 
-        // THEN
         verify { bookRepositoryMock.updateAmount(testRequest) }
         verify { availableBooksSink.tryEmitNext(bookId) }
     }
@@ -142,16 +158,18 @@ class BookServiceImplTest {
         val alsoPositiveDeltaRequest = UpdateAmountRequest(ObjectId.get().toHexString(), 3)
         val testRequests =
             listOf(negativeDeltaRequest, positiveDeltaRequest, alsoNegativeDeltaRequest, alsoPositiveDeltaRequest)
-        every { bookRepositoryMock.updateAmountMany(testRequests) } returns Mono.just(testRequests.size)
+        every { bookRepositoryMock.updateAmountMany(testRequests) } returns testRequests.size.toMono()
         every { availableBooksSink.tryEmitNext(positiveDeltaRequest.bookId) } returns Sinks.EmitResult.OK
         every { availableBooksSink.tryEmitNext(alsoPositiveDeltaRequest.bookId) } returns Sinks.EmitResult.OK
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.exchangeBooks(testRequests))
+        // WHEN
+        val actualMono = bookService.exchangeBooks(testRequests)
+
+        // THEN
+        actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
 
-        // THEN
         verify { bookRepositoryMock.updateAmountMany(testRequests) }
         val positiveDeltaRequestAmount = 2
         verify(exactly = positiveDeltaRequestAmount) { availableBooksSink.tryEmitNext(any()) }
@@ -162,10 +180,13 @@ class BookServiceImplTest {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
         val request = UpdateAmountRequest(bookId, -4)
-        every { bookRepositoryMock.updateAmount(request) } returns Mono.just(false)
+        every { bookRepositoryMock.updateAmount(request) } returns false.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.updateAmount(request))
+        // WHEN
+        val actualAmount = bookService.updateAmount(request)
+
+        // THEN
+        actualAmount.test()
             .consumeErrorWith { ex ->
                 assertEquals(IllegalArgumentException::class.java, ex.javaClass)
                 assertEquals("Book absent or no enough available: $request", ex.message)
@@ -177,14 +198,16 @@ class BookServiceImplTest {
     fun `should delete book successfully`() {
         // GIVEN
         val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.delete(bookId) } returns Mono.just(1L)
+        every { bookRepositoryMock.delete(bookId) } returns 1L.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(bookService.delete(bookId))
+        // WHEN
+        val actualMono = bookService.delete(bookId)
+
+        // THEN
+        actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
 
-        // THEN
         verify { bookRepositoryMock.delete(bookId) }
     }
 
@@ -196,14 +219,16 @@ class BookServiceImplTest {
         logger.addAppender(listAppender)
 
         val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.delete(bookId) } returns Mono.just(0L)
+        every { bookRepositoryMock.delete(bookId) } returns 0L.toMono()
 
         // WHEN
-        StepVerifier.create(bookService.delete(bookId))
+        val actualMono = bookService.delete(bookId)
+
+        // THEN
+        actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
 
-        // THEN
         verify { bookRepositoryMock.delete(bookId) }
         val logs = listAppender.list
         val expectedMessage = "Affected 0 documents while trying to delete book with id=$bookId"

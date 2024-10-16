@@ -7,7 +7,7 @@ import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserNotificationDetails
-import reactor.test.StepVerifier
+import reactor.kotlin.test.test
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -29,8 +29,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
 
     @Test
     fun `should save user and assign id`() {
-        // WHEN & THEN
-        StepVerifier.create(userRepository.insert(firstCreateUserRequest))
+        // WHEN
+        val actualMono = userRepository.insert(firstCreateUserRequest)
+
+        // THEN
+        actualMono.test()
             .consumeNextWith { savedUser ->
                 assertNotNull(savedUser.id, "Id should not be null after save")
                 assertEquals(firstCreateUserRequest.login, savedUser.login)
@@ -45,8 +48,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val savedUser = userRepository.insert(firstCreateUserRequest).block()!!
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.findById(savedUser.id))
+        // WHEN
+        val actualMono = userRepository.findById(savedUser.id)
+
+        // THEN
+        actualMono.test()
             .expectNext(savedUser)
             .verifyComplete()
     }
@@ -54,8 +60,10 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `should return empty mono for non-existing user`() {
         // WHEN
-        StepVerifier.create(userRepository.findById(ObjectId.get().toHexString()))
-            .verifyComplete()
+        val actualMono = userRepository.findById(ObjectId.get().toHexString())
+
+        // THEN
+        actualMono.test().verifyComplete()
     }
 
     @Test
@@ -65,8 +73,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val updateRequest = UpdateUserRequest(login = "new_login", null, null)
         val expectedUpdatedUser = savedUser.copy(login = "new_login")
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.update(savedUser.id, updateRequest))
+        // WHEN
+        val actualMono = userRepository.update(savedUser.id, updateRequest)
+
+        // THEN
+        actualMono.test()
             .expectNext(expectedUpdatedUser)
             .verifyComplete()
     }
@@ -77,9 +88,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val nonExistentUserId = "nonexistent_user_id"
         val updateRequest = UpdateUserRequest(login = "new_login", email = null, bookWishList = null)
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.update(nonExistentUserId, updateRequest))
-            .verifyComplete()
+        // WHEN
+        val actualMono = userRepository.update(nonExistentUserId, updateRequest)
+
+        // THEN
+        actualMono.test().verifyComplete()
     }
 
     @Test
@@ -89,12 +102,13 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val inputBookId = ObjectId.get().toHexString()
         val expectedModifiedCount = 1L
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.addBookToWishList(savedUser.id, inputBookId))
-            .expectNext(expectedModifiedCount)
-            .verifyComplete()
+        // WHEN
+        val actualMono = userRepository.addBookToWishList(savedUser.id, inputBookId)
 
         // THEN
+        actualMono.test()
+            .expectNext(expectedModifiedCount)
+            .verifyComplete()
         val updatedUser = userRepository.findById(savedUser.id).block()!!
         assertNotNull(updatedUser, "Updated user should be found")
         assertTrue(
@@ -121,8 +135,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
             secondUser.login, secondUser.email, setOf(secondBook.title, thirdBook.title)
         )
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.findAllSubscribersOf(requestIds))
+        // WHEN
+        val actualFlux = userRepository.findAllSubscribersOf(requestIds)
+
+        // THEN
+        actualFlux.test()
             .expectNext(firstExpected, secondExpected)
             .verifyComplete()
     }
@@ -136,9 +153,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id))).block()!!
         userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id))).block()!!
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString())))
-            .verifyComplete()
+        // WHEN
+        val actualFlux = userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString()))
+
+        // THEN
+        actualFlux.test().verifyComplete()
     }
 
     @Test
@@ -147,12 +166,13 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val savedUser = userRepository.insert(firstCreateUserRequest).block()!!
         val expectedDeleteCount = 1L
 
-        // WHEN & THEN
-        StepVerifier.create(userRepository.delete(savedUser.id))
-            .expectNext(expectedDeleteCount)
-            .verifyComplete()
+        // WHEN
+        val actualMono = userRepository.delete(savedUser.id)
 
         // THEN
+        actualMono.test()
+            .expectNext(expectedDeleteCount)
+            .verifyComplete()
         val foundUser = userRepository.findById(savedUser.id).block()
         assertNull(foundUser, "User should not be found after deletion")
     }

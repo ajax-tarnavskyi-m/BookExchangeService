@@ -32,7 +32,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.mongock:mongock-springboot-v3:5.4.4")
     implementation("io.mongock:mongodb-springdata-v4-driver:5.4.4")
-    implementation("io.projectreactor:reactor-core:3.6.10")
+    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.3")
     implementation ("org.springframework.boot:spring-boot-starter-webflux")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

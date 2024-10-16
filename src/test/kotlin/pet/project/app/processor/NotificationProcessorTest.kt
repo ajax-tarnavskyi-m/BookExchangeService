@@ -20,6 +20,7 @@ import pet.project.app.repository.UserRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
+import reactor.kotlin.core.publisher.toMono
 
 @ExtendWith(MockKExtension::class)
 class NotificationProcessorTest {
@@ -31,7 +32,7 @@ class NotificationProcessorTest {
     private val availableBooksSink = Sinks.many().unicast().onBackpressureBuffer<String>()
 
     @Test
-    fun `should log user login and book ID when sink buffer is full`() {
+    fun `should log user notification when bookId is emitted to sink`() {
         // GIVEN
         val logger = LoggerFactory.getLogger(NotificationProcessor::class.java) as Logger
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }
@@ -40,7 +41,7 @@ class NotificationProcessorTest {
         val bookId = "66bf6bf8039339103054e21a"
         val userDetails = UserNotificationDetails("testUser", "email@test.com", setOf(bookId))
 
-        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns Mono.just(1L)
+        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns 1L.toMono()
         every { userRepositoryMock.findAllSubscribersOf(listOf(bookId)) } returns Flux.just(userDetails)
 
         val bufferMaxAmountOfEvents = 1

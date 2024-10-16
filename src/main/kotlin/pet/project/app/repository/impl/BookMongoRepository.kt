@@ -71,7 +71,7 @@ internal class BookMongoRepository(
             .handle { result, sink ->
                 when (result.matchedCount != requests.size) {
                     true -> sink.error(IllegalArgumentException("Not existing ids or not enough books: $requests"))
-                    else -> sink.next(result.matchedCount)
+                    false -> sink.next(result.matchedCount)
                 }
             }
             .`as` { transactionalOperator.transactional(it) }

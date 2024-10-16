@@ -30,17 +30,17 @@ class UserServiceImpl(
     override fun addBookToWishList(userId: String, bookId: String): Mono<Unit> {
         return bookRepository.existsById(bookId)
             .flatMap { isBookExist ->
-                when (isBookExist) {
-                    true -> userRepository.addBookToWishList(userId, bookId)
-                    else -> Mono.error { BookNotFoundException(bookId, "adding book to users (id=$userId) wishlist") }
+                if (isBookExist) {
+                    userRepository.addBookToWishList(userId, bookId)
+                } else {
+                    Mono.error { BookNotFoundException(bookId, "adding book to users (id=$userId) wishlist") }
+                }
+            }.handle { matchCount, sink ->
+                when (matchCount == 1L) {
+                    true -> sink.next(Unit)
+                    false -> sink.error(UserNotFoundException(userId, "adding book with id=$bookId into user wishlist"))
                 }
             }
-            .handle<Unit?> { matchCount, sink ->
-                if (matchCount != 1L) {
-                    sink.error(UserNotFoundException(userId, "adding book with id=$bookId into user wishlist"))
-                }
-            }
-            .thenReturn(Unit)
     }
 
     override fun update(userId: String, request: UpdateUserRequest): Mono<DomainUser> {

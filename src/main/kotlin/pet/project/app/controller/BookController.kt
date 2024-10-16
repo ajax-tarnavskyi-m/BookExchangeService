@@ -25,7 +25,7 @@ import reactor.core.publisher.Mono
 @RequestMapping("/book")
 class BookController(private val bookService: BookService) {
 
-    @PostMapping("/")
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody request: CreateBookRequest): Mono<ResponseBookDto> {
         return bookService.create(request).map { book -> book.toDto() }

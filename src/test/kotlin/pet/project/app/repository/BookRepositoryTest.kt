@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
-import reactor.test.StepVerifier
+import reactor.kotlin.test.test
 import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -33,8 +33,11 @@ class BookRepositoryTest : AbstractMongoTestContainer {
 
     @Test
     fun `should save book and assign valid id`() {
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.insert(firstCreationRequest))
+        // WHEN
+        val actualMono = bookRepository.insert(firstCreationRequest)
+
+        // THEN
+        actualMono.test()
             .consumeNextWith { actualBook ->
                 ObjectId.isValid(actualBook.id)
                 assertEquals(firstCreationRequest.title, actualBook.title)
@@ -50,9 +53,11 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.findById(savedBook.id))
-            .expectNext(savedBook).`as`("Saved book should be equals to retrieved one")
+        // WHEN
+        val actualMono = bookRepository.findById(savedBook.id)
+
+        // THEN
+        actualMono.test().expectNext(savedBook).`as`("Saved book should be equals to retrieved one")
             .verifyComplete()
     }
 
@@ -61,25 +66,31 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.existsById(savedBook.id))
+        // WHEN
+        val actualMono = bookRepository.existsById(savedBook.id)
+
+        // THEN
+        actualMono.test()
             .expectNext(true).`as`("Book should exist")
             .verifyComplete()
     }
 
     @Test
     fun `should return false when book does not exist`() {
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.existsById(ObjectId().toHexString()))
+        // WHEN
+        val actualMono = bookRepository.existsById(ObjectId().toHexString())
+
+        // THEN
+        actualMono.test()
             .expectNext(false).`as`("Book should not exist")
             .verifyComplete()
     }
 
     @Test
     fun `should return empty mono when book not found`() {
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.findById(ObjectId().toHexString()))
-            .verifyComplete()
+        // WHEN
+        val actualMono = bookRepository.findById(ObjectId().toHexString())
+        actualMono.test().verifyComplete()
     }
 
     @Test
@@ -87,8 +98,11 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.updateShouldBeNotified(savedBook.id, true))
+        // WHEN
+        val actualMono = bookRepository.updateShouldBeNotified(savedBook.id, true)
+
+        // THEN
+        actualMono.test()
             .expectNext(1L).`as`("One record should be modified")
             .verifyComplete()
     }
@@ -100,12 +114,14 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val adjustment = 5
         val request = UpdateAmountRequest(savedBook.id, adjustment)
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.updateAmount(request))
+        // WHEN
+        val actualMono = bookRepository.updateAmount(request)
+
+        // THEN
+        actualMono.test()
             .expectNext(true).`as`("Should return true when amount updated")
             .verifyComplete()
 
-        // THEN
         val updatedBook = bookRepository.findById(savedBook.id).block()!!
         assertNotNull(updatedBook, "Updated book should not be null")
         val expected = savedBook.amountAvailable + adjustment
@@ -119,12 +135,14 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val negativeDelta = -3
         val request = UpdateAmountRequest(savedBook.id, negativeDelta)
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.updateAmount(request))
+        // WHEN
+        val actualMono = bookRepository.updateAmount(request)
+
+        // THEN
+        actualMono.test()
             .expectNext(true).`as`("Should return true when amount updated")
             .verifyComplete()
 
-        // THEN
         val updatedBook = bookRepository.findById(savedBook.id).block()
         assertNotNull(updatedBook, "Updated book should not be null")
         val expected = savedBook.amountAvailable + negativeDelta
@@ -138,12 +156,14 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val invalidDelta = -11
         val request = UpdateAmountRequest(savedBook.id, invalidDelta)
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.updateAmount(request))
+        // WHEN
+        val actualMono = bookRepository.updateAmount(request)
+
+        // THEN
+        actualMono.test()
             .expectNext(false).`as`("Should be false when no records was affected")
             .verifyComplete()
 
-        // THEN
         val updatedBook = bookRepository.findById(savedBook.id).block()
         assertNotNull(updatedBook, "Updated book should not be null")
         val amountBeforeOperation = savedBook.amountAvailable
@@ -162,12 +182,14 @@ class BookRepositoryTest : AbstractMongoTestContainer {
             UpdateAmountRequest(secondSavedBook.id, negativeDeltaForSecondBook)
         )
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.updateAmountMany(requests))
+        // WHEN
+        val actualMono = bookRepository.updateAmountMany(requests)
+
+        // THEN
+        actualMono.test()
             .expectNext(requests.size).`as`("Matched count should be equal to requests size")
             .verifyComplete()
 
-        // THEN
         val firstUpdatedBook = bookRepository.findById(firstSavedBook.id).block()
         assertNotNull(firstUpdatedBook, "Updated book should not be null")
         val secondUpdatedBook = bookRepository.findById(secondSavedBook.id).block()
@@ -192,14 +214,16 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         )
 
         // WHEN
-        StepVerifier.create(bookRepository.updateAmountMany(requests))
+        val actualMono = bookRepository.updateAmountMany(requests)
+
+        // THEN
+        actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(IllegalArgumentException::class.java, ex.javaClass)
                 assertEquals("Not existing ids or not enough books: $requests", ex.message)
             }
             .verify()
 
-        // THEN
         val firstUpdatedBook = bookRepository.findById(firstSavedBook.id).block()
         assertNotNull(firstUpdatedBook, "Updated book should not be null")
         val secondUpdatedBook = bookRepository.findById(secondSavedBook.id).block()
@@ -219,12 +243,14 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
 
-        // WHEN & THEN
-        StepVerifier.create(bookRepository.delete(savedBook.id))
+        // WHEN
+        val actualMono = bookRepository.delete(savedBook.id)
+
+        // THEN
+        actualMono.test()
             .expectNext(1L).`as`("Should return delete count of one affected record")
             .verifyComplete()
 
-        // THEN
         val actualBook = bookRepository.findById(savedBook.id).block()
         assertNull(actualBook, "Book should be deleted from the database")
     }

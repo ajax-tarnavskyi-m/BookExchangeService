@@ -29,6 +29,7 @@ import pet.project.app.exception.handler.ValidationExceptionResponse
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import java.math.BigDecimal
 import java.time.Year
 
@@ -51,7 +52,7 @@ class BookControllerValidationTest {
 
         // WHEN
         val result = mockMvc.perform(
-            post("/book/")
+            post("/book")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
@@ -73,7 +74,7 @@ class BookControllerValidationTest {
 
         // WHEN
         val result = mockMvc.perform(
-            post("/book/")
+            post("/book")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
@@ -105,7 +106,7 @@ class BookControllerValidationTest {
 
         // WHEN
         val result = mockMvc.perform(
-            post("/book/")
+            post("/book")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
@@ -126,7 +127,7 @@ class BookControllerValidationTest {
 
         // WHEN
         val result = mockMvc.perform(
-            post("/book/")
+            post("/book")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         ).andReturn()
@@ -167,7 +168,7 @@ class BookControllerValidationTest {
         val bookId = "66bf6bf8039339103054e21a"
         val request = UpdateBookRequest( "Title", "Updated", null, BigDecimal(20.99))
         val updated = DomainBook(bookId, "Title", "Updated", 2020, BigDecimal(20.99), 10)
-        every { bookServiceMock.update(bookId, request) } returns Mono.just(updated)
+        every { bookServiceMock.update(bookId, request) } returns updated.toMono()
 
         // WHEN
         mockMvc.perform(

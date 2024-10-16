@@ -22,7 +22,9 @@ import pet.project.app.model.domain.DomainUser
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 import reactor.core.publisher.Mono
-import reactor.test.StepVerifier
+import reactor.kotlin.core.publisher.toMono
+import reactor.kotlin.test.test
+import reactor.kotlin.test.verifyError
 
 @ExtendWith(MockKExtension::class)
 class UserServiceImplTest {
@@ -39,20 +41,21 @@ class UserServiceImplTest {
     private val dummyStringWishList =
         setOf("66bf6bf8039339103054e21a", "66c3636647ff4c2f0242073d", "66c3637847ff4c2f0242073e")
 
-        @Test
+    @Test
     fun `should create user successfully`() {
         // GIVEN
         val userId = ObjectId.get().toHexString()
         val expectedUser = DomainUser(userId, "testUser123", "test.user@test.com", dummyStringWishList)
         val testRequest = CreateUserRequest("testUser123", "test.user@test.com", dummyStringWishList)
-        every { userRepositoryMock.insert(testRequest) } returns Mono.just(expectedUser)
+        every { userRepositoryMock.insert(testRequest) } returns expectedUser.toMono()
 
         // WHEN
-        StepVerifier.create(userService.create(testRequest))
-            .expectNext(expectedUser)
-            .verifyComplete()
+        val actualMono = userService.create(testRequest)
 
         // THEN
+        actualMono.test()
+            .expectNext(expectedUser)
+            .verifyComplete()
         verify { userRepositoryMock.insert(testRequest) }
     }
 
@@ -61,14 +64,16 @@ class UserServiceImplTest {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
         val expected = DomainUser(userId, "testUser123", "test.user@example.com", dummyStringWishList)
-        every { userRepositoryMock.findById(userId) } returns Mono.just(expected)
+        every { userRepositoryMock.findById(userId) } returns expected.toMono()
 
         // WHEN
-        StepVerifier.create(userService.getById(userId))
+        val actualMono = userService.getById(userId)
+
+        // THEN
+        actualMono.test()
             .expectNext(expected)
             .verifyComplete()
 
-        // THEN
         verify { userRepositoryMock.findById(userId) }
     }
 
@@ -79,11 +84,10 @@ class UserServiceImplTest {
         every { userRepositoryMock.findById(testRequestUserId) } returns Mono.empty()
 
         // WHEN
-        StepVerifier.create(userService.getById(testRequestUserId))
-            .expectError(UserNotFoundException::class.java)
-            .verify()
+        val actualTest = userService.getById(testRequestUserId)
 
         // THEN
+        actualTest.test().verifyError<UserNotFoundException>()
         verify { userRepositoryMock.findById(testRequestUserId) }
     }
 
@@ -93,28 +97,32 @@ class UserServiceImplTest {
         val userId = "66c35b050da7b9523070cb3a"
         val updateUserRequest = UpdateUserRequest("John Doe", "test.user@example.com", dummyStringWishList)
         val updatedUser = DomainUser(userId, "John Doe", "test.user@example.com", dummyStringWishList)
-        every { userRepositoryMock.update(userId, updateUserRequest) } returns Mono.just(updatedUser)
+        every { userRepositoryMock.update(userId, updateUserRequest) } returns updatedUser.toMono()
 
         // WHEN
-        StepVerifier.create(userService.update(userId, updateUserRequest))
-            .expectNext(updatedUser)
-            .verifyComplete()
+        val actualMono = userService.update(userId, updateUserRequest)
 
         // THEN
+        actualMono.test()
+            .expectNext(updatedUser)
+            .verifyComplete()
         verify { userRepositoryMock.update(userId, updateUserRequest) }
     }
 
     @Test
     fun `should throw UserNotFoundException when user not found while adding book to wishlist`() {
         // GIVEN
-        val userId = "nonexistentUserId"
+        val userId = "nonexistentUserId1234567"
         val bookId = "60f1b13e8f1b2c000b355777"
 
-        every { bookRepositoryMock.existsById(bookId) } returns Mono.just(true)
-        every { userRepositoryMock.addBookToWishList(userId, bookId) } returns Mono.just(0L)
+        every { bookRepositoryMock.existsById(bookId) } returns true.toMono()
+        every { userRepositoryMock.addBookToWishList(userId, bookId) } returns 0L.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(userService.addBookToWishList(userId, bookId))
+        // WHEN
+        val actualMono = userService.addBookToWishList(userId, bookId)
+
+        // THEN
+        actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(UserNotFoundException::class.java, ex.javaClass)
                 assertEquals(
@@ -134,10 +142,13 @@ class UserServiceImplTest {
         val userId = "validUserId"
         val bookId = "nonexistentBookId"
 
-        every { bookRepositoryMock.existsById(bookId) } returns Mono.just(false)
+        every { bookRepositoryMock.existsById(bookId) } returns false.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(userService.addBookToWishList(userId, bookId))
+        // WHEN
+        val actualMono = userService.addBookToWishList(userId, bookId)
+
+        // THEN
+        actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(BookNotFoundException::class.java, ex.javaClass)
                 assertEquals(
@@ -146,11 +157,8 @@ class UserServiceImplTest {
                 )
             }
             .verify()
-
         verify { bookRepositoryMock.existsById(bookId) }
-        verify(exactly = 0) {
-            userRepositoryMock.addBookToWishList(any(), any())
-        }
+        verify(exactly = 0) { userRepositoryMock.addBookToWishList(any(), any()) }
     }
 
     @Test
@@ -158,15 +166,16 @@ class UserServiceImplTest {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
-        every { bookRepositoryMock.existsById(testRequestBookId) } returns Mono.just(true)
-        every { userRepositoryMock.addBookToWishList(testRequestUserId, testRequestBookId) } returns Mono.just(1L)
+        every { bookRepositoryMock.existsById(testRequestBookId) } returns true.toMono()
+        every { userRepositoryMock.addBookToWishList(testRequestUserId, testRequestBookId) } returns 1L.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(userService.addBookToWishList(testRequestUserId, testRequestBookId))
-            .expectNext(Unit)
-            .verifyComplete()
+        // WHEN
+        val actualMono = userService.addBookToWishList(testRequestUserId, testRequestBookId)
 
         // THEN
+        actualMono.test()
+            .expectNext(Unit)
+            .verifyComplete()
         verify { bookRepositoryMock.existsById(testRequestBookId) }
         verify { userRepositoryMock.addBookToWishList(testRequestUserId, testRequestBookId) }
     }
@@ -177,14 +186,13 @@ class UserServiceImplTest {
         val testRequestUserId = "66c35b050da7b9523070cb3a"
         val testRequestBookId = "66c3637847ff4c2f0242073e"
 
-        every { bookRepositoryMock.existsById(testRequestBookId) } returns Mono.just(false)
+        every { bookRepositoryMock.existsById(testRequestBookId) } returns false.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(userService.addBookToWishList(testRequestUserId, testRequestBookId))
-            .expectError(BookNotFoundException::class.java)
-            .verify()
+        // WHEN
+        val actualMono = userService.addBookToWishList(testRequestUserId, testRequestBookId)
 
         // THEN
+        actualMono.test().verifyError<BookNotFoundException>()
         verify { bookRepositoryMock.existsById(testRequestBookId) }
     }
 
@@ -192,14 +200,15 @@ class UserServiceImplTest {
     fun `should delete user successfully`() {
         // GIVEN
         val testRequestUserId = "66c35b050da7b9523070cb3a"
-        every { userRepositoryMock.delete(testRequestUserId) } returns Mono.just(1L)
+        every { userRepositoryMock.delete(testRequestUserId) } returns 1L.toMono()
 
         // WHEN
-        StepVerifier.create(userService.delete(testRequestUserId))
-            .expectNext(Unit)
-            .verifyComplete()
+        val actual = userService.delete(testRequestUserId)
 
         // THEN
+        actual.test()
+            .expectNext(Unit)
+            .verifyComplete()
         verify { userRepositoryMock.delete(testRequestUserId) }
     }
 
@@ -211,14 +220,16 @@ class UserServiceImplTest {
         logger.addAppender(listAppender)
 
         val userId = "66c35b050da7b9523070cb3a"
-        every { userRepositoryMock.delete(userId) } returns Mono.just(0L)
+        every { userRepositoryMock.delete(userId) } returns 0L.toMono()
 
-        // WHEN & THEN
-        StepVerifier.create(userService.delete(userId))
+        // WHEN
+        val actualMono = userService.delete(userId)
+
+        // THEN
+        actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
 
-        // THEN
         val logs = listAppender.list
         val expectedMessage = "Affected 0 documents while trying to delete user with id=$userId"
         assertEquals(expectedMessage, logs.first().formattedMessage)
