@@ -10,7 +10,6 @@ import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
 import pet.project.app.service.BookService
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 
@@ -32,13 +31,12 @@ class BookServiceImpl(
 
     override fun updateAmount(request: UpdateAmountRequest): Mono<Unit> {
         return bookRepository.updateAmount(request)
-            .handle{ isUpdated, sink ->
-                when (isUpdated) {
-                    true -> {
-                        sendForNotificationIfDeltaPositive(request)
-                        sink.next(Unit)
-                    }
-                    false -> sink.error(IllegalArgumentException("Book absent or no enough available: $request"))
+            .handle { isUpdated, sink ->
+                if (isUpdated) {
+                    sendForNotificationIfDeltaPositive(request)
+                    sink.next(Unit)
+                } else {
+                    sink.error(IllegalArgumentException("Book absent or no enough available: $request"))
                 }
             }
     }
