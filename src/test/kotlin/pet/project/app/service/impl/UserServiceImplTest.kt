@@ -56,6 +56,7 @@ class UserServiceImplTest {
         actualMono.test()
             .expectNext(expectedUser)
             .verifyComplete()
+
         verify { userRepositoryMock.insert(testRequest) }
     }
 
@@ -88,6 +89,7 @@ class UserServiceImplTest {
 
         // THEN
         actualTest.test().verifyError<UserNotFoundException>()
+
         verify { userRepositoryMock.findById(testRequestUserId) }
     }
 
@@ -106,6 +108,7 @@ class UserServiceImplTest {
         actualMono.test()
             .expectNext(updatedUser)
             .verifyComplete()
+
         verify { userRepositoryMock.update(userId, updateUserRequest) }
     }
 
@@ -157,6 +160,7 @@ class UserServiceImplTest {
                 )
             }
             .verify()
+
         verify { bookRepositoryMock.existsById(bookId) }
         verify(exactly = 0) { userRepositoryMock.addBookToWishList(any(), any()) }
     }
@@ -176,6 +180,7 @@ class UserServiceImplTest {
         actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
+
         verify { bookRepositoryMock.existsById(testRequestBookId) }
         verify { userRepositoryMock.addBookToWishList(testRequestUserId, testRequestBookId) }
     }
@@ -193,6 +198,7 @@ class UserServiceImplTest {
 
         // THEN
         actualMono.test().verifyError<BookNotFoundException>()
+
         verify { bookRepositoryMock.existsById(testRequestBookId) }
     }
 
@@ -209,6 +215,7 @@ class UserServiceImplTest {
         actual.test()
             .expectNext(Unit)
             .verifyComplete()
+
         verify { userRepositoryMock.delete(testRequestUserId) }
     }
 

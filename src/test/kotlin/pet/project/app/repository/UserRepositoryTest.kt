@@ -109,6 +109,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         actualMono.test()
             .expectNext(expectedModifiedCount)
             .verifyComplete()
+
         val updatedUser = userRepository.findById(savedUser.id).block()!!
         assertNotNull(updatedUser, "Updated user should be found")
         assertTrue(
@@ -173,6 +174,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         actualMono.test()
             .expectNext(expectedDeleteCount)
             .verifyComplete()
+
         val foundUser = userRepository.findById(savedUser.id).block()
         assertNull(foundUser, "User should not be found after deletion")
     }

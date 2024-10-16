@@ -11,17 +11,6 @@ import reactor.core.publisher.Mono
 class BookExchangeServiceApplication
 
 fun main(args: Array<String>) {
-//    @Suppress("SpreadOperator")
-//    runApplication<BookExchangeServiceApplication>(*args)
-//
-    println("start")
-    Flux.just("elem")
-        .switchIfEmpty(Mono.error { RuntimeException(getMessage()) })
-        .subscribe()
-    println("end")
-}
-
-fun getMessage(): String {
-    println("I am not lazy")
-    return "Exc message"
+    @Suppress("SpreadOperator")
+    runApplication<BookExchangeServiceApplication>(*args)
 }

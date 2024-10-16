@@ -55,6 +55,7 @@ class BookServiceImplTest {
         actualMono.test()
             .expectNext(exampleDomainBook)
             .verifyComplete()
+
         verify { bookRepositoryMock.insert(createBookRequest) }
     }
 
@@ -92,6 +93,7 @@ class BookServiceImplTest {
                 assertEquals(BookNotFoundException::class.java, ex.javaClass)
                 assertEquals("Book with id=${bookId} was not found during GET request", ex.message)
             }.verify()
+
         verify { bookRepositoryMock.findById(bookId) }
     }
 
@@ -110,6 +112,7 @@ class BookServiceImplTest {
         actualMono.test()
             .expectNext(updatedDomainBook)
             .verifyComplete()
+
         verify { bookRepositoryMock.update(bookId, updateBookRequest) }
     }
 
@@ -126,6 +129,7 @@ class BookServiceImplTest {
         // THEN
         actualMono.test()
             .verifyError(BookNotFoundException::class.java)
+
         verify { bookRepositoryMock.update(any(), any()) }
     }
 
@@ -191,6 +195,7 @@ class BookServiceImplTest {
                 assertEquals(IllegalArgumentException::class.java, ex.javaClass)
                 assertEquals("Book absent or no enough available: $request", ex.message)
             }.verify()
+
         verify { bookRepositoryMock.updateAmount(request) }
     }
 

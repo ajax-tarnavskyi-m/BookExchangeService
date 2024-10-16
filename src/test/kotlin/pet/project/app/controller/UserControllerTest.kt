@@ -14,7 +14,6 @@ import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.mapper.UserMapper.toDto
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.service.UserService
-import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(UserController::class)
@@ -48,6 +47,7 @@ class UserControllerTest {
             .expectStatus().isCreated
             .expectBody(ResponseUserDto::class.java)
             .isEqualTo(expectedResponse)
+
         verify { userService.create(createUserRequest) }
     }
 
@@ -66,6 +66,7 @@ class UserControllerTest {
             .expectStatus().isOk
             .expectBody(ResponseUserDto::class.java)
             .isEqualTo(expectedResponse)
+
         verify { userService.getById(userId) }
     }
 
