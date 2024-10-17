@@ -63,13 +63,18 @@ class BookServiceImpl(
 
     override fun delete(bookId: String): Mono<Unit> {
         return bookRepository.delete(bookId)
-            .doOnNext { deleteCount -> if (deleteCount != 1L) log.warn(DELETE_WARN_MESSAGE, deleteCount, bookId) }
+            .doOnNext { deleteCount -> logIfBookNotFoundForDeletion(deleteCount, bookId) }
             .thenReturn(Unit)
+    }
+
+    private fun logIfBookNotFoundForDeletion(deleteCount: Long, bookId: String) {
+        if (deleteCount != 1L) {
+            log.warn("Affected {} documents while trying to delete book with id={}", deleteCount, bookId)
+        }
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(BookServiceImpl::class.java)
-        private const val DELETE_WARN_MESSAGE = "Affected {} documents while trying to delete book with id={}"
     }
 }
 

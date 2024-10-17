@@ -11,6 +11,7 @@ import io.mockk.verify
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
@@ -20,6 +21,8 @@ import pet.project.app.repository.UserRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toMono
+import java.time.Duration
+import kotlin.test.assertTrue
 
 @ExtendWith(MockKExtension::class)
 class NotificationProcessorTest {
@@ -28,23 +31,30 @@ class NotificationProcessorTest {
 
     @MockK
     lateinit var bookRepositoryMock: BookRepository
-    private val availableBooksSink = Sinks.many().unicast().onBackpressureBuffer<String>()
+    private lateinit var availableBooksSink  : Sinks.Many<String>
+    private lateinit var listAppender: ListAppender<ILoggingEvent>
+
+    @BeforeEach
+    fun setUp() {
+        val logger = LoggerFactory.getLogger(NotificationProcessor::class.java) as Logger
+        listAppender = ListAppender<ILoggingEvent>().apply { start() }
+        logger.addAppender(listAppender)
+
+        availableBooksSink = Sinks.many().unicast().onBackpressureBuffer()
+    }
 
     @Test
     fun `should log user notification when bookId is emitted to sink`() {
         // GIVEN
-        val logger = LoggerFactory.getLogger(NotificationProcessor::class.java) as Logger
-        val listAppender = ListAppender<ILoggingEvent>().apply { start() }
-        logger.addAppender(listAppender)
-
         val bookId = "66bf6bf8039339103054e21a"
         val userDetails = UserNotificationDetails("testUser", "email@test.com", setOf(bookId))
 
-        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns 1L.toMono()
+        val shouldBeNotifiedUpdated = 1L
+        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeNotifiedUpdated.toMono()
         every { userRepositoryMock.findAllSubscribersOf(listOf(bookId)) } returns Flux.just(userDetails)
 
         val bufferMaxAmountOfEvents = 1
-        val bufferFiveMinuteInterval = "PT5M"
+        val bufferFiveMinuteInterval = Duration.parse("PT5M")
         val notificationProcessor = NotificationProcessor(
             bookRepositoryMock,
             userRepositoryMock,
@@ -66,6 +76,37 @@ class NotificationProcessorTest {
         val expectedMessage = "Hi ${userDetails.login}! There is new books for you: ${userDetails.bookTitles}"
         assertEquals(expectedMessage, logs.first().formattedMessage)
         assertEquals(Level.INFO, logs.first().level)
+    }
+
+    @Test
+    fun `should not log user notification when book shouldBeNotified field is false`() {
+        // GIVEN
+        val bookId = "66bf6bf8039339103054e21a"
+
+        val shouldBeModifiedWasNotUpdated = 0L
+        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeModifiedWasNotUpdated.toMono()
+
+        val bufferMaxAmountOfEvents = 1
+        val bufferFiveMinuteInterval = Duration.parse("PT5M")
+        val notificationProcessor = NotificationProcessor(
+            bookRepositoryMock,
+            userRepositoryMock,
+            availableBooksSink,
+            bufferFiveMinuteInterval,
+            bufferMaxAmountOfEvents
+        )
+
+        // WHEN
+        notificationProcessor.subscribeToSink()
+        availableBooksSink.tryEmitNext(bookId)
+
+        // THEN
+        await().untilAsserted {
+            verify { bookRepositoryMock.updateShouldBeNotified(bookId, false) }
+        }
+        verify (exactly = 0){ userRepositoryMock.findAllSubscribersOf(any()) }
+        val logs = listAppender.list
+        assertTrue(logs.isEmpty(), "Should not log anything when book should be modified was false")
     }
 
     @AfterEach

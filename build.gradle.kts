@@ -63,7 +63,7 @@ configure<DeltaCoverageConfiguration> {
     diffSource.byGit {
         compareWith(targetBranch)
     }
-    violationRules.failIfCoverageLessThan(0.5)
+    violationRules.failIfCoverageLessThan(0.85)
 }
 
 tasks.check {

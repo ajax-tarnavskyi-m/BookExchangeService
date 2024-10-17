@@ -51,12 +51,17 @@ class UserServiceImpl(
 
     override fun delete(userId: String): Mono<Unit> {
         return userRepository.delete(userId)
-            .doOnNext { modifiedCount -> if (modifiedCount != 1L) log.warn(DELETE_WARN_MESSAGE, modifiedCount, userId) }
+            .doOnNext { deleteCount -> logIfUserNotFoundForDeletion(deleteCount, userId)}
             .thenReturn(Unit)
+    }
+
+    private fun logIfUserNotFoundForDeletion(deleteCount: Long, userId: String) {
+        if (deleteCount != 1L) {
+            log.warn("Affected {} documents while trying to delete user with id={}", deleteCount, userId)
+        }
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(UserServiceImpl::class.java)
-        private const val DELETE_WARN_MESSAGE = "Affected {} documents while trying to delete user with id={}"
     }
 }

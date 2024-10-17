@@ -19,14 +19,14 @@ class NotificationProcessor(
     private val bookRepository: BookRepository,
     private val userRepository: UserRepository,
     private val availableBooksSink: Sinks.Many<String>,
-    @Value("\${notification.buffer.interval:PT5M}") private val notificationInterval: String,
+    @Value("\${notification.buffer.interval:PT5M}") private val notificationInterval: Duration,
     @Value("\${notification.buffer.items-max-amount:100}") private val notificationMaxAmount: Int,
 ) {
 
     @PostConstruct
     fun subscribeToSink() {
         availableBooksSink.asFlux()
-            .bufferTimeout(notificationMaxAmount, Duration.parse(notificationInterval))
+            .bufferTimeout(notificationMaxAmount, notificationInterval)
             .flatMap { bookIdsList -> findSubscribedUsersDetails(bookIdsList) }
             .subscribe { userDetails -> notifyUsers(userDetails) }
     }
@@ -35,7 +35,8 @@ class NotificationProcessor(
         return Flux.fromIterable(bookIds)
             .filterWhen { updateShouldBeNotified(it) }
             .collectList()
-            .flatMapMany { list -> userRepository.findAllSubscribersOf(list) }
+            .filter { it.isNotEmpty() }
+            .flatMapMany(userRepository::findAllSubscribersOf)
     }
 
     private fun notifyUsers(userDetails: UserNotificationDetails) {
