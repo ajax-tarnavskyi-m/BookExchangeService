@@ -18,6 +18,7 @@ import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.mapper.UserMapper.toDto
 import pet.project.app.service.UserService
 import pet.project.app.validation.ValidObjectId
+import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/user")
@@ -25,31 +26,36 @@ class UserController(private val userService: UserService) {
 
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody request: CreateUserRequest) = userService.create(request).toDto()
+    fun create(@Valid @RequestBody request: CreateUserRequest): Mono<ResponseUserDto> {
+        return userService.create(request).map { user -> user.toDto() }
+    }
 
     @GetMapping("/{id}")
-    fun getById(@ValidObjectId @PathVariable("id") userId: String) = userService.getById(userId)
+    fun getById(@ValidObjectId @PathVariable("id") userId: String): Mono<ResponseUserDto> {
+        return userService.getById(userId).map { user -> user.toDto() }
+    }
 
     @PutMapping("/{id}/wishlist")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun addBookToWishList(
         @ValidObjectId @PathVariable("id") userId: String,
         @ValidObjectId @RequestParam bookId: String,
-    ) {
-        userService.addBookToWishList(userId, bookId)
+    ): Mono<Unit> {
+        return userService.addBookToWishList(userId, bookId)
     }
 
     @PutMapping("/{id}")
     fun update(
         @ValidObjectId @PathVariable("id") userId: String,
         @RequestBody @Valid request: UpdateUserRequest,
-    ): ResponseUserDto {
-        return userService.update(userId, request).toDto()
+    ): Mono<ResponseUserDto> {
+        return userService.update(userId, request)
+            .map { user -> user.toDto() }
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@ValidObjectId @PathVariable("id") userId: String) {
-        userService.delete(userId)
+    fun delete(@ValidObjectId @PathVariable("id") userId: String): Mono<Unit> {
+        return userService.delete(userId)
     }
 }
