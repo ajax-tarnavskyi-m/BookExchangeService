@@ -49,8 +49,8 @@ class NotificationProcessorTest {
         val bookId = "66bf6bf8039339103054e21a"
         val userDetails = UserNotificationDetails("testUser", "email@test.com", setOf(bookId))
 
-        val shouldBeNotifiedUpdated = 1L
-        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeNotifiedUpdated.toMono()
+        val shouldBeNotifiedUpdated = 1L.toMono()
+        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeNotifiedUpdated
         every { userRepositoryMock.findAllSubscribersOf(listOf(bookId)) } returns Flux.just(userDetails)
 
         val bufferMaxAmountOfEvents = 1
@@ -83,8 +83,8 @@ class NotificationProcessorTest {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
 
-        val shouldBeModifiedWasNotUpdated = 0L
-        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeModifiedWasNotUpdated.toMono()
+        val shouldBeModifiedWasNotUpdated = 0L.toMono()
+        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeModifiedWasNotUpdated
 
         val bufferMaxAmountOfEvents = 1
         val bufferFiveMinuteInterval = Duration.parse("PT5M")
