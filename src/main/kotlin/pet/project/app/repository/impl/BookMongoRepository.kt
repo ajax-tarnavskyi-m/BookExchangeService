@@ -1,10 +1,9 @@
 package pet.project.app.repository.impl
 
-import com.mongodb.ClientSessionOptions
-import com.mongodb.client.ClientSession
-import org.springframework.data.mongodb.core.BulkOperations
+import org.springframework.data.mongodb.core.BulkOperations.BulkMode
 import org.springframework.data.mongodb.core.FindAndModifyOptions.options
-import org.springframework.data.mongodb.core.MongoTemplate
+import org.springframework.data.mongodb.core.ReactiveBulkOperations
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.AggregationUpdate
 import org.springframework.data.mongodb.core.aggregation.AggregationUpdate.update
 import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators.Add
@@ -21,6 +20,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.remove
 import org.springframework.data.mongodb.core.updateFirst
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.reactive.TransactionalOperator
 import pet.project.app.annotation.Profiling
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
@@ -31,47 +31,51 @@ import pet.project.app.mapper.BookMapper.toUpdate
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.model.mongo.MongoBook
 import pet.project.app.repository.BookRepository
+import reactor.core.publisher.Mono
 
 @Repository
 @Profiling
 @Suppress("TooManyFunctions")
-internal class BookMongoRepository(private val mongoTemplate: MongoTemplate) : BookRepository {
+internal class BookMongoRepository(
+    private val mongoTemplate: ReactiveMongoTemplate,
+    private val transactionalOperator: TransactionalOperator,
+) : BookRepository {
 
-    override fun insert(createBookRequest: CreateBookRequest): DomainBook {
-        return mongoTemplate.insert(createBookRequest.toMongo()).toDomain()
+    override fun insert(createBookRequest: CreateBookRequest): Mono<DomainBook> {
+        return mongoTemplate.insert(createBookRequest.toMongo())
+            .map { mongoBook -> mongoBook.toDomain() }
     }
 
-    override fun findById(id: String): DomainBook? {
-        return mongoTemplate.findById(id, MongoBook::class.java)?.toDomain()
+    override fun findById(id: String): Mono<DomainBook> {
+        return mongoTemplate.findById(id, MongoBook::class.java)
+            .map { mongoBook -> mongoBook.toDomain() }
     }
 
-    override fun existsById(id: String): Boolean {
+    override fun existsById(id: String): Mono<Boolean> {
         return mongoTemplate.exists<MongoBook>(whereId(id))
     }
 
-    override fun updateAmount(request: UpdateAmountRequest): Boolean {
+    override fun updateAmount(request: UpdateAmountRequest): Mono<Boolean> {
         val query = filterByIdAndValidAmountAvailable(request.bookId, request.delta)
         val result = mongoTemplate.updateFirst<MongoBook>(query, withAmountUpdatePipeline(request.delta))
-        return result.modifiedCount == 1L
+        return result.map { it.modifiedCount == 1L }
     }
 
-    override fun updateAmountMany(requests: List<UpdateAmountRequest>): Int {
-        val sessionOptions = ClientSessionOptions.builder().causallyConsistent(true).build()
-        val session: ClientSession = mongoTemplate.mongoDatabaseFactory.getSession(sessionOptions)
-
-        session.startTransaction()
-        val bulkOps = mongoTemplate.withSession(session)
-            .bulkOps(BulkOperations.BulkMode.ORDERED, MongoBook::class.java)
-
+    override fun updateAmountMany(requests: List<UpdateAmountRequest>): Mono<Int> {
+        val bulkOps: ReactiveBulkOperations = mongoTemplate.bulkOps(BulkMode.ORDERED, MongoBook::class.java)
         for (request in requests) {
             val query = filterByIdAndValidAmountAvailable(request.bookId, request.delta)
             bulkOps.updateOne(query, withAmountUpdatePipeline(request.delta))
         }
-
-        val matchedCount = bulkOps.execute().matchedCount
-        if (matchedCount != requests.size) session.abortTransaction() else session.commitTransaction()
-
-        return matchedCount
+        return bulkOps.execute()
+            .handle { result, sink ->
+                if (result.matchedCount != requests.size) {
+                    sink.error(IllegalArgumentException("Not existing ids or not enough books: $requests"))
+                } else {
+                    sink.next(result.matchedCount)
+                }
+            }
+            .`as` { transactionalOperator.transactional(it) }
     }
 
     private fun withAmountUpdatePipeline(delta: Int): AggregationUpdate {
@@ -91,18 +95,21 @@ internal class BookMongoRepository(private val mongoTemplate: MongoTemplate) : B
         return query
     }
 
-    override fun updateShouldBeNotified(bookId: String, newValue: Boolean): Long {
+    override fun updateShouldBeNotified(bookId: String, newValue: Boolean): Mono<Long> {
         val update = Update().set(SHOULD_BE_NOTIFIED, newValue)
-        return mongoTemplate.updateFirst<MongoBook>(whereId(bookId), update).modifiedCount
+        return mongoTemplate.updateFirst<MongoBook>(whereId(bookId), update)
+            .map { it.modifiedCount }
     }
 
-    override fun delete(id: String): Long {
-        return mongoTemplate.remove<MongoBook>(whereId(id)).deletedCount
+    override fun delete(id: String): Mono<Long> {
+        return mongoTemplate.remove<MongoBook>(whereId(id))
+            .map { it.deletedCount }
     }
 
-    override fun update(id: String, request: UpdateBookRequest): DomainBook? {
+    override fun update(id: String, request: UpdateBookRequest): Mono<DomainBook> {
         val op = options().returnNew(true)
-        return mongoTemplate.findAndModify(whereId(id), request.toUpdate(), op, MongoBook::class.java)?.toDomain()
+        return mongoTemplate.findAndModify(whereId(id), request.toUpdate(), op, MongoBook::class.java)
+            .map { mongoBook -> mongoBook.toDomain() }
     }
 
     private fun whereId(bookId: String) = query(where(Fields.UNDERSCORE_ID).isEqualTo(bookId))
