@@ -42,18 +42,18 @@ class BookServiceImpl(
     }
 
     private fun sendForNotificationIfDeltaPositive(request: UpdateAmountRequest) {
-        if (request.delta > 0) availableBooksSink.tryEmitNext(request.bookId)
+        if (request.delta > 0) {
+            val emitResult = availableBooksSink.tryEmitNext(request.bookId)
+            if (emitResult.isFailure) {
+                log.error("Failed to emit bookId {}. Emit result: {}", request.bookId, emitResult)
+            }
+        }
     }
 
     override fun exchangeBooks(requests: List<UpdateAmountRequest>): Mono<Unit> {
         return bookRepository.updateAmountMany(requests)
-            .doOnSuccess { notifyAboutNewBooks(requests) }
+            .doOnSuccess { requests.forEach(::sendForNotificationIfDeltaPositive) }
             .thenReturn(Unit)
-    }
-
-    private fun notifyAboutNewBooks(requests: List<UpdateAmountRequest>) {
-        requests.filter { request -> request.delta > 0 }
-            .forEach { request -> availableBooksSink.tryEmitNext(request.bookId) }
     }
 
     override fun update(bookId: String, request: UpdateBookRequest): Mono<DomainBook> {
