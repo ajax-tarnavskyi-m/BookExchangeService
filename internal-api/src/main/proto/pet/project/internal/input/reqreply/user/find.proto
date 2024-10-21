@@ -1,0 +1,30 @@
+
+syntax = "proto3";
+package pet.project.internal.input.reqreply.user.find;
+
+import "pet/project/internal/commonmodels/error.proto";
+import "pet/project/internal/commonmodels/user/user.proto";
+
+option java_multiple_files = true;
+
+message FindUserByIdRequest {
+  string id = 1;
+}
+
+message FindUserByIdResponse {
+  oneof response {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+    commonmodels.user.user.User user = 1;
+  }
+
+  message Failure {
+    string message = 100;
+    oneof error {
+      commonmodels.Error user_not_found = 1;
+    }
+  }
+}

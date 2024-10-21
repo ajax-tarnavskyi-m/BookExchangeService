@@ -15,3 +15,5 @@ notification:
   buffer:
     interval: PT10S
     items-max-amount: 100
+server:
+  port: 8081

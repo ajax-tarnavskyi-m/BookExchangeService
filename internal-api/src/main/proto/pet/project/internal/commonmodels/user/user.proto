@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pet.project.internal.commonmodels.user.user;
+
+option java_multiple_files = true;
+
+message User {
+  optional string id = 1;
+  string login = 2;
+  string email = 3;
+  repeated string bookWishList = 4;
+}

@@ -2,7 +2,6 @@ package pet.project.app.repository.impl
 
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.FindAndModifyOptions.options
-import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation.match
 import org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation
@@ -11,7 +10,6 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.AggregationPipeline
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators.In
 import org.springframework.data.mongodb.core.aggregation.BooleanOperators.And.and
-import org.springframework.data.mongodb.core.aggregation.ComparisonOperators.Eq
 import org.springframework.data.mongodb.core.aggregation.EvaluationOperators.Expr
 import org.springframework.data.mongodb.core.aggregation.Fields
 import org.springframework.data.mongodb.core.aggregation.Fields.field
@@ -26,16 +24,16 @@ import org.springframework.data.mongodb.core.remove
 import org.springframework.data.mongodb.core.updateFirst
 import org.springframework.stereotype.Repository
 import pet.project.app.annotation.Profiling
-import pet.project.app.dto.user.CreateUserRequest
-import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserNotificationDetails
-import pet.project.app.mapper.UserMapper.toDomain
-import pet.project.app.mapper.UserMapper.toMongo
-import pet.project.app.mapper.UserMapper.toUpdate
+import pet.project.app.mapper.UserRepositoryMapper.toDomain
+import pet.project.app.mapper.UserRepositoryMapper.toMongo
+import pet.project.app.mapper.UserRepositoryMapper.toUpdate
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.model.mongo.MongoBook
 import pet.project.app.model.mongo.MongoUser
 import pet.project.app.repository.UserRepository
+import pet.project.internal.input.reqreply.user.create.CreateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

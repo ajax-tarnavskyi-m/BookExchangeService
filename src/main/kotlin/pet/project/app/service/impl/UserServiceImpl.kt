@@ -3,14 +3,14 @@ package pet.project.app.service.impl
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import pet.project.app.annotation.Profiling
-import pet.project.app.dto.user.CreateUserRequest
-import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.exception.BookNotFoundException
 import pet.project.app.exception.UserNotFoundException
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 import pet.project.app.service.UserService
+import pet.project.internal.input.reqreply.user.create.CreateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
 import reactor.core.publisher.Mono
 
 @Profiling
@@ -51,7 +51,7 @@ class UserServiceImpl(
 
     override fun delete(userId: String): Mono<Unit> {
         return userRepository.delete(userId)
-            .doOnNext { deleteCount -> logIfUserNotFoundForDeletion(deleteCount, userId)}
+            .doOnNext { deleteCount -> logIfUserNotFoundForDeletion(deleteCount, userId) }
             .thenReturn(Unit)
     }
 

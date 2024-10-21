@@ -1,9 +1,9 @@
-package pet.project.app.dto.user
+package pet.project.gateway.dto.user
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 
-data class CreateUserRequest(
+data class CreateUserExternalRequest(
     @field:NotBlank(message = "User login must not be blank")
     val login: String,
     @field:Email

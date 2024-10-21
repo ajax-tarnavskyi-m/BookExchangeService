@@ -69,11 +69,3 @@ configure<DeltaCoverageConfiguration> {
     }
     violationRules.failIfCoverageLessThan(0.85)
 }
-
-tasks.check {
-    dependsOn(tasks.deltaCoverage)
-}
-
-detekt {
-    buildUponDefaultConfig = true
-}

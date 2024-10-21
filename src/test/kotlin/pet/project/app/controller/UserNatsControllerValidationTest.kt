@@ -21,7 +21,7 @@ import pet.project.app.exception.handler.ValidationExceptionResponse
 import pet.project.app.service.UserService
 
 @WebMvcTest(UserController::class)
-class UserControllerValidationTest {
+class UserNatsControllerValidationTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc

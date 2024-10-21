@@ -1,9 +1,9 @@
 package pet.project.app.repository
 
-import pet.project.app.dto.user.CreateUserRequest
-import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.model.domain.DomainUser
+import pet.project.internal.input.reqreply.user.create.CreateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

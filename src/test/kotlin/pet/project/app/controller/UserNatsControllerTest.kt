@@ -11,13 +11,13 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import pet.project.app.dto.user.CreateUserRequest
 import pet.project.app.dto.user.ResponseUserDto
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.mapper.UserMapper.toDto
+import pet.project.app.mapper.UserRepositoryMapper.toDto
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.service.UserService
 import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(UserController::class)
-class UserControllerTest {
+class UserNatsControllerTest {
     @Autowired
     private lateinit var webTestClient: WebTestClient
 

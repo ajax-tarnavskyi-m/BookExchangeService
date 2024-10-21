@@ -6,11 +6,11 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Update
 import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.mapper.UserMapper.toDomain
-import pet.project.app.mapper.UserMapper.toUpdate
+import pet.project.app.mapper.UserRepositoryMapper.toDomain
+import pet.project.app.mapper.UserRepositoryMapper.toUpdate
 import pet.project.app.model.mongo.MongoUser
 
-class UserMapperTest {
+class UserRepositoryMapperTest {
 
     @Test
     fun `should map all fields correctly in toDomain`() {

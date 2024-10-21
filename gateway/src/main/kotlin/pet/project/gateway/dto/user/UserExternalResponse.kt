@@ -1,6 +1,6 @@
-package pet.project.app.dto.user
+package pet.project.gateway.dto.user
 
-data class ResponseUserDto(
+data class UserExternalResponse(
     val id: String,
     val login: String,
     val email: String,
