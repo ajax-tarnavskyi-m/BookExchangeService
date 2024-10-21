@@ -1,6 +1,5 @@
 package pet.project.gateway.rest
 
-import io.nats.client.Connection
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -17,13 +16,13 @@ import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
 import pet.project.gateway.dto.user.UserExternalResponse
-import pet.project.gateway.mapper.UserProtoMapper.toAddBookToUsersWishListRequest
-import pet.project.gateway.mapper.UserProtoMapper.toDeleteUserByIdRequest
-import pet.project.gateway.mapper.UserProtoMapper.toExternal
-import pet.project.gateway.mapper.UserProtoMapper.toFindUserByIdRequest
-import pet.project.gateway.mapper.UserProtoMapper.toProto
-import pet.project.gateway.mapper.UserProtoMapper.toUnit
-import pet.project.gateway.mapper.UserProtoMapper.toUpdateUserRequest
+import pet.project.gateway.mapper.UserRequestProtoMapper.toAddBookToUsersWishListRequest
+import pet.project.gateway.mapper.UserRequestProtoMapper.toDeleteUserByIdRequest
+import pet.project.gateway.mapper.UserRequestProtoMapper.toFindUserByIdRequest
+import pet.project.gateway.mapper.UserRequestProtoMapper.toProto
+import pet.project.gateway.mapper.UserRequestProtoMapper.toUpdateUserRequest
+import pet.project.gateway.mapper.UserResponseProtoMapper.toExternal
+import pet.project.gateway.mapper.UserResponseProtoMapper.toUnit
 import pet.project.gateway.validation.ValidObjectId
 import pet.project.internal.app.subject.UserNatsSubject
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
@@ -35,7 +34,7 @@ import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/nats/user")
-class UserGatewayController(private val connection: Connection, private val natsClient: NatsClient) {
+class UserGatewayController(private val natsClient: NatsClient) {
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody createUserRequest: CreateUserExternalRequest): Mono<UserExternalResponse> {
@@ -65,7 +64,7 @@ class UserGatewayController(private val connection: Connection, private val nats
             "${UserNatsSubject.PREFIX}.${UserNatsSubject.ADD_BOOK_TO_WISH_LIST}",
             toAddBookToUsersWishListRequest(userId, bookId),
             AddBookToUsersWishListResponse.parser()
-        ).map { it.toUnit() }
+        ).map { it.toUnit()}
     }
 
     @PutMapping("/{id}")

@@ -8,7 +8,6 @@ import org.springframework.data.domain.Sort.DEFAULT_DIRECTION
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.indexOps
-import pet.project.app.model.domain.DomainUser
 import pet.project.app.model.mongo.MongoUser
 
 

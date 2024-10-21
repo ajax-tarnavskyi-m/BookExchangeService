@@ -1,7 +1,5 @@
 package pet.project.app.mapper
 
-import pet.project.app.exception.BookNotFoundException
-import pet.project.app.exception.UserNotFoundException
 import pet.project.app.model.domain.DomainUser
 import pet.project.internal.commonmodels.user.user.User
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
@@ -27,40 +25,15 @@ object UserControllerMapper {
         }.build()
     }
 
-    fun Throwable.toFailureCreateUserResponse(): CreateUserResponse {
-        return CreateUserResponse.newBuilder().apply {
-            failureBuilder.message = message.orEmpty()
-        }.build()
-    }
-
     fun toAddBookToUserWishListResponse(): AddBookToUsersWishListResponse {
         return AddBookToUsersWishListResponse.newBuilder()
             .also { it.successBuilder }
             .build()
     }
 
-    fun Throwable.toFailureAddBookToUserWishListResponse(): AddBookToUsersWishListResponse {
-        return AddBookToUsersWishListResponse.newBuilder().apply {
-            failureBuilder.message = message.orEmpty()
-            when (this@toFailureAddBookToUserWishListResponse) {
-                is UserNotFoundException -> failureBuilder.userNotFoundBuilder
-                is BookNotFoundException -> failureBuilder.bookNotFoundBuilder
-            }
-        }.build()
-    }
-
     fun DomainUser.toFindUserByIdResponse(): FindUserByIdResponse {
         return FindUserByIdResponse.newBuilder().also {
             it.successBuilder.user = this.toProto()
-        }.build()
-    }
-
-    fun Throwable.toFailureFindUserByIdResponse(): FindUserByIdResponse {
-        return FindUserByIdResponse.newBuilder().apply {
-            failureBuilder.message = message.orEmpty()
-            when (this@toFailureFindUserByIdResponse) {
-                is UserNotFoundException -> failureBuilder.userNotFoundBuilder
-            }
         }.build()
     }
 
@@ -70,22 +43,7 @@ object UserControllerMapper {
         }.build()
     }
 
-    fun Throwable.toFailureUpdateUserResponse() : UpdateUserResponse {
-        return UpdateUserResponse.newBuilder().apply {
-            failureBuilder.message = message.orEmpty()
-            when(this@toFailureUpdateUserResponse) {
-                is UserNotFoundException -> failureBuilder.userNotFoundBuilder
-            }
-        }.build()
-    }
-
     fun toDeleteUserByIdResponse() : DeleteUserByIdResponse {
         return DeleteUserByIdResponse.newBuilder().apply { successBuilder }.build()
-    }
-
-    fun Throwable.toFailureDeleteUserByIdResponse() : DeleteUserByIdResponse {
-        return DeleteUserByIdResponse.newBuilder().apply {
-            failureBuilder.message = message.orEmpty()
-        }.build()
     }
 }
