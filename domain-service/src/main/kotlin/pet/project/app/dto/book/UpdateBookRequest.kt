@@ -1,7 +1,7 @@
 package pet.project.app.dto.book
 
 import jakarta.validation.constraints.Positive
-import pet.project.core.exception.validation.ValidPublishingYearRange
+import pet.project.core.validation.ValidPublishingYearRange
 import java.math.BigDecimal
 
 data class UpdateBookRequest(

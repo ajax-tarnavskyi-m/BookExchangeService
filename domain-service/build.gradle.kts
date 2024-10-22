@@ -1,18 +1,5 @@
-import io.github.surpsg.deltacoverage.gradle.DeltaCoverageConfiguration
-
 plugins {
-    id("io.gitlab.arturbosch.detekt") version "1.23.6"
-    kotlin("jvm") version "1.9.23"
-    kotlin("plugin.spring") version "1.9.23"
-    id("org.springframework.boot") version "3.3.2"
-    id("io.spring.dependency-management") version "1.1.6"
-    id("io.github.surpsg.delta-coverage") version "2.4.0"
-}
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+    id("spring-conventions")
 }
 
 dependencies {
@@ -32,42 +19,8 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-webflux")
     implementation("io.nats:jnats:2.16.14")
 
-    developmentOnly("org.springframework.boot:spring-boot-devtools")
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
-        exclude(group = "org.mockito", module = "mockito-core")
-    }
     testImplementation("com.ninja-squad:springmockk:3.0.1")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.testcontainers:mongodb:1.20.1")
     testImplementation("io.mockk:mockk:1.13.12")
-    testImplementation("org.awaitility:awaitility:3.0.0")
-    testImplementation("org.awaitility:awaitility-proxy:3.0.0")
     testImplementation("io.projectreactor:reactor-test:3.6.10")
-}
-
-kotlin {
-    compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
-    }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
-}
-
-configure<DeltaCoverageConfiguration> {
-    val targetBranch = project.properties["diffBase"]?.toString() ?: "refs/heads/main"
-    diffSource.byGit {
-        compareWith(targetBranch)
-    }
-    violationRules.failIfCoverageLessThan(0.6)
-}
-
-tasks.check {
-    dependsOn(tasks.deltaCoverage)
-}
-
-detekt {
-    buildUponDefaultConfig = true
 }

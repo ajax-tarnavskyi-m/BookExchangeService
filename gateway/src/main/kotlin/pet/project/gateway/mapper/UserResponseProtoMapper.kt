@@ -16,7 +16,7 @@ object UserResponseProtoMapper {
         return when (this.responseCase!!) {
             CreateUserResponse.ResponseCase.SUCCESS -> success.user.toExternalResponse()
             CreateUserResponse.ResponseCase.FAILURE -> error(failure.message)
-            CreateUserResponse.ResponseCase.RESPONSE_NOT_SET -> throw RuntimeException("Acquired message is empty!")
+            CreateUserResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
         }
     }
 
@@ -25,12 +25,14 @@ object UserResponseProtoMapper {
             FindUserByIdResponse.ResponseCase.SUCCESS -> success.user.toExternalResponse()
             FindUserByIdResponse.ResponseCase.FAILURE -> {
                 when (failure.errorCase!!) {
-                    FindUserByIdResponse.Failure.ErrorCase.USER_NOT_FOUND -> throw UserNotFoundException(failure.message)
+                    FindUserByIdResponse.Failure.ErrorCase.USER_NOT_FOUND ->
+                        throw UserNotFoundException(failure.message)
+
                     FindUserByIdResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(failure.message)
                 }
             }
 
-            FindUserByIdResponse.ResponseCase.RESPONSE_NOT_SET -> throw RuntimeException("Acquired message is empty!")
+            FindUserByIdResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
         }
     }
 
@@ -39,14 +41,12 @@ object UserResponseProtoMapper {
             UpdateUserResponse.ResponseCase.SUCCESS -> success.user.toExternalResponse()
             UpdateUserResponse.ResponseCase.FAILURE -> {
                 when (failure.errorCase!!) {
-                    UpdateUserResponse.Failure.ErrorCase.USER_NOT_FOUND,
-                        -> throw UserNotFoundException(failure.message)
-
+                    UpdateUserResponse.Failure.ErrorCase.USER_NOT_FOUND -> throw UserNotFoundException(failure.message)
                     UpdateUserResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(failure.message)
                 }
             }
 
-            UpdateUserResponse.ResponseCase.RESPONSE_NOT_SET -> throw RuntimeException("Acquired message is empty!")
+            UpdateUserResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
         }
     }
 
@@ -55,13 +55,17 @@ object UserResponseProtoMapper {
             AddBookToUsersWishListResponse.ResponseCase.SUCCESS -> Unit
             AddBookToUsersWishListResponse.ResponseCase.FAILURE -> {
                 when (failure.errorCase!!) {
-                    AddBookToUsersWishListResponse.Failure.ErrorCase.USER_NOT_FOUND, -> throw UserNotFoundException(failure.message)
-                    AddBookToUsersWishListResponse.Failure.ErrorCase.BOOK_NOT_FOUND, -> throw BookNotFoundException(failure.message)
+                    AddBookToUsersWishListResponse.Failure.ErrorCase.USER_NOT_FOUND ->
+                        throw UserNotFoundException(failure.message)
+
+                    AddBookToUsersWishListResponse.Failure.ErrorCase.BOOK_NOT_FOUND ->
+                        throw BookNotFoundException(failure.message)
+
                     AddBookToUsersWishListResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(failure.message)
                 }
             }
 
-            AddBookToUsersWishListResponse.ResponseCase.RESPONSE_NOT_SET -> throw RuntimeException("Acquired message is empty!")
+            AddBookToUsersWishListResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
         }
     }
 

@@ -48,7 +48,11 @@ class UserServiceImplTest {
         // GIVEN
         val userId = ObjectId.get().toHexString()
         val expectedUser = DomainUser(userId, "testUser123", "test.user@test.com", dummyStringWishList)
-        val user = User.newBuilder().setLogin("testUser123").setEmail("test.user@test.com").addAllBookWishList(dummyStringWishList).build()
+        val user = User.newBuilder()
+            .setLogin("testUser123")
+            .setEmail("test.user@test.com")
+            .addAllBookWishList(dummyStringWishList)
+            .build()
         val testRequest = CreateUserRequest.newBuilder().setUser(user).build()
         every { userRepositoryMock.insert(testRequest) } returns expectedUser.toMono()
 

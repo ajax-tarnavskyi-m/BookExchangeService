@@ -1,8 +1,8 @@
-package pet.project.core.exception.validation
+package pet.project.core.validation
 
 import jakarta.validation.Constraint
 import jakarta.validation.Payload
-import pet.project.core.exception.validation.validator.ValidPublishingYearRangeValidator
+import pet.project.core.validation.validator.ValidPublishingYearRangeValidator
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY_GETTER)

@@ -39,7 +39,7 @@ object BookMapper {
         amountAvailable ?: 0
     )
 
-    fun UpdateBookRequest.toUpdate() : Update {
+    fun UpdateBookRequest.toUpdate(): Update {
         val update = Update()
         title?.let { update.set(MongoBook::title.name, it) }
         description?.let { update.set(MongoBook::description.name, it) }

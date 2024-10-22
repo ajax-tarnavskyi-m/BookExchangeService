@@ -1,12 +1,12 @@
 package pet.project.app.controller.nats
 
-import pet.project.app.annotation.NatsController
-import pet.project.app.annotation.NatsHandler
 import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.Parser
 import io.nats.client.Connection
 import io.nats.client.Dispatcher
 import jakarta.annotation.PostConstruct
+import pet.project.app.annotation.NatsController
+import pet.project.app.annotation.NatsHandler
 import reactor.core.publisher.Mono
 import java.lang.reflect.ParameterizedType
 

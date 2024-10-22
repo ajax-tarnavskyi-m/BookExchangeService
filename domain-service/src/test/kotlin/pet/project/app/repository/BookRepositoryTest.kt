@@ -229,11 +229,13 @@ class BookRepositoryTest : AbstractMongoTestContainer {
         val secondUpdatedBook = bookRepository.findById(secondSavedBook.id).block()
         assertNotNull(secondUpdatedBook, "Updated book should not be null")
         assertEquals(
-            firstSavedBook.amountAvailable, firstUpdatedBook.amountAvailable,
+            firstSavedBook.amountAvailable,
+            firstUpdatedBook.amountAvailable,
             "Book 1 should not be updated due to transaction rollback"
         )
         assertEquals(
-            secondSavedBook.amountAvailable, secondUpdatedBook.amountAvailable,
+            secondSavedBook.amountAvailable,
+            secondUpdatedBook.amountAvailable,
             "Book 2 should not be updated due to transaction rollback"
         )
     }

@@ -106,5 +106,4 @@ internal class UserMongoRepository(private val mongoTemplate: ReactiveMongoTempl
         const val WISHLIST_BOOK = "wishListBook"
         const val WISHLIST_BOOK_REF_REF = "\$\$" + WISHLIST_BOOK
     }
-
 }

@@ -1,7 +1,9 @@
 package pet.project.gateway.mapper
 
 import org.bson.types.ObjectId
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNotNull
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
 import pet.project.gateway.mapper.UserRequestProtoMapper.toAddBookToUsersWishListRequest
@@ -10,7 +12,6 @@ import pet.project.gateway.mapper.UserRequestProtoMapper.toFindUserByIdRequest
 import pet.project.gateway.mapper.UserRequestProtoMapper.toProto
 import pet.project.gateway.mapper.UserRequestProtoMapper.toUpdateUserRequest
 import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
 import kotlin.test.Test
 
 class UserRequestProtoMapperTest {

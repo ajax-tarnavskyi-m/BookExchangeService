@@ -23,7 +23,6 @@ import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToU
 import pet.project.internal.input.reqreply.user.create.CreateUserResponse
 import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
 import pet.project.internal.input.reqreply.user.find.FindUserByIdResponse
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest.WishListUpdate
 import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
 import reactor.kotlin.core.publisher.toMono
 
@@ -34,12 +33,6 @@ class UserControllerTest {
 
     @MockkBean
     private lateinit var natsClient: NatsClient
-
-    private val dummyWishlist = setOf(
-        "66bf6bf8039339103054e21a",
-        "66c3636647ff4c2f0242073d",
-        "66c3637847ff4c2f0242073e"
-    )
 
     private val exampleUser = User.newBuilder()
         .setId("66bf6bf8039339103054e21a")
@@ -129,16 +122,9 @@ class UserControllerTest {
             )
         } returns response.toMono()
 
-
-        //addBookToWishList(userId, bookId) } returns Unit.toMono()
-
         // WHEN & THEN
         webTestClient.put()
-            .uri { builder ->
-                builder.path("/user/{id}/wishlist")
-                    .queryParam("bookId", bookId)
-                    .build(exampleUser.id)
-            }
+            .uri { builder -> builder.path("/user/{id}/wishlist").queryParam("bookId", bookId).build(exampleUser.id) }
             .exchange()
             .expectStatus().isNoContent
 
@@ -155,7 +141,6 @@ class UserControllerTest {
     @Test
     fun `should update user successfully`() {
         // GIVEN
-        val wishListUpdate = WishListUpdate.newBuilder().addAllBookIds(exampleUser.bookWishListList)
         val request =
             UpdateUserExternalRequest(exampleUser.login, exampleUser.email, exampleUser.bookWishListList.toSet())
         val response = UpdateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
@@ -215,4 +200,3 @@ class UserControllerTest {
         }
     }
 }
-

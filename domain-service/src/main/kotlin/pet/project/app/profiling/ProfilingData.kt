@@ -6,4 +6,4 @@ import kotlin.time.Duration
 data class ProfilingData(
     val method: Method,
     val duration: Duration,
-) 
+)

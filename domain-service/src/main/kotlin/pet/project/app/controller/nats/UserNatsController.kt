@@ -1,13 +1,12 @@
 package pet.project.app.controller.nats
 
-
-//import pet.project.app.mapper.UserMapper.toDto
 import io.nats.client.Connection
 import io.nats.client.Dispatcher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import pet.project.app.annotation.NatsController
 import pet.project.app.annotation.NatsHandler
+import pet.project.app.controller.nats.UserNatsController.Companion.QUEUE_GROUP
 import pet.project.app.mapper.UserControllerMapper.toAddBookToUserWishListResponse
 import pet.project.app.mapper.UserControllerMapper.toCreateUserResponse
 import pet.project.app.mapper.UserControllerMapper.toDeleteUserByIdResponse
@@ -18,7 +17,6 @@ import pet.project.app.mapper.UserThrowableMapper.toFailureCreateUserResponse
 import pet.project.app.mapper.UserThrowableMapper.toFailureDeleteUserByIdResponse
 import pet.project.app.mapper.UserThrowableMapper.toFailureFindUserByIdResponse
 import pet.project.app.mapper.UserThrowableMapper.toFailureUpdateUserResponse
-import pet.project.app.controller.nats.UserNatsController.Companion.QUEUE_GROUP
 import pet.project.app.service.UserService
 import pet.project.internal.app.subject.UserNatsSubject
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListRequest

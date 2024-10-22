@@ -1,13 +1,13 @@
 package pet.project.gateway.mapper
 
 import org.bson.types.ObjectId
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
-import pet.project.gateway.mapper.UserResponseProtoMapper.toExternalResponse
 import pet.project.gateway.mapper.UserResponseProtoMapper.handleResponse
 import pet.project.gateway.mapper.UserResponseProtoMapper.toExternal
+import pet.project.gateway.mapper.UserResponseProtoMapper.toExternalResponse
 import pet.project.internal.commonmodels.user.user.User
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
 import pet.project.internal.input.reqreply.user.create.CreateUserResponse
@@ -240,7 +240,6 @@ class UserResponseProtoMapperTest {
             failureBuilder.message = failureMessage
             failureBuilder.bookNotFoundBuilder
         }.build()
-        val bookId = ObjectId.get().toHexString()
 
         // WHEN
         val exception = assertThrows<BookNotFoundException> {

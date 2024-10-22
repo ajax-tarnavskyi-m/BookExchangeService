@@ -85,7 +85,7 @@ class ProfilingAnnotationBeanPostProcessorTest {
 
         @Test
         fun `should profile method execution and return result`() {
-            //GIVEN
+            // GIVEN
             val method = InterceptedExampleClass::class.java.getDeclaredMethod("profiledMethod")
             val methodInvocationSpy = CustomMethodInvocation(InterceptedExampleClass(), method, emptyArray())
             val expectedInvocationResult = TEST_INVOCATION_RESULT
@@ -96,9 +96,11 @@ class ProfilingAnnotationBeanPostProcessorTest {
 
             // THEN
             verify(exactly = 1) {
-                profilingConsumer.accept(match { profilingData ->
-                    profilingData.method == method && profilingData.duration > Duration.ZERO
-                })
+                profilingConsumer.accept(
+                    match { profilingData ->
+                        profilingData.method == method && profilingData.duration > Duration.ZERO
+                    }
+                )
             }
             assertEquals(expectedInvocationResult, actualInvocationResult)
         }
@@ -106,7 +108,6 @@ class ProfilingAnnotationBeanPostProcessorTest {
         inner class InterceptedExampleClass {
             fun profiledMethod() = TEST_INVOCATION_RESULT
         }
-
     }
 
     companion object {

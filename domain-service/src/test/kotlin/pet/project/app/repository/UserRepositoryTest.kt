@@ -26,7 +26,6 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     private val firstUser = User.newBuilder().setLogin("firstUser").setEmail("first@mail.com").build()
     private val secondUser = User.newBuilder().setLogin("secondUser").setEmail("second@mail.com").build()
     private val firstCreateUserRequest = CreateUserRequest.newBuilder().setUser(firstUser).build()
-    private val secondUserCreateRequest = CreateUserRequest.newBuilder().setUser(secondUser).build()
     private val firstCreateBookRequest = CreateBookRequest("Book One", "First book", 2020, BigDecimal(10), 0)
     private val secondCreateBookRequest = CreateBookRequest("Book Two", "Second book", 2021, BigDecimal(15), 0)
     private val thirdCreateBookRequest = CreateBookRequest("Book Three", "Third book", 2022, BigDecimal(20), 0)
@@ -138,7 +137,9 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val requestIds = listOf(secondBook.id, thirdBook.id)
         val firstExpected = UserNotificationDetails(firstUserCopy.login, firstUserCopy.email, setOf(secondBook.title))
         val secondExpected = UserNotificationDetails(
-            secondUser.login, secondUser.email, setOf(secondBook.title, thirdBook.title)
+            secondUser.login,
+            secondUser.email,
+            setOf(secondBook.title, thirdBook.title)
         )
 
         // WHEN

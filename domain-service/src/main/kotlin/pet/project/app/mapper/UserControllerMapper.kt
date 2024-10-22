@@ -43,7 +43,7 @@ object UserControllerMapper {
         }.build()
     }
 
-    fun toDeleteUserByIdResponse() : DeleteUserByIdResponse {
+    fun toDeleteUserByIdResponse(): DeleteUserByIdResponse {
         return DeleteUserByIdResponse.newBuilder().apply { successBuilder }.build()
     }
 }

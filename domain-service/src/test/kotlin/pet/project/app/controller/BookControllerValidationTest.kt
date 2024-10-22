@@ -93,7 +93,6 @@ class BookControllerValidationTest {
 
     companion object {
         @Value("\${validation.params.future-years-allowance:5}")
-
         @JvmStatic
         fun invalidYears() = listOf(
             Arguments.of(1599),
@@ -147,7 +146,7 @@ class BookControllerValidationTest {
     fun `should return bad request when updating book with invalid ObjectId`() {
         // GIVEN
         val bookId = "InvalidObjectId"
-        val request = UpdateBookRequest( "Title", "Description", 2020, BigDecimal(20.99))
+        val request = UpdateBookRequest("Title", "Description", 2020, BigDecimal(20.99))
 
         // WHEN
         val result = mockMvc.perform(
@@ -168,7 +167,7 @@ class BookControllerValidationTest {
     fun `should update book successfully when yearOfPublishing is null`() {
         // GIVEN
         val bookId = "66bf6bf8039339103054e21a"
-        val request = UpdateBookRequest( "Title", "Updated", null, BigDecimal(20.99))
+        val request = UpdateBookRequest("Title", "Updated", null, BigDecimal(20.99))
         val updated = DomainBook(bookId, "Title", "Updated", 2020, BigDecimal(20.99), 10)
         every { bookServiceMock.update(bookId, request) } returns updated.toMono()
 

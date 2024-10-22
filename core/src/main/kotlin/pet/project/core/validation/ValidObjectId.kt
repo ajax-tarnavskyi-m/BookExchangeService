@@ -1,15 +1,15 @@
-package pet.project.core.exception.validation
+package pet.project.core.validation
 
 import jakarta.validation.Constraint
 import jakarta.validation.Payload
-import pet.project.core.exception.validation.validator.NotZeroValidator
+import pet.project.core.validation.validator.ValidObjectIdValidator
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.FIELD, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
-@Constraint(validatedBy = [NotZeroValidator::class])
-annotation class NotZero(
-    val message: String = "Value must not be zero",
+@Constraint(validatedBy = [ValidObjectIdValidator::class])
+annotation class ValidObjectId(
+    val message: String = "The provided ID must be a valid ObjectId hex String",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Payload>> = [],
 )

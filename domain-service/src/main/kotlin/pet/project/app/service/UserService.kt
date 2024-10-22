@@ -15,5 +15,5 @@ interface UserService {
 
     fun update(userId: String, request: UpdateUserRequest): Mono<DomainUser>
 
-    fun delete(userId: String) : Mono<Unit>
+    fun delete(userId: String): Mono<Unit>
 }

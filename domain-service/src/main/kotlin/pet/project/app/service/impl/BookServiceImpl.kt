@@ -77,4 +77,3 @@ class BookServiceImpl(
         private val log = LoggerFactory.getLogger(BookServiceImpl::class.java)
     }
 }
-

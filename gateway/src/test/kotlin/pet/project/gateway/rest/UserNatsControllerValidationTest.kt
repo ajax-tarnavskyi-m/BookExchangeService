@@ -15,19 +15,16 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delet
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
-import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import pet.project.core.exception.handler.GlobalExceptionHandler
 import pet.project.core.exception.handler.ValidationExceptionResponse
 import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.create.CreateUserResponse
-import com.google.protobuf.Parser
-import com.google.protobuf.any
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListRequest
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
+import pet.project.internal.input.reqreply.user.create.CreateUserRequest
+import pet.project.internal.input.reqreply.user.create.CreateUserResponse
 import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdRequest
 import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
 import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
@@ -64,16 +61,16 @@ class UserNatsControllerValidationTest {
         assertEquals(1, response.invalidInputReports.size, "should have only one validation exception report")
         assertEquals("login", response.invalidInputReports[0].field)
         assertEquals("User login must not be blank", response.invalidInputReports[0].message)
-        verify(exactly = 0) { natsClient.doRequest<CreateUserRequest, CreateUserResponse>(any(), any(), any())}
+        verify(exactly = 0) { natsClient.doRequest<CreateUserRequest, CreateUserResponse>(any(), any(), any()) }
     }
 
     @Test
     fun `should return bad request when updating user with invalid ObjectId`() {
-        //GIVEN
-        val request = UpdateUserExternalRequest( "UserLogin", "test.user@example.com", setOf())
+        // GIVEN
+        val request = UpdateUserExternalRequest("UserLogin", "test.user@example.com", setOf())
         val invalidUserId = "invalidUserId"
 
-        //WHEN
+        // WHEN
         val result = mockMvc.perform(
             put("/user/{id}", invalidUserId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -85,12 +82,12 @@ class UserNatsControllerValidationTest {
         val exception = result.resolvedException as HandlerMethodValidationException
         val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { natsClient.doRequest<UpdateUserRequest, UpdateUserResponse>(any(), any(), any())}
+        verify(exactly = 0) { natsClient.doRequest<UpdateUserRequest, UpdateUserResponse>(any(), any(), any()) }
     }
 
     @Test
     fun `should return bad request when adding book to wishlist with invalid user ObjectId`() {
-        //GIVEN
+        // GIVEN
         val invalidUserId = "invalidObjectId"
         val bookId = "507f191e810c19729de860ea"
 
@@ -106,16 +103,18 @@ class UserNatsControllerValidationTest {
         val exception = result.resolvedException as HandlerMethodValidationException
         val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { natsClient.doRequest<AddBookToUsersWishListRequest, AddBookToUsersWishListResponse>(any(), any(), any())}
+        verify(exactly = 0) {
+            natsClient.doRequest<AddBookToUsersWishListRequest, AddBookToUsersWishListResponse>(any(), any(), any())
+        }
     }
 
     @Test
     fun `should return bad request when adding book to wishlist with invalid book ObjectId`() {
-        //GIVEN
+        // GIVEN
         val userId = "507f191e810c19729de860ea"
         val invalidBookId = "invalidObjectId"
 
-        //WHEN
+        // WHEN
         val result = mockMvc.perform(
             put("/user/{id}/wishlist", userId)
                 .param("bookId", invalidBookId)
@@ -127,15 +126,17 @@ class UserNatsControllerValidationTest {
         val exception = result.resolvedException as HandlerMethodValidationException
         val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { natsClient.doRequest<AddBookToUsersWishListRequest, AddBookToUsersWishListResponse>(any(), any(), any())}
+        verify(exactly = 0) {
+            natsClient.doRequest<AddBookToUsersWishListRequest, AddBookToUsersWishListResponse>(any(), any(), any())
+        }
     }
 
     @Test
     fun `should return bad request when deleting user with invalid ObjectId`() {
-        //GIVEN
+        // GIVEN
         val invalidObjectId = "invalidObjectId"
 
-        //WHEN
+        // WHEN
         val result = mockMvc.perform(
             delete("/user/{id}", invalidObjectId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -146,15 +147,17 @@ class UserNatsControllerValidationTest {
         val exception = result.resolvedException as HandlerMethodValidationException
         val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { natsClient.doRequest<DeleteUserByIdRequest, DeleteUserByIdResponse>(any(), any(), any())}
+        verify(exactly = 0) {
+            natsClient.doRequest<DeleteUserByIdRequest, DeleteUserByIdResponse>(any(), any(), any())
+        }
     }
 
     @Test
     fun `should return bad request when getting user with invalid ObjectId`() {
-        //GIVEN
+        // GIVEN
         val invalidObjectId = "invalidObjectId"
 
-        //WHEN
+        // WHEN
         val result = mockMvc.perform(
             get("/user/{id}", invalidObjectId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -165,6 +168,6 @@ class UserNatsControllerValidationTest {
         val exception = result.resolvedException as HandlerMethodValidationException
         val actualMessage = exception.detailMessageArguments[0]
         assertEquals("The provided ID must be a valid ObjectId hex String", actualMessage)
-        verify(exactly = 0) { natsClient.doRequest<DeleteUserByIdRequest, DeleteUserByIdResponse>(any(), any(), any())}
+        verify(exactly = 0) { natsClient.doRequest<DeleteUserByIdRequest, DeleteUserByIdResponse>(any(), any(), any()) }
     }
 }

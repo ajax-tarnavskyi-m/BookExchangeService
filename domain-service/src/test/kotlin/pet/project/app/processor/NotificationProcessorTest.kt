@@ -31,7 +31,7 @@ class NotificationProcessorTest {
 
     @MockK
     lateinit var bookRepositoryMock: BookRepository
-    private lateinit var availableBooksSink  : Sinks.Many<String>
+    private lateinit var availableBooksSink: Sinks.Many<String>
     private lateinit var listAppender: ListAppender<ILoggingEvent>
 
     @BeforeEach
@@ -104,7 +104,7 @@ class NotificationProcessorTest {
         await().untilAsserted {
             verify { bookRepositoryMock.updateShouldBeNotified(bookId, false) }
         }
-        verify (exactly = 0){ userRepositoryMock.findAllSubscribersOf(any()) }
+        verify(exactly = 0) { userRepositoryMock.findAllSubscribersOf(any()) }
         val logs = listAppender.list
         assertTrue(logs.isEmpty(), "Should not log anything when book should be modified was false")
     }

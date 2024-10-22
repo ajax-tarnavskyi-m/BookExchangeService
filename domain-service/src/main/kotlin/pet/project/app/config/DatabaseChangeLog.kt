@@ -10,7 +10,6 @@ import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.indexOps
 import pet.project.app.model.mongo.MongoUser
 
-
 @ChangeUnit(id = "createUserWishlistIndex", order = "001", author = "ajax-tarnavskyi-m")
 class DatabaseChangeLog {
 

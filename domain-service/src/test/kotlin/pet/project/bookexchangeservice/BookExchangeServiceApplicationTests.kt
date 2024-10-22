@@ -28,4 +28,3 @@ class BookExchangeServiceApplicationTests {
         assertNotNull(userService)
     }
 }
-

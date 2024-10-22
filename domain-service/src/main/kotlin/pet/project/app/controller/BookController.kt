@@ -3,7 +3,6 @@ package pet.project.app.controller
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -19,8 +18,7 @@ import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.mapper.BookMapper.toDto
 import pet.project.app.service.BookService
-import pet.project.core.exception.handler.GlobalExceptionHandler
-import pet.project.core.exception.validation.ValidObjectId
+import pet.project.core.validation.ValidObjectId
 import reactor.core.publisher.Mono
 
 @RestController
@@ -34,7 +32,7 @@ class BookController(private val bookService: BookService) {
     }
 
     @GetMapping("/{id}")
-    fun getById(@ValidObjectId @PathVariable("id") id: String) : Mono<ResponseBookDto> {
+    fun getById(@ValidObjectId @PathVariable("id") id: String): Mono<ResponseBookDto> {
         return bookService.getById(id).map { book -> book.toDto() }
     }
 
@@ -60,8 +58,7 @@ class BookController(private val bookService: BookService) {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@ValidObjectId @PathVariable("id") id: String) : Mono<Unit> {
+    fun delete(@ValidObjectId @PathVariable("id") id: String): Mono<Unit> {
         return bookService.delete(id)
     }
 }
-

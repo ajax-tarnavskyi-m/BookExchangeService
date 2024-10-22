@@ -1,9 +1,9 @@
-package pet.project.core.exception.validation.validator
+package pet.project.core.validation.validator
 
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
 import org.springframework.beans.factory.annotation.Value
-import pet.project.core.exception.validation.ValidPublishingYearRange
+import pet.project.core.validation.ValidPublishingYearRange
 import java.time.Year
 
 /**

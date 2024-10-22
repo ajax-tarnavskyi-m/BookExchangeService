@@ -29,8 +29,8 @@ import java.math.BigDecimal
 @ExtendWith(MockKExtension::class)
 class BookServiceImplTest {
     @MockK
-
     lateinit var bookRepositoryMock: BookRepository
+
     @MockK
     lateinit var availableBooksSink: Sinks.Many<String>
 
@@ -38,7 +38,12 @@ class BookServiceImplTest {
     lateinit var bookService: BookServiceImpl
 
     private val exampleDomainBook = DomainBook(
-        ObjectId.get().toHexString(), "Test Book", "Description", 2023, BigDecimal(20.99), 10
+        ObjectId.get().toHexString(),
+        "Test Book",
+        "Description",
+        2023,
+        BigDecimal(20.99),
+        10
     )
 
     @Test
@@ -58,7 +63,6 @@ class BookServiceImplTest {
 
         verify { bookRepositoryMock.insert(createBookRequest) }
     }
-
 
     @Test
     fun `should get book by id successfully`() {
