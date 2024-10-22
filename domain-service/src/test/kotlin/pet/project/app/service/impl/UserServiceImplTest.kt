@@ -14,13 +14,15 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
-import pet.project.app.dto.user.CreateUserRequest
-import pet.project.app.dto.user.UpdateUserRequest
-import pet.project.app.exception.BookNotFoundException
-import pet.project.app.exception.UserNotFoundException
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
+import pet.project.core.exception.BookNotFoundException
+import pet.project.core.exception.UserNotFoundException
+import pet.project.internal.commonmodels.user.user.User
+import pet.project.internal.input.reqreply.user.create.CreateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest.WishListUpdate
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.test.test
@@ -46,7 +48,8 @@ class UserServiceImplTest {
         // GIVEN
         val userId = ObjectId.get().toHexString()
         val expectedUser = DomainUser(userId, "testUser123", "test.user@test.com", dummyStringWishList)
-        val testRequest = CreateUserRequest("testUser123", "test.user@test.com", dummyStringWishList)
+        val user = User.newBuilder().setLogin("testUser123").setEmail("test.user@test.com").addAllBookWishList(dummyStringWishList).build()
+        val testRequest = CreateUserRequest.newBuilder().setUser(user).build()
         every { userRepositoryMock.insert(testRequest) } returns expectedUser.toMono()
 
         // WHEN
@@ -97,7 +100,12 @@ class UserServiceImplTest {
     fun `should update user successfully`() {
         // GIVEN
         val userId = "66c35b050da7b9523070cb3a"
-        val updateUserRequest = UpdateUserRequest("John Doe", "test.user@example.com", dummyStringWishList)
+        val updateUserRequest = UpdateUserRequest.newBuilder()
+            .setLogin("John Doe")
+            .setEmail("test.user@example.com")
+            .setBookWishList(WishListUpdate.newBuilder().addAllBookIds(dummyStringWishList))
+            .build()
+
         val updatedUser = DomainUser(userId, "John Doe", "test.user@example.com", dummyStringWishList)
         every { userRepositoryMock.update(userId, updateUserRequest) } returns updatedUser.toMono()
 
@@ -128,10 +136,7 @@ class UserServiceImplTest {
         actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(UserNotFoundException::class.java, ex.javaClass)
-                assertEquals(
-                    "User with id=$userId was not found during adding book with id=$bookId into user wishlist",
-                    ex.message
-                )
+                assertEquals("Could not find user($userId) for wishlist update", ex.message)
             }
             .verify()
 
@@ -154,10 +159,7 @@ class UserServiceImplTest {
         actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(BookNotFoundException::class.java, ex.javaClass)
-                assertEquals(
-                    "Book with id=$bookId was not found during adding book to users (id=$userId) wishlist",
-                    ex.message
-                )
+                assertEquals("Could not find book($bookId) for wishlist update", ex.message)
             }
             .verify()
 

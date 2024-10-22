@@ -6,10 +6,10 @@ import pet.project.app.annotation.Profiling
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
-import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
 import pet.project.app.service.BookService
+import pet.project.core.exception.BookNotFoundException
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 
@@ -26,7 +26,7 @@ class BookServiceImpl(
 
     override fun getById(bookId: String): Mono<DomainBook> {
         return bookRepository.findById(bookId)
-            .switchIfEmpty(Mono.error { BookNotFoundException(bookId, "GET request") })
+            .switchIfEmpty(Mono.error { BookNotFoundException("Could not find book $bookId during GET request") })
     }
 
     override fun updateAmount(request: UpdateAmountRequest): Mono<Unit> {
@@ -58,7 +58,7 @@ class BookServiceImpl(
 
     override fun update(bookId: String, request: UpdateBookRequest): Mono<DomainBook> {
         return bookRepository.update(bookId, request)
-            .switchIfEmpty(Mono.error { BookNotFoundException(bookId, "Update request") })
+            .switchIfEmpty(Mono.error { BookNotFoundException("Could not find book $bookId during Update request") })
     }
 
     override fun delete(bookId: String): Mono<Unit> {

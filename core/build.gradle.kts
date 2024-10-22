@@ -23,9 +23,6 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":internal-api"))
-    implementation(project(":core"))
-
     implementation("org.apache.logging.log4j:log4j-api-kotlin:1.5.0")
     implementation("org.springframework.boot:spring-boot-starter-validation:3.3.2")
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
@@ -37,7 +34,6 @@ dependencies {
     implementation("io.mongock:mongodb-springdata-v4-driver:5.4.4")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.3")
     implementation ("org.springframework.boot:spring-boot-starter-webflux")
-    implementation("io.nats:jnats:2.16.14")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

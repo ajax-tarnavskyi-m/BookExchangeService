@@ -1,7 +1,9 @@
 package pet.project.app.mapper
 
-import pet.project.app.exception.BookNotFoundException
-import pet.project.app.exception.UserNotFoundException
+//import pet.project.app.exception.BookNotFoundException
+//import pet.project.app.exception.UserNotFoundException
+import pet.project.core.exception.BookNotFoundException
+import pet.project.core.exception.UserNotFoundException
 import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
 import pet.project.internal.input.reqreply.user.create.CreateUserResponse
 import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse

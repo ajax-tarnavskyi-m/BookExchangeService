@@ -3,3 +3,4 @@ plugins {
 }
 rootProject.name = "book-exchange-service"
 include("gateway", "internal-api", "domain-service")
+include("core")

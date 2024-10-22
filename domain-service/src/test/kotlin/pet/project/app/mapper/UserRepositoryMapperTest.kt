@@ -5,10 +5,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Update
-import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.mapper.UserRepositoryMapper.toDomain
 import pet.project.app.mapper.UserRepositoryMapper.toUpdate
 import pet.project.app.model.mongo.MongoUser
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest.WishListUpdate
 
 class UserRepositoryMapperTest {
 
@@ -50,11 +51,12 @@ class UserRepositoryMapperTest {
     @Test
     fun `should set all fields correctly in toUpdate`() {
         // GIVEN
-        val updateUserRequest = UpdateUserRequest(
-            login = "newLogin",
-            email = "newEmail@example.com",
-            bookWishList = setOf("5f8d0d55b54764421b7156c7", "5f8d0d55b54764421b7156c8")
-        )
+        val wishList = listOf("5f8d0d55b54764421b7156c7", "5f8d0d55b54764421b7156c8")
+        val updateUserRequest = UpdateUserRequest.newBuilder()
+            .setLogin("newLogin")
+            .setEmail("newEmail@example.com")
+            .setBookWishList(WishListUpdate.newBuilder().addAllBookIds(wishList))
+            .build()
 
         // WHEN
         val update = updateUserRequest.toUpdate()
@@ -68,11 +70,7 @@ class UserRepositoryMapperTest {
     @Test
     fun `should not set fields when they are null in toUpdate`() {
         // GIVEN
-        val updateUserRequest = UpdateUserRequest(
-            login = null,
-            email = null,
-            bookWishList = null
-        )
+        val updateUserRequest = UpdateUserRequest.newBuilder().build()
 
         // WHEN
         val resultUpdate = updateUserRequest.toUpdate()

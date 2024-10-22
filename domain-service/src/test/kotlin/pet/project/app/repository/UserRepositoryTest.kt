@@ -4,9 +4,11 @@ import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
-import pet.project.app.dto.user.CreateUserRequest
-import pet.project.app.dto.user.UpdateUserRequest
 import pet.project.app.dto.user.UserNotificationDetails
+import pet.project.app.model.domain.DomainUser
+import pet.project.internal.commonmodels.user.user.User
+import pet.project.internal.input.reqreply.user.create.CreateUserRequest
+import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
 import reactor.kotlin.test.test
 import java.math.BigDecimal
 import kotlin.test.Test
@@ -21,8 +23,10 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Autowired
     private lateinit var bookRepository: BookRepository
 
-    private val firstCreateUserRequest = CreateUserRequest(login = "test_user", email = "test_user@example.com")
-    private val secondUserCreateRequest = CreateUserRequest(login = "secondUser", email = "secondUser@example.com")
+    private val firstUser = User.newBuilder().setLogin("firstUser").setEmail("first@mail.com").build()
+    private val secondUser = User.newBuilder().setLogin("secondUser").setEmail("second@mail.com").build()
+    private val firstCreateUserRequest = CreateUserRequest.newBuilder().setUser(firstUser).build()
+    private val secondUserCreateRequest = CreateUserRequest.newBuilder().setUser(secondUser).build()
     private val firstCreateBookRequest = CreateBookRequest("Book One", "First book", 2020, BigDecimal(10), 0)
     private val secondCreateBookRequest = CreateBookRequest("Book Two", "Second book", 2021, BigDecimal(15), 0)
     private val thirdCreateBookRequest = CreateBookRequest("Book Three", "Third book", 2022, BigDecimal(20), 0)
@@ -36,9 +40,9 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         actualMono.test()
             .consumeNextWith { savedUser ->
                 assertNotNull(savedUser.id, "Id should not be null after save")
-                assertEquals(firstCreateUserRequest.login, savedUser.login)
-                assertEquals(firstCreateUserRequest.email, savedUser.email)
-                assertEquals(firstCreateUserRequest.bookWishList, savedUser.bookWishList)
+                assertEquals(firstCreateUserRequest.user.login, savedUser.login)
+                assertEquals(firstCreateUserRequest.user.email, savedUser.email)
+                assertEquals(firstCreateUserRequest.user.bookWishListList.toSet(), savedUser.bookWishList)
             }
             .verifyComplete()
     }
@@ -69,9 +73,10 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     @Test
     fun `should update user fields successfully`() {
         // GIVEN
-        val savedUser = userRepository.insert(firstCreateUserRequest.copy(login = "old_login")).block()!!
-        val updateRequest = UpdateUserRequest(login = "new_login", null, null)
-        val expectedUpdatedUser = savedUser.copy(login = "new_login")
+
+        val savedUser = userRepository.insert(firstCreateUserRequest).block()!!
+        val updateRequest = UpdateUserRequest.newBuilder().setLogin("updated_login").build()
+        val expectedUpdatedUser = DomainUser(savedUser.id, "updated_login", savedUser.email, savedUser.bookWishList)
 
         // WHEN
         val actualMono = userRepository.update(savedUser.id, updateRequest)
@@ -86,7 +91,7 @@ class UserRepositoryTest : AbstractMongoTestContainer {
     fun `should return empty mono if user does not exist during update`() {
         // GIVEN
         val nonExistentUserId = "nonexistent_user_id"
-        val updateRequest = UpdateUserRequest(login = "new_login", email = null, bookWishList = null)
+        val updateRequest = UpdateUserRequest.newBuilder().setLogin("login").setEmail("email@example.com").build()
 
         // WHEN
         val actualMono = userRepository.update(nonExistentUserId, updateRequest)
@@ -124,14 +129,14 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val firstBook = bookRepository.insert(firstCreateBookRequest).block()!!
         val secondBook = bookRepository.insert(secondCreateBookRequest).block()!!
         val thirdBook = bookRepository.insert(thirdCreateBookRequest).block()!!
-        val firstUser = userRepository.insert(
-            firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id, secondBook.id))
-        ).block()!!
-        val secondUser = userRepository.insert(
-            secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id, thirdBook.id, firstBook.id))
-        ).block()!!
+        val firstUserCopy = firstUser.toBuilder().addAllBookWishList(setOf(firstBook.id, secondBook.id)).build()
+        userRepository.insert(CreateUserRequest.newBuilder().setUser(firstUserCopy).build()).block()!!
+        val secondUserCopy = secondUser.toBuilder().addAllBookWishList(setOf(thirdBook.id, firstBook.id, secondBook.id))
+            .build()
+        userRepository.insert(CreateUserRequest.newBuilder().setUser(secondUserCopy).build()).block()!!
+
         val requestIds = listOf(secondBook.id, thirdBook.id)
-        val firstExpected = UserNotificationDetails(firstUser.login, firstUser.email, setOf(secondBook.title))
+        val firstExpected = UserNotificationDetails(firstUserCopy.login, firstUserCopy.email, setOf(secondBook.title))
         val secondExpected = UserNotificationDetails(
             secondUser.login, secondUser.email, setOf(secondBook.title, thirdBook.title)
         )
@@ -150,9 +155,11 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val firstBook = bookRepository.insert(firstCreateBookRequest).block()!!
         val secondBook = bookRepository.insert(firstCreateBookRequest).block()!!
+        val firstUserCopy = firstUser.toBuilder().addAllBookWishList(setOf(firstBook.id))
+        val secondUserCopy = secondUser.toBuilder().addAllBookWishList(setOf(secondBook.id))
 
-        userRepository.insert(firstCreateUserRequest.copy(bookWishList = setOf(firstBook.id))).block()!!
-        userRepository.insert(secondUserCreateRequest.copy(bookWishList = setOf(secondBook.id))).block()!!
+        userRepository.insert(CreateUserRequest.newBuilder().setUser(firstUserCopy).build()).block()!!
+        userRepository.insert(CreateUserRequest.newBuilder().setUser(secondUserCopy).build()).block()!!
 
         // WHEN
         val actualFlux = userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString()))

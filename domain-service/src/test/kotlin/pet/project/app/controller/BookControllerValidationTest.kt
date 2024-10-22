@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -25,14 +26,16 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
-import pet.project.app.exception.handler.ValidationExceptionResponse
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
+import pet.project.core.exception.handler.GlobalExceptionHandler
+import pet.project.core.exception.handler.ValidationExceptionResponse
 import reactor.kotlin.core.publisher.toMono
 import java.math.BigDecimal
 import java.time.Year
 
 @WebMvcTest(BookController::class)
+@Import(GlobalExceptionHandler::class)
 class BookControllerValidationTest {
 
     @Autowired

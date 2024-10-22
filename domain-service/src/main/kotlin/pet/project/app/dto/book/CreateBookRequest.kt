@@ -3,7 +3,7 @@ package pet.project.app.dto.book
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.PositiveOrZero
-import pet.project.app.validation.ValidPublishingYearRange
+import pet.project.core.exception.validation.ValidPublishingYearRange
 import java.math.BigDecimal
 
 data class CreateBookRequest(

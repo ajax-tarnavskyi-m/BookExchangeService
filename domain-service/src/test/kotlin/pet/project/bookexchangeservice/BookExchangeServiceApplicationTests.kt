@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import pet.project.app.BookExchangeServiceApplication
 import pet.project.app.controller.BookController
-import pet.project.app.controller.UserController
 import pet.project.app.service.BookService
 import pet.project.app.service.UserService
 
@@ -17,9 +16,6 @@ class BookExchangeServiceApplicationTests {
     lateinit var bookController: BookController
 
     @Autowired
-    lateinit var userController: UserController
-
-    @Autowired
     lateinit var bookService: BookService
 
     @Autowired
@@ -28,7 +24,6 @@ class BookExchangeServiceApplicationTests {
     @Test
     fun contextLoads() {
         assertNotNull(bookController)
-        assertNotNull(userController)
         assertNotNull(bookService)
         assertNotNull(userService)
     }

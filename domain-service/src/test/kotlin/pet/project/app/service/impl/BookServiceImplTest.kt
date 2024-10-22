@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
-import pet.project.app.exception.BookNotFoundException
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
+import pet.project.core.exception.BookNotFoundException
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toMono
@@ -91,7 +91,7 @@ class BookServiceImplTest {
         actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(BookNotFoundException::class.java, ex.javaClass)
-                assertEquals("Book with id=${bookId} was not found during GET request", ex.message)
+                assertEquals("Could not find book $bookId during GET request", ex.message)
             }.verify()
 
         verify { bookRepositoryMock.findById(bookId) }
