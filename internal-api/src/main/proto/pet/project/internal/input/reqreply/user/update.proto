@@ -1,9 +1,9 @@
 syntax = "proto3";
 
+package pet.project.internal.input.reqreply.user;
+
 import "pet/project/internal/commonmodels/error.proto";
 import "pet/project/internal/commonmodels/user/user.proto";
-
-package pet.project.internal.input.reqreply.user.update;
 
 option java_multiple_files = true;
 
@@ -25,7 +25,7 @@ message UpdateUserResponse {
   }
 
   message Success {
-    commonmodels.user.user.User user = 1;
+    commonmodels.user.User user = 1;
   }
 
   message Failure {

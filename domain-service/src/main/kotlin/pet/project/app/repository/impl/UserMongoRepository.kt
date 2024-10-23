@@ -25,15 +25,15 @@ import org.springframework.data.mongodb.core.updateFirst
 import org.springframework.stereotype.Repository
 import pet.project.app.annotation.Profiling
 import pet.project.app.dto.user.UserNotificationDetails
-import pet.project.app.mapper.UserRepositoryMapper.toDomain
-import pet.project.app.mapper.UserRepositoryMapper.toMongo
-import pet.project.app.mapper.UserRepositoryMapper.toUpdate
+import pet.project.app.mapper.MongoUserMapper.toDomain
+import pet.project.app.mapper.MongoUserMapper.toMongo
+import pet.project.app.mapper.MongoUserMapper.toUpdate
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.model.mongo.MongoBook
 import pet.project.app.model.mongo.MongoUser
 import pet.project.app.repository.UserRepository
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

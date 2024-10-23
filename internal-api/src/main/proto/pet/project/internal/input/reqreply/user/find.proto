@@ -1,6 +1,6 @@
-
 syntax = "proto3";
-package pet.project.internal.input.reqreply.user.find;
+
+package pet.project.internal.input.reqreply.user;
 
 import "pet/project/internal/commonmodels/error.proto";
 import "pet/project/internal/commonmodels/user/user.proto";
@@ -18,7 +18,7 @@ message FindUserByIdResponse {
   }
 
   message Success {
-    commonmodels.user.user.User user = 1;
+    commonmodels.user.User user = 1;
   }
 
   message Failure {

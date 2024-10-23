@@ -1,7 +1,6 @@
 package pet.project.app.mapper
 
 import org.springframework.data.mongodb.core.query.Update
-import org.springframework.stereotype.Component
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.dto.book.UpdateBookRequest
@@ -9,7 +8,6 @@ import pet.project.app.model.domain.DomainBook
 import pet.project.app.model.mongo.MongoBook
 import java.math.BigDecimal
 
-@Component
 object BookMapper {
 
     fun DomainBook.toDto() = ResponseBookDto(

@@ -2,11 +2,11 @@ package pet.project.app.mapper
 
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
-import pet.project.internal.input.reqreply.user.create.CreateUserResponse
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
-import pet.project.internal.input.reqreply.user.find.FindUserByIdResponse
-import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
+import pet.project.internal.input.reqreply.user.CreateUserResponse
+import pet.project.internal.input.reqreply.user.DeleteUserByIdResponse
+import pet.project.internal.input.reqreply.user.FindUserByIdResponse
+import pet.project.internal.input.reqreply.user.UpdateUserResponse
 
 object UserThrowableMapper {
 

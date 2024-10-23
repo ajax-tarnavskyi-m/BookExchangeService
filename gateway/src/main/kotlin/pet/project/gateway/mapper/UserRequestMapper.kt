@@ -2,26 +2,21 @@ package pet.project.gateway.mapper
 
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
-import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListRequest
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdRequest
-import pet.project.internal.input.reqreply.user.find.FindUserByIdRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest.WishListUpdate
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListRequest
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.DeleteUserByIdRequest
+import pet.project.internal.input.reqreply.user.FindUserByIdRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest.WishListUpdate
 
-object UserRequestProtoMapper {
+object UserRequestMapper {
 
     fun CreateUserExternalRequest.toProto(): CreateUserRequest {
-        val user = User.newBuilder().also {
+        return CreateUserRequest.newBuilder().also {
             it.setLogin(login)
             it.setEmail(email)
             it.addAllBookWishList(bookWishList)
         }.build()
-
-        return CreateUserRequest.newBuilder()
-            .setUser(user)
-            .build()
     }
 
     fun toFindUserByIdRequest(userId: String): FindUserByIdRequest {

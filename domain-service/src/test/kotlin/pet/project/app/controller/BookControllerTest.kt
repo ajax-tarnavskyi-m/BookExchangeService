@@ -3,6 +3,7 @@ package pet.project.app.controller
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -28,7 +29,7 @@ class BookControllerTest {
     @Test
     fun `should return book details when book id is valid`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         every { bookService.getById(bookId) } returns initializedDomainBook.toMono()
@@ -48,7 +49,7 @@ class BookControllerTest {
     fun `should create book successfully when request is valid`() {
         // GIVEN
         val createBookRequest = CreateBookRequest("Title", "Description", 2023, BigDecimal(20.0), 10)
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         every { bookService.create(createBookRequest) } returns initializedDomainBook.toMono()
@@ -69,7 +70,7 @@ class BookControllerTest {
     @Test
     fun `should update book details when request is valid`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
         val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
@@ -91,7 +92,7 @@ class BookControllerTest {
     @Test
     fun `should update book amount when request is valid`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val updateAmountRequest = UpdateAmountRequest(bookId, 5)
         every { bookService.updateAmount(updateAmountRequest) } returns Unit.toMono()
 
@@ -109,7 +110,7 @@ class BookControllerTest {
     @Test
     fun `should delete book when book id is valid`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         every { bookService.delete(bookId) } returns Unit.toMono()
 
         // WHEN & THEN

@@ -17,20 +17,20 @@ import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
 import pet.project.gateway.dto.user.UserExternalResponse
-import pet.project.gateway.mapper.UserRequestProtoMapper.toAddBookToUsersWishListRequest
-import pet.project.gateway.mapper.UserRequestProtoMapper.toDeleteUserByIdRequest
-import pet.project.gateway.mapper.UserRequestProtoMapper.toFindUserByIdRequest
-import pet.project.gateway.mapper.UserRequestProtoMapper.toProto
-import pet.project.gateway.mapper.UserRequestProtoMapper.toUpdateUserRequest
-import pet.project.gateway.mapper.UserResponseProtoMapper.handleResponse
-import pet.project.gateway.mapper.UserResponseProtoMapper.toExternal
-import pet.project.gateway.mapper.UserResponseProtoMapper.toExternalResponse
+import pet.project.gateway.mapper.UserRequestMapper.toAddBookToUsersWishListRequest
+import pet.project.gateway.mapper.UserRequestMapper.toDeleteUserByIdRequest
+import pet.project.gateway.mapper.UserRequestMapper.toFindUserByIdRequest
+import pet.project.gateway.mapper.UserRequestMapper.toProto
+import pet.project.gateway.mapper.UserRequestMapper.toUpdateUserRequest
+import pet.project.gateway.mapper.UserResponseMapper.handleResponse
+import pet.project.gateway.mapper.UserResponseMapper.toExternal
+import pet.project.gateway.mapper.UserResponseMapper.toExternalResponse
 import pet.project.internal.app.subject.UserNatsSubject
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
-import pet.project.internal.input.reqreply.user.create.CreateUserResponse
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
-import pet.project.internal.input.reqreply.user.find.FindUserByIdResponse
-import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
+import pet.project.internal.input.reqreply.user.CreateUserResponse
+import pet.project.internal.input.reqreply.user.DeleteUserByIdResponse
+import pet.project.internal.input.reqreply.user.FindUserByIdResponse
+import pet.project.internal.input.reqreply.user.UpdateUserResponse
 import reactor.core.publisher.Mono
 
 @RestController

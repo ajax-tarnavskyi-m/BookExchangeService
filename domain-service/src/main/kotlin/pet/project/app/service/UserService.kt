@@ -1,8 +1,8 @@
 package pet.project.app.service
 
 import pet.project.app.model.domain.DomainUser
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
 import reactor.core.publisher.Mono
 
 interface UserService {

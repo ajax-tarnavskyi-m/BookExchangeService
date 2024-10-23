@@ -9,6 +9,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.awaitility.Awaitility.await
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -46,7 +47,7 @@ class NotificationProcessorTest {
     @Test
     fun `should log user notification when bookId is emitted to sink`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val userDetails = UserNotificationDetails("testUser", "email@test.com", setOf(bookId))
 
         val shouldBeNotifiedUpdated = 1L.toMono()
@@ -81,7 +82,7 @@ class NotificationProcessorTest {
     @Test
     fun `should not log user notification when book shouldBeNotified field is false`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
 
         val shouldBeModifiedWasNotUpdated = 0L.toMono()
         every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeModifiedWasNotUpdated

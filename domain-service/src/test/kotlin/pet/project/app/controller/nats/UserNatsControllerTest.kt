@@ -8,19 +8,18 @@ import io.mockk.verify
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import pet.project.app.mapper.UserControllerMapper.toAddBookToUserWishListResponse
-import pet.project.app.mapper.UserControllerMapper.toCreateUserResponse
-import pet.project.app.mapper.UserControllerMapper.toDeleteUserByIdResponse
-import pet.project.app.mapper.UserControllerMapper.toFindUserByIdResponse
-import pet.project.app.mapper.UserControllerMapper.toUpdateUserResponse
+import pet.project.app.mapper.UserResponseMapper.toAddBookToUserWishListResponse
+import pet.project.app.mapper.UserResponseMapper.toCreateUserResponse
+import pet.project.app.mapper.UserResponseMapper.toDeleteUserByIdResponse
+import pet.project.app.mapper.UserResponseMapper.toFindUserByIdResponse
+import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.service.UserService
-import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListRequest
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdRequest
-import pet.project.internal.input.reqreply.user.find.FindUserByIdRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListRequest
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.DeleteUserByIdRequest
+import pet.project.internal.input.reqreply.user.FindUserByIdRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
 import reactor.core.publisher.Mono
 import reactor.kotlin.test.test
 
@@ -36,8 +35,10 @@ class UserNatsControllerTest {
     @Test
     fun `should return CreateUserResponse when user is created successfully`() {
         // GIVEN
-        val newUser = User.newBuilder().setLogin("testLogin").setEmail("test@example.com").build()
-        val request = CreateUserRequest.newBuilder().setUser(newUser).build()
+        val request = CreateUserRequest.newBuilder()
+            .setLogin("testLogin")
+            .setEmail("test@example.com")
+            .build()
         val domainUser = DomainUser(ObjectId.get().toHexString(), "testLogin", "test@example.com", setOf())
         val expectedResponse = domainUser.toCreateUserResponse()
 

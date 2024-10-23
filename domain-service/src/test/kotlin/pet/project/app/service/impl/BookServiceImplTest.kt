@@ -104,7 +104,7 @@ class BookServiceImplTest {
     @Test
     fun `should update book successfully`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
         val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
         every { bookRepositoryMock.update(bookId, updateBookRequest) } returns updatedDomainBook.toMono()

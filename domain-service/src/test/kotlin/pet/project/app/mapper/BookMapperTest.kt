@@ -16,14 +16,7 @@ class BookMapperTest {
     @Test
     fun `should map all fields correctly in toDomain`() {
         // GIVEN
-        val mongoBook = MongoBook(
-            id = ObjectId.get(),
-            title = "Sample Title",
-            description = "Sample Description",
-            yearOfPublishing = 2021,
-            price = BigDecimal("19.99"),
-            amountAvailable = 10
-        )
+        val mongoBook = MongoBook(ObjectId.get(), "Sample Title", "Sample Description", 2021, BigDecimal("19.99"), 10)
 
         // WHEN
         val domainBook = mongoBook.toDomain()

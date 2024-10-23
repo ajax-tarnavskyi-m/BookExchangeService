@@ -3,6 +3,7 @@ package pet.project.gateway.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -21,14 +22,14 @@ import pet.project.core.exception.handler.ValidationExceptionResponse
 import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListRequest
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.create.CreateUserResponse
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdRequest
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListRequest
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.CreateUserResponse
+import pet.project.internal.input.reqreply.user.DeleteUserByIdRequest
+import pet.project.internal.input.reqreply.user.DeleteUserByIdResponse
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserResponse
 
 @WebMvcTest(UserController::class)
 @Import(GlobalExceptionHandler::class)
@@ -89,7 +90,7 @@ class UserNatsControllerValidationTest {
     fun `should return bad request when adding book to wishlist with invalid user ObjectId`() {
         // GIVEN
         val invalidUserId = "invalidObjectId"
-        val bookId = "507f191e810c19729de860ea"
+        val bookId = ObjectId.get().toHexString()
 
         // WHEN
         val result = mockMvc.perform(
@@ -111,7 +112,7 @@ class UserNatsControllerValidationTest {
     @Test
     fun `should return bad request when adding book to wishlist with invalid book ObjectId`() {
         // GIVEN
-        val userId = "507f191e810c19729de860ea"
+        val userId = ObjectId.get().toHexString()
         val invalidBookId = "invalidObjectId"
 
         // WHEN

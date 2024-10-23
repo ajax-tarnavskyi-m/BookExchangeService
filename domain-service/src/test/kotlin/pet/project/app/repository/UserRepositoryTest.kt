@@ -6,9 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.model.domain.DomainUser
-import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.commonmodels.user.User
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
 import reactor.kotlin.test.test
 import java.math.BigDecimal
 import kotlin.test.Test
@@ -25,7 +25,8 @@ class UserRepositoryTest : AbstractMongoTestContainer {
 
     private val firstUser = User.newBuilder().setLogin("firstUser").setEmail("first@mail.com").build()
     private val secondUser = User.newBuilder().setLogin("secondUser").setEmail("second@mail.com").build()
-    private val firstCreateUserRequest = CreateUserRequest.newBuilder().setUser(firstUser).build()
+    private val firstCreateUserRequest =
+        CreateUserRequest.newBuilder().setLogin(firstUser.login).setEmail(firstUser.email).build()
     private val firstCreateBookRequest = CreateBookRequest("Book One", "First book", 2020, BigDecimal(10), 0)
     private val secondCreateBookRequest = CreateBookRequest("Book Two", "Second book", 2021, BigDecimal(15), 0)
     private val thirdCreateBookRequest = CreateBookRequest("Book Three", "Third book", 2022, BigDecimal(20), 0)
@@ -39,9 +40,9 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         actualMono.test()
             .consumeNextWith { savedUser ->
                 assertNotNull(savedUser.id, "Id should not be null after save")
-                assertEquals(firstCreateUserRequest.user.login, savedUser.login)
-                assertEquals(firstCreateUserRequest.user.email, savedUser.email)
-                assertEquals(firstCreateUserRequest.user.bookWishListList.toSet(), savedUser.bookWishList)
+                assertEquals(firstCreateUserRequest.login, savedUser.login)
+                assertEquals(firstCreateUserRequest.email, savedUser.email)
+                assertEquals(firstCreateUserRequest.bookWishListList.toSet(), savedUser.bookWishList)
             }
             .verifyComplete()
     }
@@ -128,22 +129,26 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         val firstBook = bookRepository.insert(firstCreateBookRequest).block()!!
         val secondBook = bookRepository.insert(secondCreateBookRequest).block()!!
         val thirdBook = bookRepository.insert(thirdCreateBookRequest).block()!!
-        val firstUserCopy = firstUser.toBuilder().addAllBookWishList(setOf(firstBook.id, secondBook.id)).build()
-        userRepository.insert(CreateUserRequest.newBuilder().setUser(firstUserCopy).build()).block()!!
-        val secondUserCopy = secondUser.toBuilder().addAllBookWishList(setOf(thirdBook.id, firstBook.id, secondBook.id))
-            .build()
-        userRepository.insert(CreateUserRequest.newBuilder().setUser(secondUserCopy).build()).block()!!
 
-        val requestIds = listOf(secondBook.id, thirdBook.id)
-        val firstExpected = UserNotificationDetails(firstUserCopy.login, firstUserCopy.email, setOf(secondBook.title))
-        val secondExpected = UserNotificationDetails(
-            secondUser.login,
-            secondUser.email,
-            setOf(secondBook.title, thirdBook.title)
-        )
+        val firstUserCreationRequest = CreateUserRequest.newBuilder()
+            .setLogin(firstUser.login)
+            .setEmail(firstUser.email)
+            .addAllBookWishList(setOf(firstBook.id, secondBook.id)).build()
+        val secondCreateUserRequest = CreateUserRequest.newBuilder()
+            .setLogin(secondUser.login)
+            .setEmail(secondUser.email)
+            .addAllBookWishList(setOf(thirdBook.id, firstBook.id, secondBook.id))
+            .build()
+
+        userRepository.insert(firstUserCreationRequest).block()!!
+        userRepository.insert(secondCreateUserRequest).block()!!
+
+        val firstExpected = UserNotificationDetails(firstUser.login, firstUser.email, setOf(secondBook.title))
+        val secondExpected =
+            UserNotificationDetails(secondUser.login, secondUser.email, setOf(secondBook.title, thirdBook.title))
 
         // WHEN
-        val actualFlux = userRepository.findAllSubscribersOf(requestIds)
+        val actualFlux = userRepository.findAllSubscribersOf(listOf(secondBook.id, thirdBook.id))
 
         // THEN
         actualFlux.test()
@@ -156,11 +161,19 @@ class UserRepositoryTest : AbstractMongoTestContainer {
         // GIVEN
         val firstBook = bookRepository.insert(firstCreateBookRequest).block()!!
         val secondBook = bookRepository.insert(firstCreateBookRequest).block()!!
-        val firstUserCopy = firstUser.toBuilder().addAllBookWishList(setOf(firstBook.id))
-        val secondUserCopy = secondUser.toBuilder().addAllBookWishList(setOf(secondBook.id))
 
-        userRepository.insert(CreateUserRequest.newBuilder().setUser(firstUserCopy).build()).block()!!
-        userRepository.insert(CreateUserRequest.newBuilder().setUser(secondUserCopy).build()).block()!!
+        val firstUserCreationRequest = CreateUserRequest.newBuilder()
+            .setLogin(firstUser.login)
+            .setEmail(firstUser.email)
+            .addAllBookWishList(setOf(firstBook.id)).build()
+        val secondCreateUserRequest = CreateUserRequest.newBuilder()
+            .setLogin(secondUser.login)
+            .setEmail(secondUser.email)
+            .addAllBookWishList(setOf(secondBook.id))
+            .build()
+
+        userRepository.insert(firstUserCreationRequest).block()!!
+        userRepository.insert(secondCreateUserRequest).block()!!
 
         // WHEN
         val actualFlux = userRepository.findAllSubscribersOf(listOf(ObjectId.get().toHexString()))

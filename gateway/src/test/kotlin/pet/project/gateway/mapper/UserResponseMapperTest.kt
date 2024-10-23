@@ -5,18 +5,19 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
-import pet.project.gateway.mapper.UserResponseProtoMapper.handleResponse
-import pet.project.gateway.mapper.UserResponseProtoMapper.toExternal
-import pet.project.gateway.mapper.UserResponseProtoMapper.toExternalResponse
-import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
-import pet.project.internal.input.reqreply.user.create.CreateUserResponse
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
-import pet.project.internal.input.reqreply.user.find.FindUserByIdResponse
-import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
+import pet.project.gateway.dto.user.UserExternalResponse
+import pet.project.gateway.mapper.UserResponseMapper.handleResponse
+import pet.project.gateway.mapper.UserResponseMapper.toExternal
+import pet.project.gateway.mapper.UserResponseMapper.toExternalResponse
+import pet.project.internal.commonmodels.user.User
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
+import pet.project.internal.input.reqreply.user.CreateUserResponse
+import pet.project.internal.input.reqreply.user.DeleteUserByIdResponse
+import pet.project.internal.input.reqreply.user.FindUserByIdResponse
+import pet.project.internal.input.reqreply.user.UpdateUserResponse
 import kotlin.test.Test
 
-class UserResponseProtoMapperTest {
+class UserResponseMapperTest {
 
     private val testUser = User.newBuilder()
         .setId(ObjectId.get().toHexString())
@@ -24,6 +25,9 @@ class UserResponseProtoMapperTest {
         .setEmail("test@mail.com")
         .addAllBookWishList(listOf(ObjectId.get().toHexString()))
         .build()
+
+    private val expectedExternalResponse =
+        UserExternalResponse(testUser.id, testUser.login, testUser.email, testUser.bookWishListList.toSet())
 
     @Test
     fun `should map CreateUserResponse SUCCESS to UserExternalResponse`() {
@@ -33,13 +37,10 @@ class UserResponseProtoMapperTest {
             .build()
 
         // WHEN
-        val externalResponse = successResponse.toExternalResponse()
+        val actual = successResponse.toExternalResponse()
 
         // THEN
-        assertEquals(testUser.id, externalResponse.id)
-        assertEquals(testUser.login, externalResponse.login)
-        assertEquals(testUser.email, externalResponse.email)
-        assertEquals(testUser.bookWishListList.toSet(), externalResponse.bookWishList)
+        assertEquals(expectedExternalResponse, actual)
     }
 
     @Test
@@ -80,13 +81,10 @@ class UserResponseProtoMapperTest {
             .build()
 
         // WHEN
-        val externalResponse = successResponse.toExternalResponse()
+        val actual = successResponse.toExternalResponse()
 
         // THEN
-        assertEquals(testUser.id, externalResponse.id)
-        assertEquals(testUser.login, externalResponse.login)
-        assertEquals(testUser.email, externalResponse.email)
-        assertEquals(testUser.bookWishListList.toSet(), externalResponse.bookWishList)
+        assertEquals(expectedExternalResponse, actual)
     }
 
     @Test
@@ -144,13 +142,10 @@ class UserResponseProtoMapperTest {
             .build()
 
         // WHEN
-        val externalResponse = successResponse.toExternalResponse()
+        val actual = successResponse.toExternalResponse()
 
         // THEN
-        assertEquals(testUser.id, externalResponse.id)
-        assertEquals(testUser.login, externalResponse.login)
-        assertEquals(testUser.email, externalResponse.email)
-        assertEquals(testUser.bookWishListList.toSet(), externalResponse.bookWishList)
+        assertEquals(expectedExternalResponse, actual)
     }
 
     @Test

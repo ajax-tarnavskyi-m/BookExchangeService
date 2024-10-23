@@ -1,13 +1,15 @@
 syntax = "proto3";
 
-package pet.project.internal.input.reqreply.user.create;
+package pet.project.internal.input.reqreply.user;
 
 import "pet/project/internal/commonmodels/user/user.proto";
 
 option java_multiple_files = true;
 
 message CreateUserRequest {
-  commonmodels.user.user.User user = 1;
+  string login = 1;
+  string email = 2;
+  repeated string book_wish_list = 3;
 }
 
 message CreateUserResponse {
@@ -17,7 +19,7 @@ message CreateUserResponse {
   }
 
   message Success {
-    commonmodels.user.user.User user = 1;
+    commonmodels.user.User user = 1;
   }
 
   message Failure {

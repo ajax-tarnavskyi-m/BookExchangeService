@@ -9,8 +9,8 @@ import pet.project.app.repository.UserRepository
 import pet.project.app.service.UserService
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
 import reactor.core.publisher.Mono
 
 @Profiling

@@ -2,20 +2,15 @@ package pet.project.app.mapper
 
 import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.query.Update
-import org.springframework.stereotype.Component
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.model.mongo.MongoUser
-import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.create.CreateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest
-import pet.project.internal.input.reqreply.user.update.UpdateUserRequest.WishListUpdate
+import pet.project.internal.input.reqreply.user.CreateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest
+import pet.project.internal.input.reqreply.user.UpdateUserRequest.WishListUpdate
 
-@Component
-object UserRepositoryMapper {
+object MongoUserMapper {
 
-    fun CreateUserRequest.toMongo() = user.toMongo()
-
-    fun User.toMongo() = MongoUser(
+    fun CreateUserRequest.toMongo() = MongoUser(
         login = login,
         email = email,
         bookWishList = bookWishListList.map { ObjectId(it) }.toSet()
@@ -30,8 +25,8 @@ object UserRepositoryMapper {
 
     fun UpdateUserRequest.toUpdate(): Update {
         val update = Update()
-        if (login != "") update.set(MongoUser::login.name, login)
-        if (email != "") update.set(MongoUser::email.name, email)
+        if (login.isNotEmpty()) update.set(MongoUser::login.name, login)
+        if (email.isNotEmpty()) update.set(MongoUser::email.name, email)
         if (hasBookWishList()) {
             update.set(MongoUser::bookWishList.name, bookWishList.toObjectIdSet())
         }

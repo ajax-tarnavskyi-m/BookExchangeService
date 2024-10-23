@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-import "pet/project/internal/commonmodels/error.proto";
+package pet.project.internal.input.reqreply.user;
 
-package pet.project.internal.input.reqreply.user.add_book_to_wish_list;
+import "pet/project/internal/commonmodels/error.proto";
 
 option java_multiple_files = true;
 

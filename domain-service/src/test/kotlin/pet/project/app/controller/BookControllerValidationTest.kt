@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -166,7 +167,7 @@ class BookControllerValidationTest {
     @Test
     fun `should update book successfully when yearOfPublishing is null`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val request = UpdateBookRequest("Title", "Updated", null, BigDecimal(20.99))
         val updated = DomainBook(bookId, "Title", "Updated", 2020, BigDecimal(20.99), 10)
         every { bookServiceMock.update(bookId, request) } returns updated.toMono()
@@ -185,7 +186,7 @@ class BookControllerValidationTest {
     @Test
     fun `should return bad request when updating book with zero delta`() {
         // GIVEN
-        val request = UpdateAmountRequest("66bf6bf8039339103054e21a", 0)
+        val request = UpdateAmountRequest(ObjectId.get().toHexString(), 0)
 
         // WHEN
         val result = mockMvc.perform(

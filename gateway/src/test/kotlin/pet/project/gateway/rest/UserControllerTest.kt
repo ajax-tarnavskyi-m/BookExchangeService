@@ -3,6 +3,7 @@ package pet.project.gateway.rest
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -12,18 +13,18 @@ import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
 import pet.project.gateway.dto.user.UserExternalResponse
-import pet.project.gateway.mapper.UserRequestProtoMapper.toDeleteUserByIdRequest
-import pet.project.gateway.mapper.UserRequestProtoMapper.toFindUserByIdRequest
-import pet.project.gateway.mapper.UserRequestProtoMapper.toProto
-import pet.project.gateway.mapper.UserRequestProtoMapper.toUpdateUserRequest
+import pet.project.gateway.mapper.UserRequestMapper.toDeleteUserByIdRequest
+import pet.project.gateway.mapper.UserRequestMapper.toFindUserByIdRequest
+import pet.project.gateway.mapper.UserRequestMapper.toProto
+import pet.project.gateway.mapper.UserRequestMapper.toUpdateUserRequest
 import pet.project.internal.app.subject.UserNatsSubject
-import pet.project.internal.commonmodels.user.user.User
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListRequest
-import pet.project.internal.input.reqreply.user.add_book_to_wish_list.AddBookToUsersWishListResponse
-import pet.project.internal.input.reqreply.user.create.CreateUserResponse
-import pet.project.internal.input.reqreply.user.delete.DeleteUserByIdResponse
-import pet.project.internal.input.reqreply.user.find.FindUserByIdResponse
-import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
+import pet.project.internal.commonmodels.user.User
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListRequest
+import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
+import pet.project.internal.input.reqreply.user.CreateUserResponse
+import pet.project.internal.input.reqreply.user.DeleteUserByIdResponse
+import pet.project.internal.input.reqreply.user.FindUserByIdResponse
+import pet.project.internal.input.reqreply.user.UpdateUserResponse
 import reactor.kotlin.core.publisher.toMono
 
 @WebFluxTest(UserController::class)
@@ -35,7 +36,7 @@ class UserControllerTest {
     private lateinit var natsClient: NatsClient
 
     private val exampleUser = User.newBuilder()
-        .setId("66bf6bf8039339103054e21a")
+        .setId(ObjectId.get().toHexString())
         .setLogin("testUser")
         .setEmail("test.user@example.com")
         .addAllBookWishList(emptySet())
@@ -111,7 +112,7 @@ class UserControllerTest {
     @Test
     fun `should add book to wishlist successfully`() {
         // GIVEN
-        val bookId = "66bf6bf8039339103054e21a"
+        val bookId = ObjectId.get().toHexString()
         val request = AddBookToUsersWishListRequest.newBuilder().setBookId(bookId).setUserId(exampleUser.id).build()
         val response = AddBookToUsersWishListResponse.newBuilder().apply { successBuilder }.build()
         every {
