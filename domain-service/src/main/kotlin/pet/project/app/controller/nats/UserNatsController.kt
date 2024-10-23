@@ -1,9 +1,6 @@
 package pet.project.app.controller.nats
 
-import io.nats.client.Connection
-import io.nats.client.Dispatcher
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import pet.project.app.annotation.NatsController
 import pet.project.app.annotation.NatsHandler
 import pet.project.app.controller.nats.UserNatsController.Companion.QUEUE_GROUP
@@ -32,13 +29,8 @@ import pet.project.internal.input.reqreply.user.update.UpdateUserResponse
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
-@Component
 @NatsController(subjectPrefix = UserNatsSubject.PREFIX, queueGroup = QUEUE_GROUP)
-class UserNatsController(
-    private val userService: UserService,
-    connection: Connection,
-    dispatcher: Dispatcher,
-) : AbstractNatsController(connection, dispatcher) {
+class UserNatsController(private val userService: UserService) {
 
     @NatsHandler(subject = UserNatsSubject.CREATE)
     fun create(request: CreateUserRequest): Mono<CreateUserResponse> {
