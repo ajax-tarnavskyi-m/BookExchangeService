@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
@@ -17,7 +18,7 @@ import pet.project.gateway.mapper.UserRequestMapper.toDeleteUserByIdRequest
 import pet.project.gateway.mapper.UserRequestMapper.toFindUserByIdRequest
 import pet.project.gateway.mapper.UserRequestMapper.toProto
 import pet.project.gateway.mapper.UserRequestMapper.toUpdateUserRequest
-import pet.project.internal.app.subject.UserNatsSubject
+import pet.project.internal.app.subject.NatsSubject
 import pet.project.internal.commonmodels.user.User
 import pet.project.internal.input.reqreply.user.AddBookToUsersWishListRequest
 import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
@@ -53,11 +54,7 @@ class UserControllerTest {
         val createUserResponse = CreateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
 
         every {
-            natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.CREATE}",
-                createUserRequest.toProto(),
-                CreateUserResponse.parser()
-            )
+            natsClient.doRequest(NatsSubject.User.CREATE, createUserRequest.toProto(), CreateUserResponse.parser())
         } returns createUserResponse.toMono()
 
         // WHEN & THEN
@@ -67,15 +64,11 @@ class UserControllerTest {
             .bodyValue(createUserRequest)
             .exchange()
             .expectStatus().isCreated
-            .expectBody(UserExternalResponse::class.java)
+            .expectBody<UserExternalResponse>()
             .isEqualTo(exampleUserResponse)
 
         verify {
-            natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.CREATE}",
-                createUserRequest.toProto(),
-                CreateUserResponse.parser()
-            )
+            natsClient.doRequest(NatsSubject.User.CREATE, createUserRequest.toProto(), CreateUserResponse.parser())
         }
     }
 
@@ -86,7 +79,7 @@ class UserControllerTest {
             .apply { successBuilder.user = exampleUser }.build()
         every {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.FIND_BY_ID}",
+                NatsSubject.User.FIND_BY_ID,
                 toFindUserByIdRequest(exampleUser.id),
                 FindUserByIdResponse.parser()
             )
@@ -97,12 +90,12 @@ class UserControllerTest {
             .uri("/user/{id}", exampleUser.id)
             .exchange()
             .expectStatus().isOk
-            .expectBody(UserExternalResponse::class.java)
+            .expectBody<UserExternalResponse>()
             .isEqualTo(exampleUserResponse)
 
         verify {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.FIND_BY_ID}",
+                NatsSubject.User.FIND_BY_ID,
                 toFindUserByIdRequest(exampleUser.id),
                 FindUserByIdResponse.parser()
             )
@@ -117,7 +110,7 @@ class UserControllerTest {
         val response = AddBookToUsersWishListResponse.newBuilder().apply { successBuilder }.build()
         every {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.ADD_BOOK_TO_WISH_LIST}",
+                NatsSubject.User.ADD_BOOK_TO_WISH_LIST,
                 request,
                 AddBookToUsersWishListResponse.parser()
             )
@@ -132,7 +125,7 @@ class UserControllerTest {
         // THEN
         verify {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.ADD_BOOK_TO_WISH_LIST}",
+                NatsSubject.User.ADD_BOOK_TO_WISH_LIST,
                 request,
                 AddBookToUsersWishListResponse.parser()
             )
@@ -147,7 +140,7 @@ class UserControllerTest {
         val response = UpdateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
         every {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.UPDATE}",
+                NatsSubject.User.UPDATE,
                 toUpdateUserRequest(exampleUser.id, request),
                 UpdateUserResponse.parser()
             )
@@ -160,13 +153,13 @@ class UserControllerTest {
             .bodyValue(request)
             .exchange()
             .expectStatus().isOk
-            .expectBody(UserExternalResponse::class.java)
+            .expectBody<UserExternalResponse>()
             .isEqualTo(exampleUserResponse)
 
         // THEN
         verify {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.UPDATE}",
+                NatsSubject.User.UPDATE,
                 toUpdateUserRequest(exampleUser.id, request),
                 UpdateUserResponse.parser()
             )
@@ -179,7 +172,7 @@ class UserControllerTest {
         val response = DeleteUserByIdResponse.newBuilder().apply { successBuilder }.build()
         every {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.DELETE}",
+                NatsSubject.User.DELETE,
                 toDeleteUserByIdRequest(exampleUser.id),
                 DeleteUserByIdResponse.parser()
             )
@@ -194,7 +187,7 @@ class UserControllerTest {
         // THEN
         verify {
             natsClient.doRequest(
-                "${UserNatsSubject.PREFIX}.${UserNatsSubject.DELETE}",
+                NatsSubject.User.DELETE,
                 toDeleteUserByIdRequest(exampleUser.id),
                 DeleteUserByIdResponse.parser()
             )

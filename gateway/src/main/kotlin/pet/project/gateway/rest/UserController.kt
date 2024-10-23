@@ -25,7 +25,7 @@ import pet.project.gateway.mapper.UserRequestMapper.toUpdateUserRequest
 import pet.project.gateway.mapper.UserResponseMapper.handleResponse
 import pet.project.gateway.mapper.UserResponseMapper.toExternal
 import pet.project.gateway.mapper.UserResponseMapper.toExternalResponse
-import pet.project.internal.app.subject.UserNatsSubject
+import pet.project.internal.app.subject.NatsSubject
 import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
 import pet.project.internal.input.reqreply.user.CreateUserResponse
 import pet.project.internal.input.reqreply.user.DeleteUserByIdResponse
@@ -41,7 +41,7 @@ class UserController(private val natsClient: NatsClient) {
     @ResponseStatus(HttpStatus.CREATED)
     fun create(@Valid @RequestBody createUserRequest: CreateUserExternalRequest): Mono<UserExternalResponse> {
         return natsClient.doRequest(
-            "${UserNatsSubject.PREFIX}.${UserNatsSubject.CREATE}",
+            NatsSubject.User.CREATE,
             createUserRequest.toProto(),
             CreateUserResponse.parser()
         ).map { it.toExternalResponse() }
@@ -50,7 +50,7 @@ class UserController(private val natsClient: NatsClient) {
     @GetMapping("/{id}")
     fun getById(@ValidObjectId @PathVariable("id") userId: String): Mono<UserExternalResponse> {
         return natsClient.doRequest(
-            "${UserNatsSubject.PREFIX}.${UserNatsSubject.FIND_BY_ID}",
+            NatsSubject.User.FIND_BY_ID,
             toFindUserByIdRequest(userId),
             FindUserByIdResponse.parser()
         ).map { it.toExternalResponse() }
@@ -63,7 +63,7 @@ class UserController(private val natsClient: NatsClient) {
         @ValidObjectId @RequestParam bookId: String,
     ): Mono<Unit> {
         return natsClient.doRequest(
-            "${UserNatsSubject.PREFIX}.${UserNatsSubject.ADD_BOOK_TO_WISH_LIST}",
+            NatsSubject.User.ADD_BOOK_TO_WISH_LIST,
             toAddBookToUsersWishListRequest(userId, bookId),
             AddBookToUsersWishListResponse.parser()
         ).map { it.toExternal() }
@@ -75,7 +75,7 @@ class UserController(private val natsClient: NatsClient) {
         @RequestBody @Valid request: UpdateUserExternalRequest,
     ): Mono<UserExternalResponse> {
         return natsClient.doRequest(
-            "${UserNatsSubject.PREFIX}.${UserNatsSubject.UPDATE}",
+            NatsSubject.User.UPDATE,
             toUpdateUserRequest(userId, request),
             UpdateUserResponse.parser()
         ).map { it.toExternalResponse() }
@@ -85,7 +85,7 @@ class UserController(private val natsClient: NatsClient) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun delete(@ValidObjectId @PathVariable("id") userId: String): Mono<Unit> {
         return natsClient.doRequest(
-            "${UserNatsSubject.PREFIX}.${UserNatsSubject.DELETE}",
+            NatsSubject.User.DELETE,
             toDeleteUserByIdRequest(userId),
             DeleteUserByIdResponse.parser()
         ).map { it.handleResponse() }

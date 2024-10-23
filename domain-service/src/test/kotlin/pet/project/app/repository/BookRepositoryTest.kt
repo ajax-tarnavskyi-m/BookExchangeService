@@ -16,19 +16,19 @@ class BookRepositoryTest : AbstractMongoTestContainer {
     private lateinit var bookRepository: BookRepository
 
     private val firstCreationRequest = CreateBookRequest(
-        title = "Second Sample Book",
-        description = "Sample Description 1",
-        yearOfPublishing = 2022,
-        price = BigDecimal("19.99"),
-        amountAvailable = 10,
+        "Second Sample Book",
+        "Sample Description 1",
+        2022,
+        BigDecimal("19.99"),
+        10,
     )
 
     private val secondCreationRequest = CreateBookRequest(
-        title = "First Sample Book",
-        description = "Sample Description 2",
-        yearOfPublishing = 2022,
-        price = BigDecimal("29.99"),
-        amountAvailable = 5,
+        "First Sample Book",
+        "Sample Description 2",
+        2022,
+        BigDecimal("29.99"),
+        5,
     )
 
     @Test

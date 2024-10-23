@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.ResponseBookDto
 import pet.project.app.dto.book.UpdateAmountRequest
@@ -39,7 +40,7 @@ class BookControllerTest {
             .uri("/book/{id}", bookId)
             .exchange()
             .expectStatus().isOk
-            .expectBody(ResponseBookDto::class.java)
+            .expectBody<ResponseBookDto>()
             .isEqualTo(expectedResponse)
 
         verify { bookService.getById(bookId) }
@@ -61,7 +62,7 @@ class BookControllerTest {
             .bodyValue(createBookRequest)
             .exchange()
             .expectStatus().isCreated
-            .expectBody(ResponseBookDto::class.java)
+            .expectBody<ResponseBookDto>()
             .isEqualTo(expectedResponse)
 
         verify { bookService.create(createBookRequest) }
@@ -83,7 +84,7 @@ class BookControllerTest {
             .bodyValue(updateBookRequest)
             .exchange()
             .expectStatus().isOk
-            .expectBody(ResponseBookDto::class.java)
+            .expectBody<ResponseBookDto>()
             .isEqualTo(expectedResponse)
 
         verify { bookService.update(bookId, updateBookRequest) }

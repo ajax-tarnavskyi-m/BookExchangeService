@@ -13,8 +13,8 @@ object UserRequestMapper {
 
     fun CreateUserExternalRequest.toProto(): CreateUserRequest {
         return CreateUserRequest.newBuilder().also {
-            it.setLogin(login)
-            it.setEmail(email)
+            it.login = login
+            it.email = email
             it.addAllBookWishList(bookWishList)
         }.build()
     }
@@ -27,8 +27,8 @@ object UserRequestMapper {
 
     fun toAddBookToUsersWishListRequest(userId: String, bookId: String): AddBookToUsersWishListRequest {
         return AddBookToUsersWishListRequest.newBuilder().also {
-            it.setUserId(userId)
-            it.setBookId(bookId)
+            it.userId = userId
+            it.bookId = bookId
         }.build()
     }
 

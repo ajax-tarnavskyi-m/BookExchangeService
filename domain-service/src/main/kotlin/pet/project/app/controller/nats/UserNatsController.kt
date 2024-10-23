@@ -15,7 +15,7 @@ import pet.project.app.mapper.UserThrowableMapper.toFailureDeleteUserByIdRespons
 import pet.project.app.mapper.UserThrowableMapper.toFailureFindUserByIdResponse
 import pet.project.app.mapper.UserThrowableMapper.toFailureUpdateUserResponse
 import pet.project.app.service.UserService
-import pet.project.internal.app.subject.UserNatsSubject
+import pet.project.internal.app.subject.NatsSubject
 import pet.project.internal.input.reqreply.user.AddBookToUsersWishListRequest
 import pet.project.internal.input.reqreply.user.AddBookToUsersWishListResponse
 import pet.project.internal.input.reqreply.user.CreateUserRequest
@@ -29,10 +29,10 @@ import pet.project.internal.input.reqreply.user.UpdateUserResponse
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
-@NatsController(subjectPrefix = UserNatsSubject.PREFIX, queueGroup = QUEUE_GROUP)
+@NatsController(queueGroup = QUEUE_GROUP)
 class UserNatsController(private val userService: UserService) {
 
-    @NatsHandler(subject = UserNatsSubject.CREATE)
+    @NatsHandler(subject = NatsSubject.User.CREATE)
     fun create(request: CreateUserRequest): Mono<CreateUserResponse> {
         return userService.create(request)
             .map { it.toCreateUserResponse() }
@@ -42,7 +42,7 @@ class UserNatsController(private val userService: UserService) {
             }
     }
 
-    @NatsHandler(subject = UserNatsSubject.FIND_BY_ID)
+    @NatsHandler(subject = NatsSubject.User.FIND_BY_ID)
     fun getById(request: FindUserByIdRequest): Mono<FindUserByIdResponse> {
         return userService.getById(request.id)
             .map { it.toFindUserByIdResponse() }
@@ -52,7 +52,7 @@ class UserNatsController(private val userService: UserService) {
             }
     }
 
-    @NatsHandler(subject = UserNatsSubject.ADD_BOOK_TO_WISH_LIST)
+    @NatsHandler(subject = NatsSubject.User.ADD_BOOK_TO_WISH_LIST)
     fun addBookToWishList(request: AddBookToUsersWishListRequest): Mono<AddBookToUsersWishListResponse> {
         return userService.addBookToWishList(request.userId, request.bookId)
             .map { toAddBookToUserWishListResponse() }
@@ -62,7 +62,7 @@ class UserNatsController(private val userService: UserService) {
             }
     }
 
-    @NatsHandler(subject = UserNatsSubject.UPDATE)
+    @NatsHandler(subject = NatsSubject.User.UPDATE)
     fun update(request: UpdateUserRequest): Mono<UpdateUserResponse> {
         return userService.update(request.id, request)
             .map { it.toUpdateUserResponse() }
@@ -72,7 +72,7 @@ class UserNatsController(private val userService: UserService) {
             }
     }
 
-    @NatsHandler(subject = UserNatsSubject.DELETE)
+    @NatsHandler(subject = NatsSubject.User.DELETE)
     fun delete(request: DeleteUserByIdRequest): Mono<DeleteUserByIdResponse> {
         return userService.delete(request.id)
             .map { toDeleteUserByIdResponse() }
