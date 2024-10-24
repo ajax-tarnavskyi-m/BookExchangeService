@@ -23,49 +23,46 @@ object UserResponseMapper {
     fun FindUserByIdResponse.toExternalResponse(): UserExternalResponse {
         return when (this.responseCase!!) {
             FindUserByIdResponse.ResponseCase.SUCCESS -> success.user.toExternalResponse()
-            FindUserByIdResponse.ResponseCase.FAILURE -> {
-                when (failure.errorCase!!) {
-                    FindUserByIdResponse.Failure.ErrorCase.USER_NOT_FOUND ->
-                        throw UserNotFoundException(failure.message)
-
-                    FindUserByIdResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(failure.message)
-                }
-            }
-
+            FindUserByIdResponse.ResponseCase.FAILURE -> failure.asException()
             FindUserByIdResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
+        }
+    }
+
+    private fun FindUserByIdResponse.Failure.asException(): Nothing {
+        throw when (errorCase!!) {
+            FindUserByIdResponse.Failure.ErrorCase.USER_NOT_FOUND -> UserNotFoundException(message)
+            FindUserByIdResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(message)
         }
     }
 
     fun UpdateUserResponse.toExternalResponse(): UserExternalResponse {
         return when (this.responseCase!!) {
             UpdateUserResponse.ResponseCase.SUCCESS -> success.user.toExternalResponse()
-            UpdateUserResponse.ResponseCase.FAILURE -> {
-                when (failure.errorCase!!) {
-                    UpdateUserResponse.Failure.ErrorCase.USER_NOT_FOUND -> throw UserNotFoundException(failure.message)
-                    UpdateUserResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(failure.message)
-                }
-            }
-
+            UpdateUserResponse.ResponseCase.FAILURE -> failure.asException()
             UpdateUserResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
+        }
+    }
+
+    private fun UpdateUserResponse.Failure.asException(): Nothing {
+        throw when (errorCase!!) {
+            UpdateUserResponse.Failure.ErrorCase.USER_NOT_FOUND -> UserNotFoundException(message)
+            UpdateUserResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(message)
         }
     }
 
     fun AddBookToUsersWishListResponse.toExternal() {
         return when (this.responseCase!!) {
             AddBookToUsersWishListResponse.ResponseCase.SUCCESS -> Unit
-            AddBookToUsersWishListResponse.ResponseCase.FAILURE -> {
-                when (failure.errorCase!!) {
-                    AddBookToUsersWishListResponse.Failure.ErrorCase.USER_NOT_FOUND ->
-                        throw UserNotFoundException(failure.message)
-
-                    AddBookToUsersWishListResponse.Failure.ErrorCase.BOOK_NOT_FOUND ->
-                        throw BookNotFoundException(failure.message)
-
-                    AddBookToUsersWishListResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(failure.message)
-                }
-            }
-
+            AddBookToUsersWishListResponse.ResponseCase.FAILURE -> failure.asException()
             AddBookToUsersWishListResponse.ResponseCase.RESPONSE_NOT_SET -> error("Acquired message is empty!")
+        }
+    }
+
+    private fun AddBookToUsersWishListResponse.Failure.asException() : Nothing {
+        throw when (errorCase!!) {
+            AddBookToUsersWishListResponse.Failure.ErrorCase.USER_NOT_FOUND -> UserNotFoundException(message)
+            AddBookToUsersWishListResponse.Failure.ErrorCase.BOOK_NOT_FOUND -> BookNotFoundException(message)
+            AddBookToUsersWishListResponse.Failure.ErrorCase.ERROR_NOT_SET -> error(message)
         }
     }
 
