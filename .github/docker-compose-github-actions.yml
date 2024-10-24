@@ -1,0 +1,6 @@
+services:
+  nats:
+    container_name: nats-server-test
+    image: nats
+    ports:
+      - "4222:4222"
