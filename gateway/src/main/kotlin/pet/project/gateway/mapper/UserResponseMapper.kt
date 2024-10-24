@@ -58,7 +58,7 @@ object UserResponseMapper {
         }
     }
 
-    private fun AddBookToUsersWishListResponse.Failure.asException() : Nothing {
+    private fun AddBookToUsersWishListResponse.Failure.asException(): Nothing {
         throw when (errorCase!!) {
             AddBookToUsersWishListResponse.Failure.ErrorCase.USER_NOT_FOUND -> UserNotFoundException(message)
             AddBookToUsersWishListResponse.Failure.ErrorCase.BOOK_NOT_FOUND -> BookNotFoundException(message)
