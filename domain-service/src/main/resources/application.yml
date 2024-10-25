@@ -17,3 +17,5 @@ notification:
     items-max-amount: 100
 server:
   port: 8081
+nats:
+  connection-uri: ${NATS_CONNECTION_URI}

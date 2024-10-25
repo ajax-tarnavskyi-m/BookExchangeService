@@ -11,7 +11,7 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class BookRepositoryTest : AbstractMongoTestContainer {
+class BookRepositoryTest : AbstractTestContainer {
     @Autowired
     private lateinit var bookRepository: BookRepository
 

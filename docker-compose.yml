@@ -1,15 +1,26 @@
 version: '3.8'
 services:
-  book-x-app:
+  domain-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: domain-service
+      dockerfile: Dockerfile-domain-service
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+      - nats
+  gateway:
+    build:
+      context: gateway
+      dockerfile: Dockerfile-gateway
     ports:
       - "8080:8080"
     env_file:
       - .env
     depends_on:
-      - mongo
+      - nats
   mongo:
     image: mongo:7.0.14
     ports:
@@ -23,6 +34,11 @@ services:
     volumes:
       - db_volume:/data/db
       - config_volume:/data/configdb
+  nats:
+    image: nats
+    container_name: nats
+    ports:
+      - "4222:4222"
 volumes:
   db_volume:
     driver: local

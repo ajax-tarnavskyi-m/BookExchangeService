@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.model.domain.DomainUser
-import pet.project.app.repository.AbstractMongoTestContainer
+import pet.project.app.repository.AbstractTestContainer
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 import pet.project.internal.app.subject.NatsSubject
@@ -27,10 +27,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class UserNatsControllerIntegrationTest : AbstractMongoTestContainer {
+class UserNatsControllerIntegrationTest : AbstractTestContainer {
 
     @Autowired
-    lateinit var connection: Connection
+    lateinit var natsConnection: Connection
 
     @Autowired
     private lateinit var userRepository: UserRepository
@@ -56,7 +56,7 @@ class UserNatsControllerIntegrationTest : AbstractMongoTestContainer {
     @Test
     fun `should return CreateUserResponse when user is created successfully`() {
         // WHEN
-        val responseMessage = connection.request(NatsSubject.User.CREATE, createUserRequest.toByteArray()).get()
+        val responseMessage = natsConnection.request(NatsSubject.User.CREATE, createUserRequest.toByteArray()).get()
 
         // THEN
         val createUserResponse = CreateUserResponse.parser().parseFrom(responseMessage.data)
@@ -81,7 +81,7 @@ class UserNatsControllerIntegrationTest : AbstractMongoTestContainer {
         }.build()
 
         // WHEN
-        val responseMessage = connection.request(NatsSubject.User.FIND_BY_ID, findUserByIdRequest.toByteArray()).get()
+        val responseMessage = natsConnection.request(NatsSubject.User.FIND_BY_ID, findUserByIdRequest.toByteArray()).get()
 
         // THEN
         val findUserByIdResponse = FindUserByIdResponse.parser().parseFrom(responseMessage.data)
@@ -100,7 +100,7 @@ class UserNatsControllerIntegrationTest : AbstractMongoTestContainer {
             .build()
 
         // WHEN
-        val responseMessage = connection.request(NatsSubject.User.ADD_BOOK_TO_WISH_LIST, request.toByteArray()).get()
+        val responseMessage = natsConnection.request(NatsSubject.User.ADD_BOOK_TO_WISH_LIST, request.toByteArray()).get()
 
         // THEN
         val parsedResponse = AddBookToUsersWishListResponse.parser().parseFrom(responseMessage.data)
@@ -123,7 +123,7 @@ class UserNatsControllerIntegrationTest : AbstractMongoTestContainer {
         val expectedResponse = updatedUser.toUpdateUserResponse()
 
         // WHEN
-        val responseMessage = connection.request(NatsSubject.User.UPDATE, updateRequest.toByteArray()).get()
+        val responseMessage = natsConnection.request(NatsSubject.User.UPDATE, updateRequest.toByteArray()).get()
 
         // THEN
         val parsedActualResponse = UpdateUserResponse.parser().parseFrom(responseMessage.data)
@@ -140,7 +140,7 @@ class UserNatsControllerIntegrationTest : AbstractMongoTestContainer {
         val deleteRequest = DeleteUserByIdRequest.newBuilder().setId(savedUser.id).build()
 
         // WHEN
-        val responseMessage = connection.request(NatsSubject.User.DELETE, deleteRequest.toByteArray()).get()
+        val responseMessage = natsConnection.request(NatsSubject.User.DELETE, deleteRequest.toByteArray()).get()
 
         // THEN
         val parsedResponse = DeleteUserByIdResponse.parser().parseFrom(responseMessage.data)

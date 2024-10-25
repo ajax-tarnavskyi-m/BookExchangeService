@@ -34,11 +34,11 @@ object UserRequestMapper {
 
     fun toUpdateUserRequest(userId: String, request: UpdateUserExternalRequest): UpdateUserRequest {
         return UpdateUserRequest.newBuilder().apply {
-            setId(userId)
-            setLogin(request.login)
-            setEmail(request.email)
-            request.bookWishList?.let {
-                setBookWishList(WishListUpdate.newBuilder().addAllBookIds(it))
+            id = userId
+            request.login?.let { newLogin -> login = newLogin }
+            request.email?.let { newEmail -> email = newEmail }
+            request.bookWishList?.let { newWishList ->
+               bookWishList = WishListUpdate.newBuilder().addAllBookIds(newWishList).build()
             }
         }.build()
     }

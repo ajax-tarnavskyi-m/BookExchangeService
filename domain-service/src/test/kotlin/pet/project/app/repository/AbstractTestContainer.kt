@@ -6,23 +6,30 @@ import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
+import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.utility.DockerImageName
+import pet.project.app.BookExchangeServiceApplication
 
-@SpringBootTest
+@SpringBootTest(classes = [BookExchangeServiceApplication::class])
 @ActiveProfiles("test")
-@ContextConfiguration(initializers = [AbstractMongoTestContainer.Initializer::class])
-interface AbstractMongoTestContainer {
+@ContextConfiguration(initializers = [AbstractTestContainer.Initializer::class])
+interface AbstractTestContainer {
 
     companion object {
         val mongoContainer = MongoDBContainer("mongo:7.0.14")
+        val natsContainer = GenericContainer<Nothing>(DockerImageName.parse("nats:latest"))
+            .apply { withExposedPorts(4222) }
     }
 
     class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
         override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
             mongoContainer.start()
-
-            TestPropertyValues.of("spring.data.mongodb.uri=${mongoContainer.replicaSetUrl}")
-                .applyTo(configurableApplicationContext.environment)
+            natsContainer.start()
+            TestPropertyValues.of(
+                "spring.data.mongodb.uri=${mongoContainer.replicaSetUrl}",
+                "nats.connection-uri=nats://${natsContainer.host}:${natsContainer.getMappedPort(4222)}"
+            ).applyTo(configurableApplicationContext.environment)
         }
     }
 }

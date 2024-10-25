@@ -4,9 +4,9 @@ import org.slf4j.LoggerFactory
 import pet.project.app.annotation.NatsController
 import pet.project.app.annotation.NatsHandler
 import pet.project.app.controller.nats.UserNatsController.Companion.QUEUE_GROUP
-import pet.project.app.mapper.UserResponseMapper.toAddBookToUserWishListResponse
+import pet.project.app.mapper.UserResponseMapper.generateSuccessfulAddBookToUserWishListResponse
 import pet.project.app.mapper.UserResponseMapper.toCreateUserResponse
-import pet.project.app.mapper.UserResponseMapper.toDeleteUserByIdResponse
+import pet.project.app.mapper.UserResponseMapper.generateSuccessfulDeleteUserByIdResponse
 import pet.project.app.mapper.UserResponseMapper.toFindUserByIdResponse
 import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.mapper.UserThrowableMapper.toFailureAddBookToUserWishListResponse
@@ -55,7 +55,7 @@ class UserNatsController(private val userService: UserService) {
     @NatsHandler(subject = NatsSubject.User.ADD_BOOK_TO_WISH_LIST)
     fun addBookToWishList(request: AddBookToUsersWishListRequest): Mono<AddBookToUsersWishListResponse> {
         return userService.addBookToWishList(request.userId, request.bookId)
-            .map { toAddBookToUserWishListResponse() }
+            .map { generateSuccessfulAddBookToUserWishListResponse() }
             .onErrorResume { error ->
                 log.error("Error while executing", error)
                 error.toFailureAddBookToUserWishListResponse().toMono()
@@ -75,7 +75,7 @@ class UserNatsController(private val userService: UserService) {
     @NatsHandler(subject = NatsSubject.User.DELETE)
     fun delete(request: DeleteUserByIdRequest): Mono<DeleteUserByIdResponse> {
         return userService.delete(request.id)
-            .map { toDeleteUserByIdResponse() }
+            .map { generateSuccessfulDeleteUserByIdResponse() }
             .onErrorResume { error ->
                 log.error("Error while executing", error)
                 error.toFailureDeleteUserByIdResponse().toMono()

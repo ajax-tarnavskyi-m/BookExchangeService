@@ -17,8 +17,13 @@ class GlobalExceptionHandler {
     @ExceptionHandler(
         value = [BookNotFoundException::class, UserNotFoundException::class, IllegalArgumentException::class]
     )
-    fun handle(ex: RuntimeException): ResponseEntity<Any> {
+    fun handleBadRequest(ex: RuntimeException): ResponseEntity<Any> {
         return toResponseEntity(getTimestamp(), ex.message, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(RuntimeException::class)
+    fun handle(ex: RuntimeException): ResponseEntity<Any> {
+        return toResponseEntity(getTimestamp(), ex.message, HttpStatus.INTERNAL_SERVER_ERROR)
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)

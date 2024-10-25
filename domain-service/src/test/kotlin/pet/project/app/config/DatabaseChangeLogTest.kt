@@ -15,9 +15,9 @@ import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.indexOps
 import pet.project.app.config.DatabaseChangeLog.Companion.INDEX_NAME
 import pet.project.app.model.mongo.MongoUser
-import pet.project.app.repository.AbstractMongoTestContainer
+import pet.project.app.repository.AbstractTestContainer
 
-class DatabaseChangeLogTest : AbstractMongoTestContainer {
+class DatabaseChangeLogTest : AbstractTestContainer {
     @Autowired
     private lateinit var mongoTemplate: MongoTemplate
 

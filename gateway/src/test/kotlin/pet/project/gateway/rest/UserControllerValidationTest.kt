@@ -33,7 +33,7 @@ import pet.project.internal.input.reqreply.user.UpdateUserResponse
 
 @WebMvcTest(UserController::class)
 @Import(GlobalExceptionHandler::class)
-class UserNatsControllerValidationTest {
+class UserControllerValidationTest {
 
     @Autowired
     private lateinit var mockMvc: MockMvc

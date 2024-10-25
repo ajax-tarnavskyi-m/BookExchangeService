@@ -11,30 +11,22 @@ import pet.project.internal.input.reqreply.user.UpdateUserResponse
 object UserResponseMapper {
 
     fun DomainUser.toCreateUserResponse(): CreateUserResponse {
-        return CreateUserResponse.newBuilder().also {
-            it.successBuilder.user = this.toProto()
-        }.build()
+        return CreateUserResponse.newBuilder().apply { successBuilder.user = toProto() }.build()
     }
 
-    fun toAddBookToUserWishListResponse(): AddBookToUsersWishListResponse {
-        return AddBookToUsersWishListResponse.newBuilder()
-            .also { it.successBuilder }
-            .build()
+    fun generateSuccessfulAddBookToUserWishListResponse(): AddBookToUsersWishListResponse {
+        return AddBookToUsersWishListResponse.newBuilder().apply { successBuilder }.build()
     }
 
     fun DomainUser.toFindUserByIdResponse(): FindUserByIdResponse {
-        return FindUserByIdResponse.newBuilder().also {
-            it.successBuilder.user = this.toProto()
-        }.build()
+        return FindUserByIdResponse.newBuilder().apply { successBuilder.user = toProto() }.build()
     }
 
     fun DomainUser.toUpdateUserResponse(): UpdateUserResponse {
-        return UpdateUserResponse.newBuilder().also {
-            it.successBuilder.user = toProto()
-        }.build()
+        return UpdateUserResponse.newBuilder().apply { successBuilder.user = toProto() }.build()
     }
 
-    fun toDeleteUserByIdResponse(): DeleteUserByIdResponse {
+    fun generateSuccessfulDeleteUserByIdResponse(): DeleteUserByIdResponse {
         return DeleteUserByIdResponse.newBuilder().apply { successBuilder }.build()
     }
 

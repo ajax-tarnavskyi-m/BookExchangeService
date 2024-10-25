@@ -2,9 +2,9 @@ package pet.project.app.mapper
 
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
-import pet.project.app.mapper.UserResponseMapper.toAddBookToUserWishListResponse
+import pet.project.app.mapper.UserResponseMapper.generateSuccessfulAddBookToUserWishListResponse
 import pet.project.app.mapper.UserResponseMapper.toCreateUserResponse
-import pet.project.app.mapper.UserResponseMapper.toDeleteUserByIdResponse
+import pet.project.app.mapper.UserResponseMapper.generateSuccessfulDeleteUserByIdResponse
 import pet.project.app.mapper.UserResponseMapper.toFindUserByIdResponse
 import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.model.domain.DomainUser
@@ -45,7 +45,7 @@ class UserResponseMapperTest {
     @Test
     fun `should create AddBookToUsersWishListResponse with success`() {
         // WHEN
-        val response = toAddBookToUserWishListResponse()
+        val response = generateSuccessfulAddBookToUserWishListResponse()
 
         // THEN
         assertTrue(response.hasSuccess(), "Response should contain success")
@@ -78,7 +78,7 @@ class UserResponseMapperTest {
     @Test
     fun `should create DeleteUserByIdResponse with success`() {
         // WHEN
-        val response = toDeleteUserByIdResponse()
+        val response = generateSuccessfulDeleteUserByIdResponse()
 
         // THEN
         assertTrue(response.hasSuccess(), "Response should contain success")

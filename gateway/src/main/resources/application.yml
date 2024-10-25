@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: GatewayApplication
+nats:
+  connection-uri: ${NATS_CONNECTION_URI}

@@ -1,5 +1,7 @@
 package pet.project.app.processor
 
+import com.google.protobuf.Descriptors.Descriptor
+import com.google.protobuf.DynamicMessage
 import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.Parser
 import io.nats.client.Connection
@@ -22,21 +24,27 @@ class NatsSubscriptionAnnotationBeanPostProcessor(
     override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
         val beanClass: KClass<out Any> = bean::class
         if (beanClass.annotations.any { it is NatsController }) {
-            val controllerAnnotation = bean.javaClass.getAnnotation(NatsController::class.java)
-            bean.javaClass.methods
-                .filter { it.isAnnotationPresent(NatsHandler::class.java) }
-                .forEach { method -> subscribeToNats(bean, method, controllerAnnotation) }
+            connectToNats(bean)
         }
         return bean
+    }
+
+    private fun connectToNats(controllerInstance: Any) {
+        val controllerAnnotation = controllerInstance.javaClass.getAnnotation(NatsController::class.java)
+
+        controllerInstance.javaClass.methods
+            .filter { it.isAnnotationPresent(NatsHandler::class.java) }
+            .forEach { method -> subscribeToNats(controllerInstance, method, controllerAnnotation) }
     }
 
     @Suppress("TooGenericExceptionCaught")
     private fun subscribeToNats(controllerObj: Any, handlerMethod: Method, controllerAnnotation: NatsController) {
         val subject = getHandlerSubject(controllerAnnotation, handlerMethod.getAnnotation(NatsHandler::class.java))
+        val parser = getParser(handlerMethod)
 
         dispatcher.subscribe(subject, controllerAnnotation.queueGroup) { message ->
             try {
-                val request = getParser(handlerMethod).parseFrom(message.data)
+                val request = parser.parseFrom(message.data)
                 val response = handlerMethod.invoke(controllerObj, request) as Mono<GeneratedMessage>
                 response.subscribe { connection.publish(message.replyTo, it.toByteArray()) }
             } catch (e: RuntimeException) {
@@ -51,29 +59,34 @@ class NatsSubscriptionAnnotationBeanPostProcessor(
     }
 
     private fun getHandlerSubject(controllerAnnotation: NatsController, methodAnnotation: NatsHandler): String {
-        return if (controllerAnnotation.subjectPrefix.isEmpty()) {
+        return if (controllerAnnotation.subjectPrefix.isBlank()) {
             methodAnnotation.subject
         } else {
             "${controllerAnnotation.subjectPrefix}.${methodAnnotation.subject}"
         }
     }
 
-    private fun buildErrorResponse(handlerMethod: Method, exception: Throwable): GeneratedMessage {
+    private fun buildErrorResponse(handlerMethod: Method, exception: Throwable): DynamicMessage {
+        val responseDescriptor = getResponseTypeDescriptor(handlerMethod)
+        val failureField = responseDescriptor.findFieldByName("failure")
+        val exceptionMessage = exception.message ?: "Unknown error"
+
+        return DynamicMessage.newBuilder(responseDescriptor)
+            .setField(failureField, buildFailureMessage(failureField.messageType, exceptionMessage))
+            .build()
+    }
+
+    private fun getResponseTypeDescriptor(handlerMethod: Method): Descriptor {
         val responseType = handlerMethod.genericReturnType as ParameterizedType
         val typeArgument = responseType.actualTypeArguments[0] as Class<*>
-        val builder = typeArgument.getMethod("newBuilder").invoke(null)
+        return typeArgument.getMethod("getDescriptor").invoke(null) as Descriptor
+    }
 
-        val failureBuilderMethod = builder.javaClass.getMethod("getFailureBuilder")
-        val failureBuilder = failureBuilderMethod.invoke(builder)
+    private fun buildFailureMessage(failureDescriptor: Descriptor, exceptionMessage: String): DynamicMessage {
+        val messageField = failureDescriptor.findFieldByName("message")
+        return DynamicMessage.newBuilder(failureDescriptor)
+            .setField(messageField, exceptionMessage)
+            .build()
 
-        val setMessageMethod = failureBuilder.javaClass.getMethod("setMessage", String::class.java)
-        setMessageMethod.invoke(failureBuilder, exception.message ?: "Unknown error")
-
-        val failureMessage = failureBuilder.javaClass.getMethod("build").invoke(failureBuilder)
-
-        val setFailureMethod = builder.javaClass.getMethod("setFailure", failureMessage.javaClass)
-        setFailureMethod.invoke(builder, failureMessage)
-
-        return builder.javaClass.getMethod("build").invoke(builder) as GeneratedMessage
     }
 }
