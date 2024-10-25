@@ -2,7 +2,7 @@ package pet.project.internal.app.subject
 
 object NatsSubject {
     object User {
-        const val PREFIX = "user"
+        private const val PREFIX = "user"
         const val CREATE = "$PREFIX.create"
         const val FIND_BY_ID = "$PREFIX.find_by_id"
         const val UPDATE = "$PREFIX.update"

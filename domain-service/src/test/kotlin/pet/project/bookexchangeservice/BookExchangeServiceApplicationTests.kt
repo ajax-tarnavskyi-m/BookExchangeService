@@ -15,7 +15,7 @@ class BookExchangeServiceApplicationTests : AbstractTestContainer {
     lateinit var bookController: BookController
 
     @Autowired
-    lateinit var userNatsController : UserNatsController
+    lateinit var userNatsController: UserNatsController
 
     @Autowired
     lateinit var bookService: BookService

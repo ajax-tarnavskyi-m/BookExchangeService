@@ -38,7 +38,7 @@ object UserRequestMapper {
             request.login?.let { newLogin -> login = newLogin }
             request.email?.let { newEmail -> email = newEmail }
             request.bookWishList?.let { newWishList ->
-               bookWishList = WishListUpdate.newBuilder().addAllBookIds(newWishList).build()
+                bookWishList = WishListUpdate.newBuilder().addAllBookIds(newWishList).build()
             }
         }.build()
     }

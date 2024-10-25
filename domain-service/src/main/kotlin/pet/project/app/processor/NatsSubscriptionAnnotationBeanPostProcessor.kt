@@ -87,6 +87,5 @@ class NatsSubscriptionAnnotationBeanPostProcessor(
         return DynamicMessage.newBuilder(failureDescriptor)
             .setField(messageField, exceptionMessage)
             .build()
-
     }
 }

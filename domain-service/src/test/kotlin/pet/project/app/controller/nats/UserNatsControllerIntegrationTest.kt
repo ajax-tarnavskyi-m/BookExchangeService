@@ -73,7 +73,7 @@ class UserNatsControllerIntegrationTest : AbstractTestContainer {
     fun `should return FindUserByIdResponse when user is found`() {
         // GIVEN
         val savedUser = userRepository.insert(createUserRequest).block()!!
-        val findUserByIdRequest = FindUserByIdRequest.newBuilder().setId(savedUser.id).build()
+        val request = FindUserByIdRequest.newBuilder().setId(savedUser.id).build()
         val expectedUser = User.newBuilder().apply {
             id = savedUser.id
             login = savedUser.login
@@ -81,7 +81,7 @@ class UserNatsControllerIntegrationTest : AbstractTestContainer {
         }.build()
 
         // WHEN
-        val responseMessage = natsConnection.request(NatsSubject.User.FIND_BY_ID, findUserByIdRequest.toByteArray()).get()
+        val responseMessage = natsConnection.request(NatsSubject.User.FIND_BY_ID, request.toByteArray()).get()
 
         // THEN
         val findUserByIdResponse = FindUserByIdResponse.parser().parseFrom(responseMessage.data)
@@ -100,10 +100,10 @@ class UserNatsControllerIntegrationTest : AbstractTestContainer {
             .build()
 
         // WHEN
-        val responseMessage = natsConnection.request(NatsSubject.User.ADD_BOOK_TO_WISH_LIST, request.toByteArray()).get()
+        val response = natsConnection.request(NatsSubject.User.ADD_BOOK_TO_WISH_LIST, request.toByteArray()).get()
 
         // THEN
-        val parsedResponse = AddBookToUsersWishListResponse.parser().parseFrom(responseMessage.data)
+        val parsedResponse = AddBookToUsersWishListResponse.parser().parseFrom(response.data)
         assertTrue(parsedResponse.hasSuccess(), "Must successfully deliver NATS message")
 
         val actualUpdatedUser = userRepository.findById(savedUser.id).block()!!
