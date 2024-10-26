@@ -19,6 +19,7 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-webflux")
     implementation("io.nats:jnats:2.16.14")
 
+    testImplementation(testFixtures(project(":core")))
     testImplementation("com.ninja-squad:springmockk:3.0.1")
     testImplementation("org.testcontainers:mongodb:1.20.1")
     testImplementation("io.mockk:mockk:1.13.12")

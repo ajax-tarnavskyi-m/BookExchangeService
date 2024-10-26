@@ -10,6 +10,11 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import pet.project.core.RandomTestFields.Book.bookId
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.User.email
+import pet.project.core.RandomTestFields.User.login
+import pet.project.core.RandomTestFields.User.userIdString
 import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
@@ -38,9 +43,9 @@ class UserControllerTest {
 
     private val exampleUser = User.newBuilder()
         .setId(ObjectId.get().toHexString())
-        .setLogin("testUser")
-        .setEmail("test.user@example.com")
-        .addAllBookWishList(emptySet())
+        .setLogin(login)
+        .setEmail(email)
+        .addAllBookWishList(setOf(bookIdString))
         .build()
 
     private val exampleUserResponse =
@@ -49,7 +54,7 @@ class UserControllerTest {
     @Test
     fun `should create user successfully`() {
         // GIVEN
-        val createUserRequest = CreateUserExternalRequest("testUser", "test.user@example.com", emptySet())
+        val createUserRequest = CreateUserExternalRequest(login, email, emptySet())
 
         val createUserResponse = CreateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
 
@@ -75,8 +80,7 @@ class UserControllerTest {
     @Test
     fun `should get user by id successfully`() {
         // GIVEN
-        val findUserResponse = FindUserByIdResponse.newBuilder()
-            .apply { successBuilder.user = exampleUser }.build()
+        val findUserResponse = FindUserByIdResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
         every {
             natsClient.doRequest(
                 NatsSubject.User.FIND_BY_ID,
@@ -105,8 +109,7 @@ class UserControllerTest {
     @Test
     fun `should add book to wishlist successfully`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val request = AddBookToUsersWishListRequest.newBuilder().setBookId(bookId).setUserId(exampleUser.id).build()
+        val request = AddBookToUsersWishListRequest.newBuilder().setBookId(bookIdString).setUserId(userIdString).build()
         val response = AddBookToUsersWishListResponse.newBuilder().apply { successBuilder }.build()
         every {
             natsClient.doRequest(
@@ -118,7 +121,7 @@ class UserControllerTest {
 
         // WHEN & THEN
         webTestClient.put()
-            .uri { builder -> builder.path("/user/{id}/wishlist").queryParam("bookId", bookId).build(exampleUser.id) }
+            .uri { builder -> builder.path("/user/{id}/wishlist").queryParam("bookId", bookId).build(userIdString) }
             .exchange()
             .expectStatus().isNoContent
 
@@ -136,7 +139,7 @@ class UserControllerTest {
     fun `should update user successfully`() {
         // GIVEN
         val request =
-            UpdateUserExternalRequest(exampleUser.login, exampleUser.email, exampleUser.bookWishListList.toSet())
+            UpdateUserExternalRequest(login, email, setOf(bookIdString))
         val response = UpdateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
         every {
             natsClient.doRequest(
@@ -173,14 +176,14 @@ class UserControllerTest {
         every {
             natsClient.doRequest(
                 NatsSubject.User.DELETE,
-                toDeleteUserByIdRequest(exampleUser.id),
+                toDeleteUserByIdRequest(userIdString),
                 DeleteUserByIdResponse.parser()
             )
         } returns response.toMono()
 
         // WHEN & THEN
         webTestClient.delete()
-            .uri("/user/{id}", exampleUser.id)
+            .uri("/user/{id}", userIdString)
             .exchange()
             .expectStatus().isNoContent
 
@@ -188,7 +191,7 @@ class UserControllerTest {
         verify {
             natsClient.doRequest(
                 NatsSubject.User.DELETE,
-                toDeleteUserByIdRequest(exampleUser.id),
+                toDeleteUserByIdRequest(userIdString),
                 DeleteUserByIdResponse.parser()
             )
         }

@@ -5,8 +5,17 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
+import pet.project.core.RandomTestFields.Book.amountAvailable
+import pet.project.core.RandomTestFields.Book.description
+import pet.project.core.RandomTestFields.Book.price
+import pet.project.core.RandomTestFields.Book.title
+import pet.project.core.RandomTestFields.Book.yearOfPublishing
+import pet.project.core.RandomTestFields.SecondBook.secondAmountAvailable
+import pet.project.core.RandomTestFields.SecondBook.secondDescription
+import pet.project.core.RandomTestFields.SecondBook.secondPrice
+import pet.project.core.RandomTestFields.SecondBook.secondTitle
+import pet.project.core.RandomTestFields.SecondBook.secondYearOfPublishing
 import reactor.kotlin.test.test
-import java.math.BigDecimal
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -15,20 +24,14 @@ class BookRepositoryTest : AbstractTestContainer {
     @Autowired
     private lateinit var bookRepository: BookRepository
 
-    private val firstCreationRequest = CreateBookRequest(
-        "Second Sample Book",
-        "Sample Description 1",
-        2022,
-        BigDecimal("19.99"),
-        10,
-    )
+    private val firstCreationRequest = CreateBookRequest(title, description, yearOfPublishing, price, amountAvailable)
 
     private val secondCreationRequest = CreateBookRequest(
-        "First Sample Book",
-        "Sample Description 2",
-        2022,
-        BigDecimal("29.99"),
-        5,
+        secondTitle,
+        secondDescription,
+        secondYearOfPublishing,
+        secondPrice,
+        secondAmountAvailable,
     )
 
     @Test
@@ -153,8 +156,8 @@ class BookRepositoryTest : AbstractTestContainer {
     fun `should not modify amountAvailable when insufficient amount is available for negative delta`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
-        val invalidDelta = -11
-        val request = UpdateAmountRequest(savedBook.id, invalidDelta)
+        val lessThenAvailableDelta = -firstCreationRequest.amountAvailable - 1
+        val request = UpdateAmountRequest(savedBook.id, lessThenAvailableDelta)
 
         // WHEN
         val actualMono = bookRepository.updateAmount(request)
@@ -176,7 +179,7 @@ class BookRepositoryTest : AbstractTestContainer {
         val firstSavedBook = bookRepository.insert(firstCreationRequest).block()!!
         val secondSavedBook = bookRepository.insert(secondCreationRequest).block()!!
         val positiveDeltaForFirstBook = 5
-        val negativeDeltaForSecondBook = -3
+        val negativeDeltaForSecondBook = -secondCreationRequest.amountAvailable
         val requests = listOf(
             UpdateAmountRequest(firstSavedBook.id, positiveDeltaForFirstBook),
             UpdateAmountRequest(secondSavedBook.id, negativeDeltaForSecondBook)
@@ -207,7 +210,7 @@ class BookRepositoryTest : AbstractTestContainer {
         val secondSavedBook = bookRepository.insert(secondCreationRequest).block()!!
 
         val positiveDelta = 5
-        val deltaLessThenAvailable = -10
+        val deltaLessThenAvailable = -secondCreationRequest.amountAvailable - 1
         val requests = listOf(
             UpdateAmountRequest(firstSavedBook.id, positiveDelta),
             UpdateAmountRequest(secondSavedBook.id, deltaLessThenAvailable)

@@ -3,7 +3,6 @@ package pet.project.app.controller
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -16,8 +15,14 @@ import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.service.BookService
+import pet.project.core.RandomTestFields.Book.amountAvailable
+import pet.project.core.RandomTestFields.Book.bookId
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.Book.description
+import pet.project.core.RandomTestFields.Book.price
+import pet.project.core.RandomTestFields.Book.title
+import pet.project.core.RandomTestFields.Book.yearOfPublishing
 import reactor.kotlin.core.publisher.toMono
-import java.math.BigDecimal
 
 @WebFluxTest(BookController::class)
 class BookControllerTest {
@@ -30,10 +35,9 @@ class BookControllerTest {
     @Test
     fun `should return book details when book id is valid`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.getById(bookId) } returns initializedDomainBook.toMono()
+        val initializedBook = DomainBook(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
+        val expected = ResponseBookDto(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
+        every { bookService.getById(bookIdString) } returns initializedBook.toMono()
 
         // WHEN & THEN
         webTestClient.get()
@@ -41,19 +45,18 @@ class BookControllerTest {
             .exchange()
             .expectStatus().isOk
             .expectBody<ResponseBookDto>()
-            .isEqualTo(expectedResponse)
+            .isEqualTo(expected)
 
-        verify { bookService.getById(bookId) }
+        verify { bookService.getById(bookIdString) }
     }
 
     @Test
     fun `should create book successfully when request is valid`() {
         // GIVEN
-        val createBookRequest = CreateBookRequest("Title", "Description", 2023, BigDecimal(20.0), 10)
-        val bookId = ObjectId.get().toHexString()
-        val initializedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.create(createBookRequest) } returns initializedDomainBook.toMono()
+        val createBookRequest = CreateBookRequest(title, description, yearOfPublishing, price, amountAvailable)
+        val initializedBook = DomainBook(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
+        val expected = ResponseBookDto(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
+        every { bookService.create(createBookRequest) } returns initializedBook.toMono()
 
         // WHEN & THEN
         webTestClient.post()
@@ -63,7 +66,7 @@ class BookControllerTest {
             .exchange()
             .expectStatus().isCreated
             .expectBody<ResponseBookDto>()
-            .isEqualTo(expectedResponse)
+            .isEqualTo(expected)
 
         verify { bookService.create(createBookRequest) }
     }
@@ -71,11 +74,10 @@ class BookControllerTest {
     @Test
     fun `should update book details when request is valid`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
-        val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        val expectedResponse = ResponseBookDto(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookService.update(bookId, updateBookRequest) } returns updatedDomainBook.toMono()
+        val updateBookRequest = UpdateBookRequest(title, description, yearOfPublishing, price)
+        val updatedDomainBook = DomainBook(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
+        val expected = ResponseBookDto(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
+        every { bookService.update(bookIdString, updateBookRequest) } returns updatedDomainBook.toMono()
 
         // WHEN & THEN
         webTestClient.put()
@@ -85,16 +87,15 @@ class BookControllerTest {
             .exchange()
             .expectStatus().isOk
             .expectBody<ResponseBookDto>()
-            .isEqualTo(expectedResponse)
+            .isEqualTo(expected)
 
-        verify { bookService.update(bookId, updateBookRequest) }
+        verify { bookService.update(bookIdString, updateBookRequest) }
     }
 
     @Test
     fun `should update book amount when request is valid`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val updateAmountRequest = UpdateAmountRequest(bookId, 5)
+        val updateAmountRequest = UpdateAmountRequest(bookIdString, 5)
         every { bookService.updateAmount(updateAmountRequest) } returns Unit.toMono()
 
         // WHEN & THEN
@@ -111,8 +112,7 @@ class BookControllerTest {
     @Test
     fun `should delete book when book id is valid`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        every { bookService.delete(bookId) } returns Unit.toMono()
+        every { bookService.delete(bookIdString) } returns Unit.toMono()
 
         // WHEN & THEN
         webTestClient.delete()
@@ -120,6 +120,6 @@ class BookControllerTest {
             .exchange()
             .expectStatus().isNoContent
 
-        verify { bookService.delete(bookId) }
+        verify { bookService.delete(bookIdString) }
     }
 }

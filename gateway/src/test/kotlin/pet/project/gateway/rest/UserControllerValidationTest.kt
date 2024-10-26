@@ -3,7 +3,6 @@ package pet.project.gateway.rest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,6 +16,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.web.method.annotation.HandlerMethodValidationException
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.User.email
+import pet.project.core.RandomTestFields.User.login
+import pet.project.core.RandomTestFields.User.userIdString
 import pet.project.core.exception.handler.GlobalExceptionHandler
 import pet.project.core.exception.handler.ValidationExceptionResponse
 import pet.project.gateway.client.NatsClient
@@ -47,7 +50,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when creating user with empty login`() {
         // GIVEN
-        val request = CreateUserExternalRequest("", "test.user@example.com")
+        val request = CreateUserExternalRequest("", email)
 
         // WHEN
         val result = mockMvc.perform(
@@ -68,7 +71,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with invalid ObjectId`() {
         // GIVEN
-        val request = UpdateUserExternalRequest("UserLogin", "test.user@example.com", setOf())
+        val request = UpdateUserExternalRequest(login, email, setOf())
         val invalidUserId = "invalidUserId"
 
         // WHEN
@@ -90,12 +93,11 @@ class UserControllerValidationTest {
     fun `should return bad request when adding book to wishlist with invalid user ObjectId`() {
         // GIVEN
         val invalidUserId = "invalidObjectId"
-        val bookId = ObjectId.get().toHexString()
 
         // WHEN
         val result = mockMvc.perform(
             put("/user/{id}/wishlist", invalidUserId)
-                .param("bookId", bookId)
+                .param("bookId", bookIdString)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()
 
@@ -112,12 +114,11 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when adding book to wishlist with invalid book ObjectId`() {
         // GIVEN
-        val userId = ObjectId.get().toHexString()
         val invalidBookId = "invalidObjectId"
 
         // WHEN
         val result = mockMvc.perform(
-            put("/user/{id}/wishlist", userId)
+            put("/user/{id}/wishlist", userIdString)
                 .param("bookId", invalidBookId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()

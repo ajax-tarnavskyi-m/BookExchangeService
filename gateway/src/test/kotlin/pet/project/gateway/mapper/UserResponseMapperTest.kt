@@ -1,8 +1,10 @@
 package pet.project.gateway.mapper
 
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.User.email
+import pet.project.core.RandomTestFields.User.login
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
 import pet.project.gateway.dto.user.UserExternalResponse
@@ -20,10 +22,10 @@ import kotlin.test.Test
 class UserResponseMapperTest {
 
     private val testUser = User.newBuilder()
-        .setId(ObjectId.get().toHexString())
-        .setLogin("testUser")
-        .setEmail("test@mail.com")
-        .addAllBookWishList(listOf(ObjectId.get().toHexString()))
+        .setId(bookIdString)
+        .setLogin(login)
+        .setEmail(email)
+        .addAllBookWishList(setOf(bookIdString))
         .build()
 
     private val expectedExternalResponse =

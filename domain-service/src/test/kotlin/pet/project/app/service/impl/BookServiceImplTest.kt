@@ -19,12 +19,21 @@ import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
+import pet.project.core.RandomTestFields.Book.amountAvailable
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.Book.description
+import pet.project.core.RandomTestFields.Book.price
+import pet.project.core.RandomTestFields.Book.title
+import pet.project.core.RandomTestFields.Book.yearOfPublishing
+import pet.project.core.RandomTestFields.SecondBook.secondDescription
+import pet.project.core.RandomTestFields.SecondBook.secondPrice
+import pet.project.core.RandomTestFields.SecondBook.secondTitle
+import pet.project.core.RandomTestFields.SecondBook.secondYearOfPublishing
 import pet.project.core.exception.BookNotFoundException
 import reactor.core.publisher.Mono
 import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.test.test
-import java.math.BigDecimal
 
 @ExtendWith(MockKExtension::class)
 class BookServiceImplTest {
@@ -37,28 +46,21 @@ class BookServiceImplTest {
     @InjectMockKs
     lateinit var bookService: BookServiceImpl
 
-    private val exampleDomainBook = DomainBook(
-        ObjectId.get().toHexString(),
-        "Test Book",
-        "Description",
-        2023,
-        BigDecimal(20.99),
-        10
-    )
+    private val exampleBook = DomainBook(bookIdString, title, description, yearOfPublishing, price, amountAvailable)
 
     @Test
     fun `should create book successfully`() {
         // GIVEN
-        val createBookRequest = CreateBookRequest("Test Book", "Description", 2023, BigDecimal(20.99), 10)
+        val createBookRequest = CreateBookRequest(title, description, yearOfPublishing, price, amountAvailable)
 
-        every { bookRepositoryMock.insert(createBookRequest) } returns exampleDomainBook.toMono()
+        every { bookRepositoryMock.insert(createBookRequest) } returns exampleBook.toMono()
 
         // WHEN
         val actualMono = bookService.create(createBookRequest)
 
         // THEN
         actualMono.test()
-            .expectNext(exampleDomainBook)
+            .expectNext(exampleBook)
             .verifyComplete()
 
         verify { bookRepositoryMock.insert(createBookRequest) }
@@ -67,57 +69,54 @@ class BookServiceImplTest {
     @Test
     fun `should get book by id successfully`() {
         // GIVEN
-        val testId = ObjectId.get().toHexString()
-        val expected = exampleDomainBook.copy(id = testId)
-        every { bookRepositoryMock.findById(testId) } returns expected.toMono()
+        every { bookRepositoryMock.findById(bookIdString) } returns exampleBook.toMono()
 
         // WHEN
-        val actualMono = bookService.getById(testId)
+        val actualMono = bookService.getById(bookIdString)
 
         // THEN
         actualMono.test()
-            .expectNext(expected)
+            .expectNext(exampleBook)
             .verifyComplete()
 
-        verify { bookRepositoryMock.findById(testId) }
+        verify { bookRepositoryMock.findById(bookIdString) }
     }
 
     @Test
     fun `should throw exception when book not found by id`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.findById(bookId) } returns Mono.empty()
+        val nonExisingId = ObjectId.get().toHexString()
+        every { bookRepositoryMock.findById(nonExisingId) } returns Mono.empty()
 
         // WHEN
-        val actualMono = bookService.getById(bookId)
+        val actualMono = bookService.getById(nonExisingId)
 
         // THEN
         actualMono.test()
             .consumeErrorWith { ex ->
                 assertEquals(BookNotFoundException::class.java, ex.javaClass)
-                assertEquals("Could not find book $bookId during GET request", ex.message)
+                assertEquals("Could not find book $nonExisingId during GET request", ex.message)
             }.verify()
 
-        verify { bookRepositoryMock.findById(bookId) }
+        verify { bookRepositoryMock.findById(nonExisingId) }
     }
 
     @Test
     fun `should update book successfully`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
-        val updatedDomainBook = DomainBook(bookId, "Title", "Description", 2023, BigDecimal(20.0), 10)
-        every { bookRepositoryMock.update(bookId, updateBookRequest) } returns updatedDomainBook.toMono()
+        val updateBookRequest = UpdateBookRequest(secondTitle, secondDescription, secondYearOfPublishing, secondPrice)
+        val updatedBook = DomainBook(bookIdString, secondTitle, description, yearOfPublishing, price, amountAvailable)
+        every { bookRepositoryMock.update(bookIdString, updateBookRequest) } returns updatedBook.toMono()
 
         // WHEN
-        val actualMono = bookService.update(bookId, updateBookRequest)
+        val actualMono = bookService.update(bookIdString, updateBookRequest)
 
         // THEN
         actualMono.test()
-            .expectNext(updatedDomainBook)
+            .expectNext(updatedBook)
             .verifyComplete()
 
-        verify { bookRepositoryMock.update(bookId, updateBookRequest) }
+        verify { bookRepositoryMock.update(bookIdString, updateBookRequest) }
     }
 
     @Test
@@ -125,7 +124,7 @@ class BookServiceImplTest {
         // GIVEN
         every { bookRepositoryMock.update(any(), any()) } returns Mono.empty()
         val notExistingObjectId = ObjectId.get().toHexString()
-        val updateBookRequest = UpdateBookRequest("Title", "Description", 2023, BigDecimal(20.0))
+        val updateBookRequest = UpdateBookRequest(secondTitle, secondDescription, secondYearOfPublishing, secondPrice)
 
         // WHEN
         val actualMono = bookService.update(notExistingObjectId, updateBookRequest)

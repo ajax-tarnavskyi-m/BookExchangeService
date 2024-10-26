@@ -19,6 +19,9 @@ import org.slf4j.LoggerFactory
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.User.email
+import pet.project.core.RandomTestFields.User.login
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toMono
@@ -47,12 +50,11 @@ class NotificationProcessorTest {
     @Test
     fun `should log user notification when bookId is emitted to sink`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
-        val userDetails = UserNotificationDetails("testUser", "email@test.com", setOf(bookId))
+        val userDetails = UserNotificationDetails(login, email, setOf(bookIdString))
 
         val shouldBeNotifiedUpdated = 1L.toMono()
-        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeNotifiedUpdated
-        every { userRepositoryMock.findAllSubscribersOf(listOf(bookId)) } returns Flux.just(userDetails)
+        every { bookRepositoryMock.updateShouldBeNotified(bookIdString, false) } returns shouldBeNotifiedUpdated
+        every { userRepositoryMock.findAllSubscribersOf(listOf(bookIdString)) } returns Flux.just(userDetails)
 
         val bufferMaxAmountOfEvents = 1
         val bufferFiveMinuteInterval = Duration.parse("PT5M")
@@ -66,12 +68,12 @@ class NotificationProcessorTest {
 
         // WHEN
         notificationProcessor.subscribeToSink()
-        availableBooksSink.tryEmitNext(bookId)
+        availableBooksSink.tryEmitNext(bookIdString)
 
         // THEN
         await().untilAsserted {
-            verify { bookRepositoryMock.updateShouldBeNotified(bookId, false) }
-            verify { userRepositoryMock.findAllSubscribersOf(listOf(bookId)) }
+            verify { bookRepositoryMock.updateShouldBeNotified(bookIdString, false) }
+            verify { userRepositoryMock.findAllSubscribersOf(listOf(bookIdString)) }
         }
         val logs = listAppender.list
         val expectedMessage = "Hi ${userDetails.login}! There is new books for you: ${userDetails.bookTitles}"

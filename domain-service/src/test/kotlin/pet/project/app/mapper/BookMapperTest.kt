@@ -1,13 +1,19 @@
 package pet.project.app.mapper
 
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.mapper.BookMapper.toDomain
 import pet.project.app.mapper.BookMapper.toUpdate
+import pet.project.app.model.domain.DomainBook
 import pet.project.app.model.mongo.MongoBook
+import pet.project.core.RandomTestFields.Book.amountAvailable
+import pet.project.core.RandomTestFields.Book.bookId
+import pet.project.core.RandomTestFields.Book.description
+import pet.project.core.RandomTestFields.Book.price
+import pet.project.core.RandomTestFields.Book.title
+import pet.project.core.RandomTestFields.Book.yearOfPublishing
 import java.math.BigDecimal
 import kotlin.test.assertFalse
 
@@ -16,40 +22,33 @@ class BookMapperTest {
     @Test
     fun `should map all fields correctly in toDomain`() {
         // GIVEN
-        val mongoBook = MongoBook(ObjectId.get(), "Sample Title", "Sample Description", 2021, BigDecimal("19.99"), 10)
+        val mongoBook = MongoBook(bookId, title, description, yearOfPublishing, price, amountAvailable)
+        val expected = DomainBook(bookId.toHexString(), title, description, yearOfPublishing, price, amountAvailable)
 
         // WHEN
-        val domainBook = mongoBook.toDomain()
+        val actual = mongoBook.toDomain()
 
         // THEN
-        assertEquals(mongoBook.id.toString(), domainBook.id)
-        assertEquals(mongoBook.title, domainBook.title)
-        assertEquals(mongoBook.description, domainBook.description)
-        assertEquals(mongoBook.yearOfPublishing, domainBook.yearOfPublishing)
-        assertEquals(mongoBook.price, domainBook.price)
-        assertEquals(mongoBook.amountAvailable, domainBook.amountAvailable)
+        assertEquals(expected, actual)
     }
 
     @Test
     fun `should handle null values correctly in toDomain`() {
         // GIVEN
         val mongoBook = MongoBook()
+        val expected = DomainBook("null", "", "", 0, BigDecimal.ZERO, 0)
 
         // WHEN
-        val domainBook = mongoBook.toDomain()
+        val actual = mongoBook.toDomain()
 
         // THEN
-        assertEquals("", domainBook.title)
-        assertEquals("", domainBook.description)
-        assertEquals(0, domainBook.yearOfPublishing)
-        assertEquals(BigDecimal.ZERO, domainBook.price)
-        assertEquals(0, domainBook.amountAvailable)
+        assertEquals(expected, actual)
     }
 
     @Test
     fun `should include all fields when all fields are present in toUpdate`() {
         // GIVEN
-        val updateRequest = UpdateBookRequest("New Title", "New Description", 2021, BigDecimal("19.99"))
+        val updateRequest = UpdateBookRequest(title, description, yearOfPublishing, price)
 
         // WHEN
         val update = updateRequest.toUpdate()
@@ -64,7 +63,7 @@ class BookMapperTest {
     @Test
     fun `should include only non-null fields in toUpdate`() {
         // GIVEN
-        val updateRequest = UpdateBookRequest("New Title", null, 2021, null)
+        val updateRequest = UpdateBookRequest(title, null, yearOfPublishing, null)
 
         // WHEN
         val update = updateRequest.toUpdate()

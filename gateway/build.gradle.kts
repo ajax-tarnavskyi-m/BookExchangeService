@@ -15,5 +15,6 @@ dependencies {
     implementation("io.nats:jnats:2.16.14")
     implementation("org.mongodb:bson:5.2.0")
 
+    testImplementation(testFixtures(project(":core")))
     testImplementation("com.ninja-squad:springmockk:3.0.1")
 }

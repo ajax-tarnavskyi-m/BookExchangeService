@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.User.login
+import pet.project.core.RandomTestFields.User.userIdString
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
 import pet.project.internal.input.reqreply.user.CreateUserRequest
@@ -39,10 +42,7 @@ class UserServiceImplTest {
     @InjectMockKs
     lateinit var userService: UserServiceImpl
 
-    private val dummyStringWishList =
-        setOf(ObjectId.get().toHexString(), ObjectId.get().toHexString(), ObjectId.get().toHexString())
-
-    private val exampleUser = DomainUser(ObjectId.get().toHexString(), "John Doe", "test@mail.com", dummyStringWishList)
+    private val exampleUser = DomainUser(bookIdString, login, "test@mail.com", setOf(bookIdString))
 
     @Test
     fun `should create user successfully`() {
@@ -164,21 +164,19 @@ class UserServiceImplTest {
     @Test
     fun `should add book to user's wishlist successfully`() {
         // GIVEN
-        val userId = ObjectId.get().toHexString()
-        val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.existsById(bookId) } returns true.toMono()
-        every { userRepositoryMock.addBookToWishList(userId, bookId) } returns 1L.toMono()
+        every { bookRepositoryMock.existsById(bookIdString) } returns true.toMono()
+        every { userRepositoryMock.addBookToWishList(userIdString, bookIdString) } returns 1L.toMono()
 
         // WHEN
-        val actualMono = userService.addBookToWishList(userId, bookId)
+        val actualMono = userService.addBookToWishList(userIdString, bookIdString)
 
         // THEN
         actualMono.test()
             .expectNext(Unit)
             .verifyComplete()
 
-        verify { bookRepositoryMock.existsById(bookId) }
-        verify { userRepositoryMock.addBookToWishList(userId, bookId) }
+        verify { bookRepositoryMock.existsById(bookIdString) }
+        verify { userRepositoryMock.addBookToWishList(userIdString, bookIdString) }
     }
 
     @Test

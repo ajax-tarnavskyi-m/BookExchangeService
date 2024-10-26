@@ -1,6 +1,5 @@
 package pet.project.app.mapper
 
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import pet.project.app.mapper.UserResponseMapper.generateSuccessfulAddBookToUserWishListResponse
 import pet.project.app.mapper.UserResponseMapper.generateSuccessfulDeleteUserByIdResponse
@@ -8,6 +7,10 @@ import pet.project.app.mapper.UserResponseMapper.toCreateUserResponse
 import pet.project.app.mapper.UserResponseMapper.toFindUserByIdResponse
 import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.model.domain.DomainUser
+import pet.project.core.RandomTestFields.Book.bookIdString
+import pet.project.core.RandomTestFields.User.email
+import pet.project.core.RandomTestFields.User.login
+import pet.project.core.RandomTestFields.User.userIdString
 import pet.project.internal.commonmodels.user.User
 import pet.project.internal.input.reqreply.user.CreateUserResponse
 import pet.project.internal.input.reqreply.user.FindUserByIdResponse
@@ -17,14 +20,10 @@ import kotlin.test.assertTrue
 
 class UserResponseMapperTest {
 
-    private val exampleDomainUser = DomainUser(
-        ObjectId.get().toHexString(),
-        "testLogin",
-        "test@example.com",
-        setOf(ObjectId.get().toHexString())
-    )
+    private val exampleDomainUser = DomainUser(userIdString, login, email, setOf(bookIdString))
 
-    private val exampleProtoUser = User.newBuilder().setId(exampleDomainUser.id)
+    private val exampleProtoUser = User.newBuilder()
+        .setId(exampleDomainUser.id)
         .setEmail(exampleDomainUser.email)
         .setLogin(exampleDomainUser.login)
         .addAllBookWishList(exampleDomainUser.bookWishList)
