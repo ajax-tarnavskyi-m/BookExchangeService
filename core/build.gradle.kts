@@ -1,7 +1,7 @@
 plugins {
     id("kotlin-conventions")
     id("io.spring.dependency-management")
-    `java-test-fixtures`
+    id("java-test-fixtures")
 }
 
 dependencies {

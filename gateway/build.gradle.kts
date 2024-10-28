@@ -6,7 +6,6 @@ dependencies {
     implementation(project(":internal-api"))
     implementation(project(":core"))
 
-    implementation("io.projectreactor.kotlin:reactor-kotlin-extensions:1.2.3")
     implementation("org.springframework.boot:spring-boot-starter-validation:3.3.2")
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")

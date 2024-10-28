@@ -2,8 +2,6 @@ package pet.project.core
 
 import io.github.serpro69.kfaker.Faker
 import org.bson.types.ObjectId
-import pet.project.core.RandomTestFields.Book.bookId
-import pet.project.core.RandomTestFields.Book.bookIdString
 import java.math.BigDecimal
 import java.time.LocalDate
 import kotlin.random.Random
