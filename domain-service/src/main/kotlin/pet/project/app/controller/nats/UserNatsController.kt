@@ -3,6 +3,7 @@ package pet.project.app.controller.nats
 import org.slf4j.LoggerFactory
 import pet.project.app.annotation.NatsController
 import pet.project.app.annotation.NatsHandler
+import pet.project.app.annotation.Profiling
 import pet.project.app.controller.nats.UserNatsController.Companion.QUEUE_GROUP
 import pet.project.app.mapper.UserResponseMapper.generateSuccessfulAddBookToUserWishListResponse
 import pet.project.app.mapper.UserResponseMapper.generateSuccessfulDeleteUserByIdResponse
@@ -29,6 +30,7 @@ import pet.project.internal.input.reqreply.user.UpdateUserResponse
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 
+@Profiling
 @NatsController(queueGroup = QUEUE_GROUP)
 class UserNatsController(private val userService: UserService) {
 

@@ -1,4 +1,4 @@
-package pet.project.app.processor
+package pet.project.app.context.listener
 
 import com.google.protobuf.Descriptors.Descriptor
 import com.google.protobuf.DynamicMessage
@@ -6,49 +6,60 @@ import com.google.protobuf.GeneratedMessage
 import com.google.protobuf.Parser
 import io.nats.client.Connection
 import io.nats.client.Dispatcher
-import org.springframework.beans.factory.config.BeanPostProcessor
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.context.ApplicationListener
+import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
 import pet.project.app.annotation.NatsController
 import pet.project.app.annotation.NatsHandler
 import reactor.core.publisher.Mono
 import java.lang.reflect.Method
 import java.lang.reflect.ParameterizedType
-import kotlin.reflect.KClass
 
 @Component
-class NatsSubscriptionAnnotationBeanPostProcessor(
+class NatsConnectionInvokerContextListener(
     private val connection: Connection,
     private val dispatcher: Dispatcher,
-) : BeanPostProcessor {
+    private val factory: ConfigurableListableBeanFactory,
+) : ApplicationListener<ContextRefreshedEvent> {
 
-    override fun postProcessBeforeInitialization(bean: Any, beanName: String): Any? {
-        val beanClass: KClass<out Any> = bean::class
-        if (beanClass.annotations.any { it is NatsController }) {
-            connectToNats(bean)
+    override fun onApplicationEvent(event: ContextRefreshedEvent) {
+        val applicationContext = event.applicationContext
+        val beanDefinitionNames = applicationContext.beanDefinitionNames
+        for (beanDefinitionName in beanDefinitionNames) {
+            val originalClassName = factory.getBeanDefinition(beanDefinitionName).beanClassName
+            if (isNatsController(originalClassName)) {
+                val originalClass = Class.forName(originalClassName)
+                val currentBean = applicationContext.getBean(beanDefinitionName)
+                connectToNats(currentBean, originalClass)
+            }
         }
-        return bean
     }
 
-    private fun connectToNats(controllerInstance: Any) {
-        val controllerAnnotation = controllerInstance.javaClass.getAnnotation(NatsController::class.java)
+    private fun isNatsController(originalClassName: String?): Boolean {
+        return originalClassName != null && Class.forName(originalClassName)
+            .isAnnotationPresent(NatsController::class.java)
+    }
 
-        controllerInstance.javaClass.methods
-            .filter { it.isAnnotationPresent(NatsHandler::class.java) }
-            .forEach { method -> subscribeToNats(controllerInstance, method, controllerAnnotation) }
+    private fun connectToNats(currentBean: Any, originalClass: Class<*>) {
+        val queueGroup = originalClass.getAnnotation(NatsController::class.java).queueGroup
+        originalClass.methods
+            .filter { originalMethod -> originalMethod.isAnnotationPresent(NatsHandler::class.java) }
+            .forEach { originalMethod -> subscribeToNats(currentBean, originalMethod, queueGroup) }
     }
 
     @Suppress("TooGenericExceptionCaught")
-    private fun subscribeToNats(controllerObj: Any, handlerMethod: Method, controllerAnnotation: NatsController) {
-        val subject = handlerMethod.getAnnotation(NatsHandler::class.java).subject
-        val parser = getParser(handlerMethod)
-
-        dispatcher.subscribe(subject, controllerAnnotation.queueGroup) { message ->
+    private fun subscribeToNats(controllerBean: Any, originalMethod: Method, queueGroup: String) {
+        val subject = originalMethod.getAnnotation(NatsHandler::class.java).subject
+        val parser = getParser(originalMethod)
+        val beanMethod = controllerBean.javaClass.getMethod(originalMethod.name, originalMethod.parameterTypes.first())
+        dispatcher.subscribe(subject, queueGroup) { message ->
             try {
                 val request = parser.parseFrom(message.data)
-                val response = handlerMethod.invoke(controllerObj, request) as Mono<GeneratedMessage>
+                val response = beanMethod.invoke(controllerBean, request) as Mono<GeneratedMessage>
                 response.subscribe { connection.publish(message.replyTo, it.toByteArray()) }
             } catch (e: RuntimeException) {
-                connection.publish(message.replyTo, buildErrorResponse(handlerMethod, e).toByteArray())
+                connection.publish(message.replyTo, buildErrorResponse(originalMethod, e).toByteArray())
             }
         }
     }

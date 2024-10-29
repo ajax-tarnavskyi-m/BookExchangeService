@@ -135,7 +135,7 @@ class BookRepositoryTest : AbstractTestContainer {
     fun `should decrease amountAvailable when negative delta is applied and sufficient amount is available`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
-        val negativeDelta = -3
+        val negativeDelta = -1
         val request = UpdateAmountRequest(savedBook.id, negativeDelta)
 
         // WHEN
