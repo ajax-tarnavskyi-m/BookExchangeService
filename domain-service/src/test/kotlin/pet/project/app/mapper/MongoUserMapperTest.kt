@@ -1,5 +1,6 @@
 package pet.project.app.mapper
 
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Update
@@ -7,12 +8,11 @@ import pet.project.app.mapper.MongoUserMapper.toDomain
 import pet.project.app.mapper.MongoUserMapper.toUpdate
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.model.mongo.MongoUser
-import pet.project.core.RandomTestFields.Book.bookId
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.email
-import pet.project.core.RandomTestFields.User.login
-import pet.project.core.RandomTestFields.User.userId
-import pet.project.core.RandomTestFields.User.userIdString
+import pet.project.core.RandomTestFields.Book.randomBookId
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
+import pet.project.core.RandomTestFields.User.randomUserId
 import pet.project.internal.input.reqreply.user.UpdateUserRequest
 import pet.project.internal.input.reqreply.user.UpdateUserRequest.WishListUpdate
 
@@ -21,8 +21,13 @@ class MongoUserMapperTest {
     @Test
     fun `should map all fields correctly in toDomain`() {
         // GIVEN
-        val mongoUser = MongoUser(userId, login, email, setOf(bookId))
-        val expected = DomainUser(userIdString, login, email, setOf(bookIdString))
+        val mongoUser = MongoUser(randomUserId(), randomLogin(), randomEmail(), setOf(randomBookId()))
+        val expected = DomainUser(
+            mongoUser.id!!.toHexString(),
+            mongoUser.login!!,
+            mongoUser.email!!,
+            mongoUser.bookWishList!!.map(ObjectId::toHexString).toSet()
+        )
 
         // WHEN
         val actual = mongoUser.toDomain()
@@ -47,15 +52,16 @@ class MongoUserMapperTest {
     @Test
     fun `should set all fields correctly in toUpdate`() {
         // GIVEN
+        val bookIdString = randomBookIdString()
         val updateUserRequest = UpdateUserRequest.newBuilder()
-            .setLogin(login)
-            .setEmail(email)
+            .setLogin(randomLogin())
+            .setEmail(randomEmail())
             .setBookWishList(WishListUpdate.newBuilder().addAllBookIds(setOf(bookIdString)))
             .build()
         val expected = Update()
-            .set(MongoUser::login.name, login)
-            .set(MongoUser::email.name, email)
-            .set(MongoUser::bookWishList.name, setOf(bookId))
+            .set(MongoUser::login.name, updateUserRequest.login)
+            .set(MongoUser::email.name, updateUserRequest.email)
+            .set(MongoUser::bookWishList.name, setOf(ObjectId(bookIdString)))
 
         // WHEN
         val update = updateUserRequest.toUpdate()

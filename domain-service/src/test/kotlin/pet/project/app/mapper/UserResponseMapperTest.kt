@@ -7,10 +7,10 @@ import pet.project.app.mapper.UserResponseMapper.toCreateUserResponse
 import pet.project.app.mapper.UserResponseMapper.toFindUserByIdResponse
 import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.model.domain.DomainUser
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.email
-import pet.project.core.RandomTestFields.User.login
-import pet.project.core.RandomTestFields.User.userIdString
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
+import pet.project.core.RandomTestFields.User.randomUserIdString
 import pet.project.internal.commonmodels.user.User
 import pet.project.internal.input.reqreply.user.CreateUserResponse
 import pet.project.internal.input.reqreply.user.FindUserByIdResponse
@@ -20,7 +20,12 @@ import kotlin.test.assertTrue
 
 class UserResponseMapperTest {
 
-    private val exampleDomainUser = DomainUser(userIdString, login, email, setOf(bookIdString))
+    private val exampleDomainUser = DomainUser(
+        randomUserIdString(),
+        randomLogin(),
+        randomEmail(),
+        setOf(randomBookIdString())
+    )
 
     private val exampleProtoUser = User.newBuilder()
         .setId(exampleDomainUser.id)

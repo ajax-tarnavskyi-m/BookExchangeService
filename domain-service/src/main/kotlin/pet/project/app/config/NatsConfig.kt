@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class NatsConfig {
 
-    @Value("\${nats.connection-uri:nats://localhost:4222}")
+    @Value("\${nats.connection-uri}")
     private lateinit var natsConnectionUrl: String
 
     @Bean

@@ -1,12 +1,11 @@
 package pet.project.gateway.mapper
 
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.email
-import pet.project.core.RandomTestFields.User.login
-import pet.project.core.RandomTestFields.User.userIdString
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
+import pet.project.core.RandomTestFields.User.randomUserIdString
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
 import pet.project.gateway.mapper.UserRequestMapper.toAddBookToUsersWishListRequest
@@ -26,11 +25,11 @@ class UserRequestMapperTest {
     @Test
     fun `should map CreateUserExternalRequest to CreateUserRequest proto`() {
         // GIVEN
-        val request = CreateUserExternalRequest(login, email, setOf(bookIdString))
+        val request = CreateUserExternalRequest(randomLogin(), randomEmail(), setOf(randomBookIdString()))
         val expected = CreateUserRequest.newBuilder()
-            .setLogin(login)
-            .setEmail(email)
-            .addAllBookWishList(setOf(bookIdString))
+            .setLogin(request.login)
+            .setEmail(request.email)
+            .addAllBookWishList(request.bookWishList)
             .build()
 
         // WHEN
@@ -43,6 +42,7 @@ class UserRequestMapperTest {
     @Test
     fun `should create FindUserByIdRequest from userId`() {
         // GIVEN
+        val userIdString = randomUserIdString()
         val expected = FindUserByIdRequest.newBuilder().setId(userIdString).build()
 
         // WHEN
@@ -55,6 +55,8 @@ class UserRequestMapperTest {
     @Test
     fun `should create AddBookToUsersWishListRequest from userId and bookId`() {
         // GIVEN
+        val userIdString = randomUserIdString()
+        val bookIdString = randomBookIdString()
         val expected = AddBookToUsersWishListRequest.newBuilder()
             .setUserId(userIdString)
             .setBookId(bookIdString)
@@ -70,17 +72,17 @@ class UserRequestMapperTest {
     @Test
     fun `should map UpdateUserExternalRequest with bookWishList to UpdateUserRequest`() {
         // GIVEN
-
-        val externalRequest = UpdateUserExternalRequest(login, email, setOf(bookIdString))
+        val userIdString = randomUserIdString()
+        val request = UpdateUserExternalRequest(randomLogin(), randomEmail(), setOf(randomBookIdString()))
         val expected = UpdateUserRequest.newBuilder()
             .setId(userIdString)
-            .setLogin(login)
-            .setEmail(email)
-            .setBookWishList(WishListUpdate.newBuilder().addAllBookIds(setOf(bookIdString)).build())
+            .setLogin(request.login)
+            .setEmail(request.email)
+            .setBookWishList(WishListUpdate.newBuilder().addAllBookIds(request.bookWishList).build())
             .build()
 
         // WHEN
-        val actual = toUpdateUserRequest(userIdString, externalRequest)
+        val actual = toUpdateUserRequest(userIdString, request)
 
         // THEN
         assertEquals(expected, actual)
@@ -89,6 +91,7 @@ class UserRequestMapperTest {
     @Test
     fun `should map empty UpdateUserExternalRequest to UpdateUserRequest`() {
         // GIVEN
+        val userIdString = randomUserIdString()
         val externalRequest = UpdateUserExternalRequest(null, null, null)
         val expected = UpdateUserRequest.newBuilder().setId(userIdString).build()
 
@@ -102,16 +105,16 @@ class UserRequestMapperTest {
     @Test
     fun `should map UpdateUserExternalRequest without bookWishList to UpdateUserRequest`() {
         // GIVEN
-        val userId = ObjectId.get().toHexString()
-        val nullWishListRequest = UpdateUserExternalRequest(login, email, null)
+        val userIdString = randomUserIdString()
+        val request = UpdateUserExternalRequest(randomLogin(), randomEmail(), null)
         val expected = UpdateUserRequest.newBuilder()
-            .setId(userId)
-            .setLogin(login)
-            .setEmail(email)
+            .setId(userIdString)
+            .setLogin(request.login)
+            .setEmail(request.email)
             .build()
 
         // WHEN
-        val actual = toUpdateUserRequest(userId, nullWishListRequest)
+        val actual = toUpdateUserRequest(userIdString, request)
 
         // THEN
         assertFalse(actual.hasBookWishList(), "Should not have book wish list")
@@ -121,6 +124,7 @@ class UserRequestMapperTest {
     @Test
     fun `should create DeleteUserByIdRequest from userId`() {
         // WHEN
+        val userIdString = randomUserIdString()
         val request = toDeleteUserByIdRequest(userIdString)
 
         // THEN

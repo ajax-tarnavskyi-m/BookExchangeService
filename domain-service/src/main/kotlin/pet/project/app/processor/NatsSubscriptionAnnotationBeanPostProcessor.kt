@@ -39,7 +39,7 @@ class NatsSubscriptionAnnotationBeanPostProcessor(
 
     @Suppress("TooGenericExceptionCaught")
     private fun subscribeToNats(controllerObj: Any, handlerMethod: Method, controllerAnnotation: NatsController) {
-        val subject = getHandlerSubject(controllerAnnotation, handlerMethod.getAnnotation(NatsHandler::class.java))
+        val subject = handlerMethod.getAnnotation(NatsHandler::class.java).subject
         val parser = getParser(handlerMethod)
 
         dispatcher.subscribe(subject, controllerAnnotation.queueGroup) { message ->
@@ -56,14 +56,6 @@ class NatsSubscriptionAnnotationBeanPostProcessor(
     private fun getParser(method: Method): Parser<*> {
         val requestType = method.parameters.map { it.type }.first()
         return requestType.getMethod("parser").invoke(null) as Parser<*>
-    }
-
-    private fun getHandlerSubject(controllerAnnotation: NatsController, methodAnnotation: NatsHandler): String {
-        return if (controllerAnnotation.subjectPrefix.isBlank()) {
-            methodAnnotation.subject
-        } else {
-            "${controllerAnnotation.subjectPrefix}.${methodAnnotation.subject}"
-        }
     }
 
     private fun buildErrorResponse(handlerMethod: Method, exception: Throwable): DynamicMessage {

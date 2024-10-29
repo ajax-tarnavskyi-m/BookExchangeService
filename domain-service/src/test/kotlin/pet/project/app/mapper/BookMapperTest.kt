@@ -8,12 +8,12 @@ import pet.project.app.mapper.BookMapper.toDomain
 import pet.project.app.mapper.BookMapper.toUpdate
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.model.mongo.MongoBook
-import pet.project.core.RandomTestFields.Book.amountAvailable
-import pet.project.core.RandomTestFields.Book.bookId
-import pet.project.core.RandomTestFields.Book.description
-import pet.project.core.RandomTestFields.Book.price
-import pet.project.core.RandomTestFields.Book.title
-import pet.project.core.RandomTestFields.Book.yearOfPublishing
+import pet.project.core.RandomTestFields.Book.randomAmountAvailable
+import pet.project.core.RandomTestFields.Book.randomBookId
+import pet.project.core.RandomTestFields.Book.randomDescription
+import pet.project.core.RandomTestFields.Book.randomPrice
+import pet.project.core.RandomTestFields.Book.randomTitle
+import pet.project.core.RandomTestFields.Book.randomYearOfPublishing
 import java.math.BigDecimal
 import kotlin.test.assertFalse
 
@@ -22,8 +22,22 @@ class BookMapperTest {
     @Test
     fun `should map all fields correctly in toDomain`() {
         // GIVEN
-        val mongoBook = MongoBook(bookId, title, description, yearOfPublishing, price, amountAvailable)
-        val expected = DomainBook(bookId.toHexString(), title, description, yearOfPublishing, price, amountAvailable)
+        val mongoBook = MongoBook(
+            randomBookId(),
+            randomTitle(),
+            randomDescription(),
+            randomYearOfPublishing(),
+            randomPrice(),
+            randomAmountAvailable()
+        )
+        val expected = DomainBook(
+            mongoBook.id!!.toHexString(),
+            mongoBook.title!!,
+            mongoBook.description!!,
+            mongoBook.yearOfPublishing!!,
+            mongoBook.price!!,
+            mongoBook.amountAvailable!!
+        )
 
         // WHEN
         val actual = mongoBook.toDomain()
@@ -48,7 +62,8 @@ class BookMapperTest {
     @Test
     fun `should include all fields when all fields are present in toUpdate`() {
         // GIVEN
-        val updateRequest = UpdateBookRequest(title, description, yearOfPublishing, price)
+        val updateRequest =
+            UpdateBookRequest(randomTitle(), randomDescription(), randomYearOfPublishing(), randomPrice())
 
         // WHEN
         val update = updateRequest.toUpdate()
@@ -63,7 +78,7 @@ class BookMapperTest {
     @Test
     fun `should include only non-null fields in toUpdate`() {
         // GIVEN
-        val updateRequest = UpdateBookRequest(title, null, yearOfPublishing, null)
+        val updateRequest = UpdateBookRequest(randomTitle(), null, randomYearOfPublishing(), null)
 
         // WHEN
         val update = updateRequest.toUpdate()

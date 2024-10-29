@@ -16,10 +16,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import org.springframework.web.method.annotation.HandlerMethodValidationException
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.email
-import pet.project.core.RandomTestFields.User.login
-import pet.project.core.RandomTestFields.User.userIdString
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
+import pet.project.core.RandomTestFields.User.randomUserIdString
 import pet.project.core.exception.handler.GlobalExceptionHandler
 import pet.project.core.exception.handler.ValidationExceptionResponse
 import pet.project.gateway.client.NatsClient
@@ -50,7 +50,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when creating user with empty login`() {
         // GIVEN
-        val request = CreateUserExternalRequest("", email)
+        val request = CreateUserExternalRequest("", randomEmail())
 
         // WHEN
         val result = mockMvc.perform(
@@ -71,7 +71,7 @@ class UserControllerValidationTest {
     @Test
     fun `should return bad request when updating user with invalid ObjectId`() {
         // GIVEN
-        val request = UpdateUserExternalRequest(login, email, setOf())
+        val request = UpdateUserExternalRequest(randomLogin(), randomEmail(), setOf())
         val invalidUserId = "invalidUserId"
 
         // WHEN
@@ -97,7 +97,7 @@ class UserControllerValidationTest {
         // WHEN
         val result = mockMvc.perform(
             put("/user/{id}/wishlist", invalidUserId)
-                .param("bookId", bookIdString)
+                .param("bookId", randomBookIdString())
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()
 
@@ -118,7 +118,7 @@ class UserControllerValidationTest {
 
         // WHEN
         val result = mockMvc.perform(
-            put("/user/{id}/wishlist", userIdString)
+            put("/user/{id}/wishlist", randomUserIdString())
                 .param("bookId", invalidBookId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andReturn()

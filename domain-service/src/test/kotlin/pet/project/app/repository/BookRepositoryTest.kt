@@ -5,16 +5,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
-import pet.project.core.RandomTestFields.Book.amountAvailable
-import pet.project.core.RandomTestFields.Book.description
-import pet.project.core.RandomTestFields.Book.price
-import pet.project.core.RandomTestFields.Book.title
-import pet.project.core.RandomTestFields.Book.yearOfPublishing
-import pet.project.core.RandomTestFields.SecondBook.secondAmountAvailable
-import pet.project.core.RandomTestFields.SecondBook.secondDescription
-import pet.project.core.RandomTestFields.SecondBook.secondPrice
-import pet.project.core.RandomTestFields.SecondBook.secondTitle
-import pet.project.core.RandomTestFields.SecondBook.secondYearOfPublishing
+import pet.project.core.RandomTestFields.Book.randomAmountAvailable
+import pet.project.core.RandomTestFields.Book.randomDescription
+import pet.project.core.RandomTestFields.Book.randomPrice
+import pet.project.core.RandomTestFields.Book.randomTitle
+import pet.project.core.RandomTestFields.Book.randomYearOfPublishing
 import reactor.kotlin.test.test
 import kotlin.test.Test
 import kotlin.test.assertNotNull
@@ -24,14 +19,19 @@ class BookRepositoryTest : AbstractTestContainer {
     @Autowired
     private lateinit var bookRepository: BookRepository
 
-    private val firstCreationRequest = CreateBookRequest(title, description, yearOfPublishing, price, amountAvailable)
-
+    private val firstCreationRequest = CreateBookRequest(
+        randomTitle(),
+        randomDescription(),
+        randomYearOfPublishing(),
+        randomPrice(),
+        randomAmountAvailable()
+    )
     private val secondCreationRequest = CreateBookRequest(
-        secondTitle,
-        secondDescription,
-        secondYearOfPublishing,
-        secondPrice,
-        secondAmountAvailable,
+        randomTitle(),
+        randomDescription(),
+        randomYearOfPublishing(),
+        randomPrice(),
+        randomAmountAvailable()
     )
 
     @Test

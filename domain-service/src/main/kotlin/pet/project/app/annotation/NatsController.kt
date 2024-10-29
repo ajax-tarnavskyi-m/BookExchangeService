@@ -6,6 +6,5 @@ import org.springframework.stereotype.Component
 @Retention(AnnotationRetention.RUNTIME)
 @Component
 annotation class NatsController(
-    val subjectPrefix: String = "",
     val queueGroup: String,
 )

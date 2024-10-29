@@ -9,7 +9,6 @@ import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -17,9 +16,10 @@ import org.slf4j.LoggerFactory
 import pet.project.app.model.domain.DomainUser
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.login
-import pet.project.core.RandomTestFields.User.userIdString
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
+import pet.project.core.RandomTestFields.User.randomUserIdString
 import pet.project.core.exception.BookNotFoundException
 import pet.project.core.exception.UserNotFoundException
 import pet.project.internal.input.reqreply.user.CreateUserRequest
@@ -42,7 +42,8 @@ class UserServiceImplTest {
     @InjectMockKs
     lateinit var userService: UserServiceImpl
 
-    private val exampleUser = DomainUser(bookIdString, login, "test@mail.com", setOf(bookIdString))
+    private val exampleUser =
+        DomainUser(randomUserIdString(), randomLogin(), randomEmail(), setOf(randomBookIdString()))
 
     @Test
     fun `should create user successfully`() {
@@ -84,7 +85,7 @@ class UserServiceImplTest {
     @Test
     fun `should return exception when user not found by id`() {
         // GIVEN
-        val notExistingId = ObjectId.get().toHexString()
+        val notExistingId = randomUserIdString()
         every { userRepositoryMock.findById(notExistingId) } returns Mono.empty()
 
         // WHEN
@@ -120,13 +121,13 @@ class UserServiceImplTest {
     @Test
     fun `should throw UserNotFoundException when user not found while adding book to wishlist`() {
         // GIVEN
-        val notExistingUserId = ObjectId.get().toHexString()
-        val bookId = ObjectId.get().toHexString()
-        every { bookRepositoryMock.existsById(bookId) } returns true.toMono()
-        every { userRepositoryMock.addBookToWishList(notExistingUserId, bookId) } returns 0L.toMono()
+        val notExistingUserId = randomUserIdString()
+        val bookIdString = randomBookIdString()
+        every { bookRepositoryMock.existsById(bookIdString) } returns true.toMono()
+        every { userRepositoryMock.addBookToWishList(notExistingUserId, bookIdString) } returns 0L.toMono()
 
         // WHEN
-        val actualMono = userService.addBookToWishList(notExistingUserId, bookId)
+        val actualMono = userService.addBookToWishList(notExistingUserId, bookIdString)
 
         // THEN
         actualMono.test()
@@ -135,8 +136,8 @@ class UserServiceImplTest {
                 assertEquals("Could not find user($notExistingUserId) for wishlist update", ex.message)
             }.verify()
 
-        verify { bookRepositoryMock.existsById(bookId) }
-        verify { userRepositoryMock.addBookToWishList(notExistingUserId, bookId) }
+        verify { bookRepositoryMock.existsById(bookIdString) }
+        verify { userRepositoryMock.addBookToWishList(notExistingUserId, bookIdString) }
     }
 
     @Test
@@ -164,6 +165,8 @@ class UserServiceImplTest {
     @Test
     fun `should add book to user's wishlist successfully`() {
         // GIVEN
+        val userIdString = randomUserIdString()
+        val bookIdString = randomBookIdString()
         every { bookRepositoryMock.existsById(bookIdString) } returns true.toMono()
         every { userRepositoryMock.addBookToWishList(userIdString, bookIdString) } returns 1L.toMono()
 
@@ -182,7 +185,7 @@ class UserServiceImplTest {
     @Test
     fun `should throw BookNotFoundException when adding book to wishlist if book is not found`() {
         // GIVEN
-        val nonExistingBookId = ObjectId.get().toHexString()
+        val nonExistingBookId = randomBookIdString()
         every { bookRepositoryMock.existsById(nonExistingBookId) } returns false.toMono()
 
         // WHEN
@@ -216,7 +219,7 @@ class UserServiceImplTest {
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }
         logger.addAppender(listAppender)
 
-        val nonExistingUserId = ObjectId.get().toHexString()
+        val nonExistingUserId = randomUserIdString()
         every { userRepositoryMock.delete(nonExistingUserId) } returns 0L.toMono()
 
         // WHEN

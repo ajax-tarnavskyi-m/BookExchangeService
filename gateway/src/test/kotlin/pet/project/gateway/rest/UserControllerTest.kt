@@ -3,18 +3,17 @@ package pet.project.gateway.rest
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.http.MediaType
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import pet.project.core.RandomTestFields.Book.bookId
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.email
-import pet.project.core.RandomTestFields.User.login
-import pet.project.core.RandomTestFields.User.userIdString
+import pet.project.core.RandomTestFields.Book.randomBookId
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
+import pet.project.core.RandomTestFields.User.randomUserIdString
 import pet.project.gateway.client.NatsClient
 import pet.project.gateway.dto.user.CreateUserExternalRequest
 import pet.project.gateway.dto.user.UpdateUserExternalRequest
@@ -42,10 +41,10 @@ class UserControllerTest {
     private lateinit var natsClient: NatsClient
 
     private val exampleUser = User.newBuilder()
-        .setId(ObjectId.get().toHexString())
-        .setLogin(login)
-        .setEmail(email)
-        .addAllBookWishList(setOf(bookIdString))
+        .setId(randomUserIdString())
+        .setLogin(randomLogin())
+        .setEmail(randomEmail())
+        .addAllBookWishList(setOf(randomBookIdString()))
         .build()
 
     private val exampleUserResponse =
@@ -54,7 +53,8 @@ class UserControllerTest {
     @Test
     fun `should create user successfully`() {
         // GIVEN
-        val createUserRequest = CreateUserExternalRequest(login, email, emptySet())
+        val createUserRequest =
+            CreateUserExternalRequest(exampleUser.login, exampleUser.email, exampleUser.bookWishListList.toSet())
 
         val createUserResponse = CreateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
 
@@ -109,7 +109,12 @@ class UserControllerTest {
     @Test
     fun `should add book to wishlist successfully`() {
         // GIVEN
-        val request = AddBookToUsersWishListRequest.newBuilder().setBookId(bookIdString).setUserId(userIdString).build()
+        val bookId = randomBookId()
+        val userIdString = randomUserIdString()
+        val request = AddBookToUsersWishListRequest.newBuilder()
+            .setBookId(bookId.toHexString())
+            .setUserId(userIdString)
+            .build()
         val response = AddBookToUsersWishListResponse.newBuilder().apply { successBuilder }.build()
         every {
             natsClient.doRequest(
@@ -138,8 +143,7 @@ class UserControllerTest {
     @Test
     fun `should update user successfully`() {
         // GIVEN
-        val request =
-            UpdateUserExternalRequest(login, email, setOf(bookIdString))
+        val request = UpdateUserExternalRequest(randomLogin(), randomEmail(), setOf(randomBookIdString()))
         val response = UpdateUserResponse.newBuilder().apply { successBuilder.user = exampleUser }.build()
         every {
             natsClient.doRequest(
@@ -172,6 +176,7 @@ class UserControllerTest {
     @Test
     fun `should delete user successfully`() {
         // GIVEN
+        val userIdString = randomUserIdString()
         val response = DeleteUserByIdResponse.newBuilder().apply { successBuilder }.build()
         every {
             natsClient.doRequest(

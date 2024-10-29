@@ -9,7 +9,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.awaitility.Awaitility.await
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -19,9 +18,9 @@ import org.slf4j.LoggerFactory
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
-import pet.project.core.RandomTestFields.Book.bookIdString
-import pet.project.core.RandomTestFields.User.email
-import pet.project.core.RandomTestFields.User.login
+import pet.project.core.RandomTestFields.Book.randomBookIdString
+import pet.project.core.RandomTestFields.User.randomEmail
+import pet.project.core.RandomTestFields.User.randomLogin
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toMono
@@ -50,8 +49,8 @@ class NotificationProcessorTest {
     @Test
     fun `should log user notification when bookId is emitted to sink`() {
         // GIVEN
-        val userDetails = UserNotificationDetails(login, email, setOf(bookIdString))
-
+        val bookIdString = randomBookIdString()
+        val userDetails = UserNotificationDetails(randomLogin(), randomEmail(), setOf(bookIdString))
         val shouldBeNotifiedUpdated = 1L.toMono()
         every { bookRepositoryMock.updateShouldBeNotified(bookIdString, false) } returns shouldBeNotifiedUpdated
         every { userRepositoryMock.findAllSubscribersOf(listOf(bookIdString)) } returns Flux.just(userDetails)
@@ -84,10 +83,10 @@ class NotificationProcessorTest {
     @Test
     fun `should not log user notification when book shouldBeNotified field is false`() {
         // GIVEN
-        val bookId = ObjectId.get().toHexString()
+        val bookIdString = randomBookIdString()
 
         val shouldBeModifiedWasNotUpdated = 0L.toMono()
-        every { bookRepositoryMock.updateShouldBeNotified(bookId, false) } returns shouldBeModifiedWasNotUpdated
+        every { bookRepositoryMock.updateShouldBeNotified(bookIdString, false) } returns shouldBeModifiedWasNotUpdated
 
         val bufferMaxAmountOfEvents = 1
         val bufferFiveMinuteInterval = Duration.parse("PT5M")
@@ -101,11 +100,11 @@ class NotificationProcessorTest {
 
         // WHEN
         notificationProcessor.subscribeToSink()
-        availableBooksSink.tryEmitNext(bookId)
+        availableBooksSink.tryEmitNext(bookIdString)
 
         // THEN
         await().untilAsserted {
-            verify { bookRepositoryMock.updateShouldBeNotified(bookId, false) }
+            verify { bookRepositoryMock.updateShouldBeNotified(bookIdString, false) }
         }
         verify(exactly = 0) { userRepositoryMock.findAllSubscribersOf(any()) }
         val logs = listAppender.list
