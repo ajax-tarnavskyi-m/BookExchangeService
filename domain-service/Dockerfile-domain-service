@@ -1,0 +1,7 @@
+FROM amazoncorretto:17
+
+WORKDIR /app
+
+COPY /build/libs/domain-service-*.jar domain-service.jar
+
+CMD ["java", "-jar", "domain-service.jar"]

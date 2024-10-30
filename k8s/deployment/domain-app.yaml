@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: book-x
+  name: domain-app
   labels:
-    app: book-x-app
+    app: domain-app
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: book-x-app
+      app: domain-app
   template:
     metadata:
       labels:
-        app: book-x-app
+        app: domain-app
     spec:
       containers:
-        - name: book-x-app
-          image: book-exchange-service:0.1.0
+        - name: domain-app
+          image: domain-service-app:0.1.0
           imagePullPolicy: Never
           ports:
-            - containerPort: 8080
+            - containerPort: 8081
           env:
             - name: MONGO_USERNAME
               valueFrom:
@@ -46,16 +46,20 @@ spec:
                 configMapKeyRef:
                   name: mongo-configmap
                   key: mongo_database_name
-
+            - name: NATS_CONNECTION_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: nats-configmap
+                  key: nats_connection_uri
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: book-x-app-service
+  name: domain-app-service
 spec:
   selector:
-    app: book-x-app
+    app: domain-app
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 8080
+      port: 8081
+      targetPort: 8081

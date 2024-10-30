@@ -8,10 +8,17 @@ spec:
     - host: book-x.com
       http:
         paths:
-          - path: /
+          - path: /user
             pathType: Prefix
             backend:
               service:
-                name: book-x-app-service
+                name: gateway-service
                 port:
                   number: 8080
+          - path: /book
+            pathType: Prefix
+            backend:
+              service:
+                name: domain-app-service
+                port:
+                  number: 8081
