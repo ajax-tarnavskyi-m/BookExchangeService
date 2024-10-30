@@ -1,7 +1,9 @@
-FROM amazoncorretto:17
+FROM amazoncorretto:17 AS gateway
+WORKDIR /app/gateway
+COPY gateway/build/libs/gateway-*.jar gateway.jar
+CMD ["java", "-jar", "gateway.jar"]
 
-WORKDIR /app
-
-COPY /build/libs/book-exchange-service-*.jar app.jar
-
-CMD ["java", "-jar", "app.jar"]
+FROM amazoncorretto:17 AS domain-service
+WORKDIR /app/domain-service
+COPY domain-service/build/libs/domain-service-*.jar domain-service.jar
+CMD ["java", "-jar", "domain-service.jar"]
