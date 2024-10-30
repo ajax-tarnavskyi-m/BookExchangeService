@@ -7,8 +7,8 @@ import com.google.protobuf.Parser
 import io.nats.client.Connection
 import io.nats.client.Dispatcher
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.ApplicationListener
-import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.stereotype.Component
 import pet.project.app.annotation.NatsController
 import pet.project.app.annotation.NatsHandler
@@ -21,9 +21,9 @@ class NatsConnectionInvokerContextListener(
     private val connection: Connection,
     private val dispatcher: Dispatcher,
     private val factory: ConfigurableListableBeanFactory,
-) : ApplicationListener<ContextRefreshedEvent> {
+) : ApplicationListener<ApplicationReadyEvent> {
 
-    override fun onApplicationEvent(event: ContextRefreshedEvent) {
+    override fun onApplicationEvent(event: ApplicationReadyEvent) {
         val applicationContext = event.applicationContext
         val beanDefinitionNames = applicationContext.beanDefinitionNames
         for (beanDefinitionName in beanDefinitionNames) {
