@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package pet.project.internal.input.reqreply.user;
+
+import "pet/project/internal/commonmodels/error.proto";
+import "pet/project/internal/commonmodels/user/user.proto";
+
+option java_multiple_files = true;
+
+message UpdateUserRequest {
+  string id = 1;
+  optional string login = 2;
+  optional string email = 3;
+  WishListUpdate book_wish_list = 4;
+
+  message WishListUpdate {
+    repeated string book_ids = 1;
+  }
+}
+
+message UpdateUserResponse {
+  oneof response {
+    Success success = 1;
+    Failure failure = 2;
+  }
+
+  message Success {
+    commonmodels.user.User user = 1;
+  }
+
+  message Failure {
+    string message = 100;
+    oneof error {
+      commonmodels.Error user_not_found = 1;
+    }
+  }
+}
+
+
