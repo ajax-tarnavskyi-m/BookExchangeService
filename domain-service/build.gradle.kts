@@ -17,9 +17,12 @@ dependencies {
     implementation("io.mongock:mongodb-springdata-v4-driver:5.4.4")
     implementation ("org.springframework.boot:spring-boot-starter-webflux")
     implementation("io.nats:jnats:2.16.14")
+    implementation("org.springframework.kafka:spring-kafka")
+    implementation("io.projectreactor.kafka:reactor-kafka")
 
     testImplementation(testFixtures(project(":core")))
     testImplementation("com.ninja-squad:springmockk:3.0.1")
     testImplementation("org.testcontainers:mongodb:1.20.1")
     testImplementation("io.mockk:mockk:1.13.12")
+    testImplementation("org.springframework.kafka:spring-kafka-test")
 }

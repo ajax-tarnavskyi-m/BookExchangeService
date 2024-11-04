@@ -4,6 +4,10 @@ spring:
   data:
     mongodb:
       uri: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:${MONGO_PORT}/${MONGO_DB_NAME}?authSource=admin
+  kafka:
+    bootstrap-servers: localhost:9092
+    topic:
+      amount-increased: book-amount-increased-topic2
 profiling:
   enabled: true
 validation:
@@ -14,7 +18,7 @@ mongock:
 notification:
   buffer:
     interval: PT10S
-    items-max-amount: 100
+    items-max-amount: 10
 server:
   port: 8081
 nats:
