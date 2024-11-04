@@ -6,18 +6,18 @@ import pet.project.app.annotation.Profiling
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
+import pet.project.app.kafka.BookAmountIncreasedProducer
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
 import pet.project.app.service.BookService
 import pet.project.core.exception.BookNotFoundException
 import reactor.core.publisher.Mono
-import reactor.core.publisher.Sinks
 
 @Profiling
 @Service
 class BookServiceImpl(
     private val bookRepository: BookRepository,
-    private val availableBooksSink: Sinks.Many<String>,
+    private val bookAmountIncreasedProducer: BookAmountIncreasedProducer,
 ) : BookService {
 
     override fun create(createBookRequest: CreateBookRequest): Mono<DomainBook> {
@@ -31,28 +31,25 @@ class BookServiceImpl(
 
     override fun updateAmount(request: UpdateAmountRequest): Mono<Unit> {
         return bookRepository.updateAmount(request)
-            .handle { isUpdated, sink ->
+            .handle<Unit> { isUpdated, sink ->
                 if (isUpdated) {
-                    sendForNotificationIfDeltaPositive(request)
-                    sink.next(Unit)
+                    produceForNotificationIfDeltaPositive(listOf(request))
                 } else {
                     sink.error(IllegalArgumentException("Book absent or no enough available: $request"))
                 }
             }
+            .thenReturn(Unit)
     }
 
-    private fun sendForNotificationIfDeltaPositive(request: UpdateAmountRequest) {
-        if (request.delta > 0) {
-            val emitResult = availableBooksSink.tryEmitNext(request.bookId)
-            if (emitResult.isFailure) {
-                log.error("Failed to emit bookId {}. Emit result: {}", request.bookId, emitResult)
-            }
-        }
+    private fun produceForNotificationIfDeltaPositive(requestList: List<UpdateAmountRequest>) {
+        requestList.filter { it.delta > 0 }
+            .map { it.bookId }
+            .let { if (it.isNotEmpty()) bookAmountIncreasedProducer.sendMessages(it) }
     }
 
     override fun exchangeBooks(requests: List<UpdateAmountRequest>): Mono<Unit> {
         return bookRepository.updateAmountMany(requests)
-            .doOnSuccess { requests.forEach(::sendForNotificationIfDeltaPositive) }
+            .doOnSuccess { produceForNotificationIfDeltaPositive(requests) }
             .thenReturn(Unit)
     }
 
