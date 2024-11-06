@@ -8,9 +8,7 @@ services:
       - "8081:8081"
     env_file:
       - .env
-    depends_on:
-      - mongo
-      - nats
+    depends_on: [ nats, kafka ]
     profiles: [ dev ]
   gateway:
     build:
@@ -20,8 +18,7 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    depends_on:
-      - nats
+    depends_on: [ nats ]
     profiles: [ dev ]
   nats:
     image: nats

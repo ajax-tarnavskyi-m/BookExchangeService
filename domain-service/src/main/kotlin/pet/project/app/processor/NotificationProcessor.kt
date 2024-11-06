@@ -33,8 +33,8 @@ class NotificationProcessor(
     fun subscribeToReceiver(): Disposable {
         return kafkaReceiver.receive()
             .bufferTimeout(notificationMaxAmount, notificationInterval)
-            .doOnNext { records -> records.last().receiverOffset().acknowledge() }
-            .flatMap { bookIdsList -> findSubscribedUsersDetails(bookIdsList) }
+            .doOnNext { recordList -> recordList.last().receiverOffset().acknowledge() }
+            .flatMap { recordList -> findSubscribedUsersDetails(recordList) }
             .subscribe { userDetails -> notifyUsers(userDetails) }
     }
 
