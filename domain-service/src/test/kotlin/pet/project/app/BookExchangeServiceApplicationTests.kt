@@ -3,13 +3,17 @@ package pet.project.bookexchangeservice
 import org.hibernate.validator.internal.util.Contracts.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
+import pet.project.app.BookExchangeServiceApplication
 import pet.project.app.controller.BookController
 import pet.project.app.controller.nats.UserNatsController
 import pet.project.app.repository.AbstractTestContainer
 import pet.project.app.service.BookService
 import pet.project.app.service.UserService
-
-class BookExchangeServiceApplicationTests : AbstractTestContainer {
+@SpringBootTest(classes = [BookExchangeServiceApplication::class])
+@ActiveProfiles("test")
+class BookExchangeServiceApplicationTests {
 
     @Autowired
     lateinit var bookController: BookController
