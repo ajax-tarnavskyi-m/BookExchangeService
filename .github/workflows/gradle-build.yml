@@ -37,6 +37,9 @@ jobs:
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
 
+      - name: Start containers
+        run: docker compose --profile test -f docker-compose.yml up -d
+
       - name: Run build
         run: ./gradlew build --parallel --scan -x deltaCoverage
 

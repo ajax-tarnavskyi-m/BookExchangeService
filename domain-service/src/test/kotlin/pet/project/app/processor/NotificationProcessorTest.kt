@@ -9,6 +9,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
 import org.apache.kafka.clients.admin.AdminClient
+import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import pet.project.app.BookExchangeServiceApplication
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.kafka.BookAmountIncreasedProducer
 import pet.project.app.repository.BookRepository
@@ -34,7 +34,7 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 
-@SpringBootTest(classes = [BookExchangeServiceApplication::class])
+@SpringBootTest
 @ActiveProfiles("test")
 @ExtendWith(MockKExtension::class)
 class NotificationProcessorTest {
@@ -58,14 +58,23 @@ class NotificationProcessorTest {
     lateinit var kafkaReceiver: KafkaReceiver<String, ByteArray>
 
     @BeforeEach
-    fun deleteAllMessagesInTestTopics() {
+    fun resetTestTopic() {
         val adminClient = AdminClient.create(mapOf(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers))
-        adminClient.use {
-            it.deleteTopics(listOf(topic)).all().get()
+
+        if (adminClient.listTopics().names().get().contains(topic)) {
+            adminClient.deleteTopics(listOf(topic)).all().get()
             do {
                 TimeUnit.MILLISECONDS.sleep(50)
-            } while (it.listTopics().names().get().contains(topic))
+            } while (adminClient.listTopics().names().get().contains(topic))
+            val partitions = 1
+            val replicationFactor: Short = 1
+            val newTopic = NewTopic(topic, partitions, replicationFactor)
+            adminClient.createTopics(listOf(newTopic)).all().get()
+            do {
+                TimeUnit.MILLISECONDS.sleep(50)
+            } while (!adminClient.listTopics().names().get().contains(topic))
         }
+        adminClient.close()
     }
 
     @Test
@@ -87,7 +96,8 @@ class NotificationProcessorTest {
             kafkaReceiver,
             notificationInterval = Duration.ofMinutes(5),
             notificationMaxAmount = 1,
-        ).subscribeToConsumer()
+        ).subscribeToReceiver()
+
         bookAmountIncreasedProducer.sendMessages(listOf(bookId))
 
         // THEN

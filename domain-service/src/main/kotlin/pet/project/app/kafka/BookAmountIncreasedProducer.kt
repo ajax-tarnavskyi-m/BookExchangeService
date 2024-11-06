@@ -1,30 +1,25 @@
 package pet.project.app.kafka
 
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import pet.project.app.mapper.BookAmountIncreasedEventMapper.toRecord
 import reactor.core.publisher.Flux
 import reactor.kafka.sender.KafkaSender
-import reactor.kafka.sender.SenderRecord
 
 @Component
 class BookAmountIncreasedProducer {
     @Autowired
-    private lateinit var sender: KafkaSender<Int, String>
+    private lateinit var sender: KafkaSender<String, ByteArray>
 
     @Value("\${spring.kafka.topic.amount-increased}")
     lateinit var topic: String
 
     fun sendMessages(bookIds: List<String>) {
-        sender.send(Flux.fromIterable(bookIds).map(::toRecord))
+        sender.send(Flux.fromIterable(bookIds).map { bookId -> toRecord(bookId, topic) })
             .doOnError { e -> log.error("Send failed with book id $bookIds", e) }
-            .subscribe { log.info("SUCCESSFULLY SENT $bookIds") }
-    }
-
-    private fun toRecord(it: String): SenderRecord<Int, String, String> {
-        return SenderRecord.create(ProducerRecord(topic, it), "metadata")
+            .subscribe()
     }
 
     companion object {

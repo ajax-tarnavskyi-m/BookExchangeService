@@ -2,6 +2,8 @@ package pet.project.app.repository
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.user.UserNotificationDetails
 import pet.project.app.model.domain.DomainUser
@@ -22,7 +24,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class UserRepositoryTest : AbstractTestContainer {
+@SpringBootTest
+@ActiveProfiles("test")
+class UserRepositoryTest {
     @Autowired
     private lateinit var userRepository: UserRepository
 

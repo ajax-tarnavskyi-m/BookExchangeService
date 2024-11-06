@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
+import pet.project.app.kafka.BookAmountIncreasedProducer
 import pet.project.app.model.domain.DomainBook
 import pet.project.app.repository.BookRepository
 import pet.project.core.RandomTestFields.Book.randomAmountAvailable
@@ -26,7 +27,6 @@ import pet.project.core.RandomTestFields.Book.randomTitle
 import pet.project.core.RandomTestFields.Book.randomYearOfPublishing
 import pet.project.core.exception.BookNotFoundException
 import reactor.core.publisher.Mono
-import reactor.core.publisher.Sinks
 import reactor.kotlin.core.publisher.toMono
 import reactor.kotlin.test.test
 
@@ -36,7 +36,7 @@ class BookServiceImplTest {
     lateinit var bookRepositoryMock: BookRepository
 
     @MockK
-    lateinit var availableBooksSink: Sinks.Many<String>
+    lateinit var producer: BookAmountIncreasedProducer
 
     @InjectMockKs
     lateinit var bookService: BookServiceImpl
@@ -160,7 +160,7 @@ class BookServiceImplTest {
         val bookIdString = randomBookIdString()
         val testRequest = UpdateAmountRequest(bookIdString, 1)
         every { bookRepositoryMock.updateAmount(testRequest) } returns true.toMono()
-        every { availableBooksSink.tryEmitNext(bookIdString) } returns Sinks.EmitResult.OK
+        every { producer.sendMessages(listOf(bookIdString)) } returns Unit
 
         // WHEN
         val actualMono = bookService.updateAmount(testRequest)
@@ -171,7 +171,7 @@ class BookServiceImplTest {
             .verifyComplete()
 
         verify { bookRepositoryMock.updateAmount(testRequest) }
-        verify { availableBooksSink.tryEmitNext(bookIdString) }
+        verify { producer.sendMessages(listOf(bookIdString)) }
     }
 
     @Test
@@ -184,8 +184,8 @@ class BookServiceImplTest {
         val testRequests =
             listOf(negativeDeltaRequest, positiveDeltaRequest, alsoNegativeDeltaRequest, alsoPositiveDeltaRequest)
         every { bookRepositoryMock.updateAmountMany(testRequests) } returns testRequests.size.toMono()
-        every { availableBooksSink.tryEmitNext(positiveDeltaRequest.bookId) } returns Sinks.EmitResult.OK
-        every { availableBooksSink.tryEmitNext(alsoPositiveDeltaRequest.bookId) } returns Sinks.EmitResult.OK
+        val positiveDeltas = listOf(positiveDeltaRequest.bookId, alsoPositiveDeltaRequest.bookId)
+        every { producer.sendMessages(positiveDeltas) } returns Unit
 
         // WHEN
         val actualMono = bookService.exchangeBooks(testRequests)
@@ -196,8 +196,7 @@ class BookServiceImplTest {
             .verifyComplete()
 
         verify { bookRepositoryMock.updateAmountMany(testRequests) }
-        val positiveDeltaRequestAmount = 2
-        verify(exactly = positiveDeltaRequestAmount) { availableBooksSink.tryEmitNext(any()) }
+        verify { producer.sendMessages(positiveDeltas) }
     }
 
     @Test

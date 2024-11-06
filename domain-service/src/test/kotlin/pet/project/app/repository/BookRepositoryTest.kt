@@ -3,6 +3,8 @@ package pet.project.app.repository
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.core.RandomTestFields.Book.randomAmountAvailable
@@ -15,7 +17,9 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class BookRepositoryTest : AbstractTestContainer {
+@SpringBootTest
+@ActiveProfiles("test")
+class BookRepositoryTest {
     @Autowired
     private lateinit var bookRepository: BookRepository
 
