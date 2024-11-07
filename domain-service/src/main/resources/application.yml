@@ -6,8 +6,6 @@ spring:
       uri: ${MONGO_ATLAS_URI}
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVER}
-    topic:
-      amount-increased: ${KAFKA_AMOUNT_INCREASED_TOPIC}
     consumer:
       auto-offset-reset: latest
 profiling:

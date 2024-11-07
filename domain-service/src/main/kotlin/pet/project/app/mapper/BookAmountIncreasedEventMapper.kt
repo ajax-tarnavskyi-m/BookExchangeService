@@ -10,7 +10,7 @@ object BookAmountIncreasedEventMapper {
     }
 
     fun toRecord(bookId: String, topic: String): SenderRecord<String, ByteArray, String> {
-        val event = BookAmountIncreasedEvent.newBuilder().setBookId(bookId).build()
-        return SenderRecord.create(ProducerRecord(topic, event.toByteArray()), null)
+        return BookAmountIncreasedEvent.newBuilder().setBookId(bookId).build()
+            .let { SenderRecord.create(ProducerRecord(topic, it.toByteArray()), null) }
     }
 }

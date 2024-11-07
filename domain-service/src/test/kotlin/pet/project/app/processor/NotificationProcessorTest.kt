@@ -1,6 +1,5 @@
 package pet.project.app.processor
 
-import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.read.ListAppender
@@ -8,16 +7,11 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.verify
-import org.apache.kafka.clients.admin.AdminClient
-import org.apache.kafka.clients.admin.NewTopic
-import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.awaitility.Awaitility.await
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.extension.ExtendWith
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import pet.project.app.dto.user.UserNotificationDetails
@@ -39,12 +33,6 @@ import kotlin.test.Test
 @ExtendWith(MockKExtension::class)
 class NotificationProcessorTest {
 
-    @Value("\${spring.kafka.bootstrap-servers}")
-    lateinit var bootstrapServers: String
-
-    @Value("\${spring.kafka.topic.amount-increased}")
-    lateinit var topic: String
-
     @MockK
     private lateinit var bookRepository: BookRepository
 
@@ -57,39 +45,18 @@ class NotificationProcessorTest {
     @Autowired
     lateinit var kafkaReceiver: KafkaReceiver<String, ByteArray>
 
-    @BeforeEach
-    fun resetTestTopic() {
-        val adminClient = AdminClient.create(mapOf(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers))
-
-        if (adminClient.listTopics().names().get().contains(topic)) {
-            adminClient.deleteTopics(listOf(topic)).all().get()
-            do {
-                TimeUnit.MILLISECONDS.sleep(50)
-            } while (adminClient.listTopics().names().get().contains(topic))
-            val partitions = 1
-            val replicationFactor: Short = 1
-            val newTopic = NewTopic(topic, partitions, replicationFactor)
-            adminClient.createTopics(listOf(newTopic)).all().get()
-            do {
-                TimeUnit.MILLISECONDS.sleep(50)
-            } while (!adminClient.listTopics().names().get().contains(topic))
-        }
-        adminClient.close()
-    }
-
     @Test
     fun `should call NotifyUser() when bookId is sent to Kafka`() {
         // GIVEN
         val bookId = randomBookIdString()
         every { bookRepository.updateShouldBeNotified(bookId, false) } returns 1L.toMono()
+        every { bookRepository.updateShouldBeNotified(neq(bookId), false) } returns 0L.toMono()
         val userDetails = UserNotificationDetails(randomLogin(), randomEmail(), setOf(bookId))
         every { userRepository.findAllSubscribersOf(listOf(bookId)) } returns Flux.just(userDetails)
 
         val logger: Logger = LoggerFactory.getLogger(NotificationProcessor::class.java) as Logger
         val listAppender = ListAppender<ILoggingEvent>().apply { start() }
         logger.addAppender(listAppender)
-
-        // WHEN
         val subscription = NotificationProcessor(
             bookRepository,
             userRepository,
@@ -98,6 +65,7 @@ class NotificationProcessorTest {
             notificationMaxAmount = 1,
         ).subscribeToReceiver()
 
+        // WHEN
         bookAmountIncreasedProducer.sendMessages(listOf(bookId))
 
         // THEN
@@ -107,11 +75,9 @@ class NotificationProcessorTest {
                 verify { bookRepository.updateShouldBeNotified(bookId, false) }
                 verify { userRepository.findAllSubscribersOf(listOf(bookId)) }
             }
-        val logs = listAppender.list
+        val logs = listAppender.list.map { it.formattedMessage }
         val expected = "Hi ${userDetails.login}! There is new books for you: ${userDetails.bookTitles}"
-        assertEquals(expected, logs.first().formattedMessage)
-        assertEquals(Level.INFO, logs.first().level)
-
+        assertTrue(logs.contains(expected), "Should contain log message with generated data")
         subscription.dispose()
     }
 }

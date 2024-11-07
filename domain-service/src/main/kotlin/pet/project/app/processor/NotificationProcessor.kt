@@ -39,10 +39,10 @@ class NotificationProcessor(
     }
 
     private fun findSubscribedUsersDetails(
-        bookIds: MutableList<ReceiverRecord<String, ByteArray>>,
+        records: List<ReceiverRecord<String, ByteArray>>,
     ): Flux<UserNotificationDetails> {
-        val uniqueBookId = bookIds.map { it.value().toProto().bookId }.toSet()
-        return Flux.fromIterable(uniqueBookId)
+        val uniqueBookIds = records.map { it.value().toProto().bookId }.toSet()
+        return Flux.fromIterable(uniqueBookIds)
             .filterWhen { updateShouldBeNotified(it) }
             .collectList()
             .filter { it.isNotEmpty() }

@@ -9,24 +9,20 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import pet.project.internal.app.topic.KafkaTopic
 import reactor.kafka.receiver.KafkaReceiver
 import reactor.kafka.receiver.ReceiverOptions
 import reactor.kafka.sender.KafkaSender
 import reactor.kafka.sender.SenderOptions
 
 @Configuration
-class KafkaConfig {
-    @Value("\${spring.kafka.bootstrap-servers}")
-    lateinit var bootstrapServers: String
-
-    @Value("\${spring.kafka.topic.amount-increased}")
-    lateinit var topic: String
-
-    @Value("\${spring.kafka.consumer.auto-offset-reset}")
-    lateinit var autoOffsetReset: String
+class KafkaConfig(
+    @Value("\${spring.kafka.bootstrap-servers}") private val bootstrapServers: String,
+    @Value("\${spring.kafka.consumer.auto-offset-reset}") private val autoOffsetReset: String,
+) {
 
     @Bean
-    fun kafkaReceiver(): KafkaReceiver<String, ByteArray> {
+    fun kafkaBookAmountIncreasedReceiver(): KafkaReceiver<String, ByteArray> {
         val config = mapOf(
             ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ConsumerConfig.GROUP_ID_CONFIG to CONSUMER_GROUP_ID,
@@ -35,7 +31,8 @@ class KafkaConfig {
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ByteArrayDeserializer::class.java,
         )
-        val options = ReceiverOptions.create<String, ByteArray>(config).subscription(setOf(topic))
+        val options = ReceiverOptions.create<String, ByteArray>(config)
+            .subscription(setOf(KafkaTopic.Book.AMOUNT_INCREASED))
         return KafkaReceiver.create(options)
     }
 

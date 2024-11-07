@@ -9,8 +9,6 @@ spring:
       uri: mongodb+srv://user:root@mycluster.pgfbmeg.mongodb.net/test?retryWrites=true&w=majority&appName=MyCluster
   kafka:
     bootstrap-servers: localhost:9092
-    topic:
-      amount-increased: "test-book-amount-increased-topic"
     consumer:
       auto-offset-reset: earliest
 nats:
