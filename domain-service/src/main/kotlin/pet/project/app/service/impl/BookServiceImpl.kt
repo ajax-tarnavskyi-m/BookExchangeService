@@ -31,14 +31,14 @@ class BookServiceImpl(
 
     override fun updateAmount(request: UpdateAmountRequest): Mono<Unit> {
         return bookRepository.updateAmount(request)
-            .handle<Unit> { isUpdated, sink ->
+            .handle { isUpdated, sink ->
                 if (isUpdated) {
                     produceForNotificationIfDeltaPositive(listOf(request))
+                    sink.next(Unit)
                 } else {
                     sink.error(IllegalArgumentException("Book absent or no enough available: $request"))
                 }
             }
-            .thenReturn(Unit)
     }
 
     private fun produceForNotificationIfDeltaPositive(requestList: List<UpdateAmountRequest>) {

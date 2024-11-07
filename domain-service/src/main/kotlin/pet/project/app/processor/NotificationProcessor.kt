@@ -8,9 +8,9 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import pet.project.app.annotation.Profiling
 import pet.project.app.dto.user.UserNotificationDetails
-import pet.project.app.mapper.BookAmountIncreasedEventMapper.toProto
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
+import pet.project.internal.input.pubsub.user_notification_details.BookAmountIncreasedEvent
 import reactor.core.Disposable
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -34,14 +34,16 @@ class NotificationProcessor(
         return kafkaReceiver.receive()
             .bufferTimeout(notificationMaxAmount, notificationInterval)
             .doOnNext { recordList -> recordList.last().receiverOffset().acknowledge() }
-            .flatMap { recordList -> findSubscribedUsersDetails(recordList) }
+            .map { records -> toBookIdsList(records).toSet() }
+            .flatMap { uniqueBookIds -> findSubscribedUsersDetails(uniqueBookIds) }
             .subscribe { userDetails -> notifyUsers(userDetails) }
     }
 
-    private fun findSubscribedUsersDetails(
-        records: List<ReceiverRecord<String, ByteArray>>,
-    ): Flux<UserNotificationDetails> {
-        val uniqueBookIds = records.map { it.value().toProto().bookId }.toSet()
+    private fun toBookIdsList(records: List<ReceiverRecord<String, ByteArray>>): List<String> {
+        return records.map { BookAmountIncreasedEvent.parseFrom(it.value()).bookId }
+    }
+
+    private fun findSubscribedUsersDetails(uniqueBookIds: Set<String>): Flux<UserNotificationDetails> {
         return Flux.fromIterable(uniqueBookIds)
             .filterWhen { updateShouldBeNotified(it) }
             .collectList()
