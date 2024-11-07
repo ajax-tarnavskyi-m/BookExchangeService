@@ -19,6 +19,10 @@ Book Exchange Service is an application that allows people to exchange books wit
 - **Wishlists**: Users can maintain wishlists of books they are interested in, allowing them to track books for potential exchanges.
 - **Search and Propose Books**: Users can search for books and propose books for exchange.
 
+## Kafka Diagram
+
+![Kafka_diagram.png](Kafka_diagram.png)
+
 ## Book Endpoints
 
 ### 1. Create a Book
