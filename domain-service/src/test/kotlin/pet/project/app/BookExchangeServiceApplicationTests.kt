@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import pet.project.app.controller.BookController
 import pet.project.app.controller.nats.UserNatsController
+import pet.project.app.repository.BookRepository
 import pet.project.app.service.BookService
 import pet.project.app.service.UserService
 
@@ -26,8 +27,12 @@ class BookExchangeServiceApplicationTests {
     @Autowired
     lateinit var userService: UserService
 
+    @Autowired
+    lateinit var bookRepository: BookRepository
+
     @Test
     fun contextLoads() {
+        assertNotNull(bookRepository)
         assertNotNull(bookController)
         assertNotNull(userNatsController)
         assertNotNull(bookService)

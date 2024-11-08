@@ -12,10 +12,11 @@ import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 import pet.project.internal.input.pubsub.user_notification_details.BookAmountIncreasedEvent
 import reactor.core.Disposable
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kafka.receiver.KafkaReceiver
+import reactor.kafka.receiver.ReceiverOffset
 import reactor.kafka.receiver.ReceiverRecord
+import reactor.kotlin.core.publisher.toMono
 import java.time.Duration
 
 @Profiling
@@ -29,26 +30,29 @@ class NotificationProcessor(
     @Value("\${notification.buffer.items-max-amount:100}") private val notificationMaxAmount: Int,
 ) {
 
+    private var lastOffset: ReceiverOffset? = null
+
     @EventListener(ApplicationReadyEvent::class)
     fun subscribeToReceiver(): Disposable {
         return kafkaReceiver.receive()
             .bufferTimeout(notificationMaxAmount, notificationInterval)
-            .doOnNext { recordList -> recordList.last().receiverOffset().acknowledge() }
+            .doOnNext { recordList -> lastOffset = recordList.last().receiverOffset() }
             .map { records -> toBookIdsList(records).toSet() }
             .flatMap { uniqueBookIds -> findSubscribedUsersDetails(uniqueBookIds) }
-            .subscribe { userDetails -> notifyUsers(userDetails) }
+            .doOnNext { lastOffset?.commit() }
+            .subscribe()
     }
 
     private fun toBookIdsList(records: List<ReceiverRecord<String, ByteArray>>): List<String> {
         return records.map { BookAmountIncreasedEvent.parseFrom(it.value()).bookId }
     }
 
-    private fun findSubscribedUsersDetails(uniqueBookIds: Set<String>): Flux<UserNotificationDetails> {
-        return Flux.fromIterable(uniqueBookIds)
-            .filterWhen { updateShouldBeNotified(it) }
-            .collectList()
-            .filter { it.isNotEmpty() }
+    private fun findSubscribedUsersDetails(uniqueBookIds: Set<String>): Mono<Unit> {
+        return bookRepository.getBooksThatShouldBeUpdated(uniqueBookIds)
+            .map { books -> books.map { it.id!!.toHexString() } }
             .flatMapMany(userRepository::findAllSubscribersOf)
+            .doOnNext { userDetails -> notifyUsers(userDetails) }
+            .then(Unit.toMono())
     }
 
     private fun notifyUsers(userDetails: UserNotificationDetails) {

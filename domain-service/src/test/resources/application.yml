@@ -13,3 +13,7 @@ spring:
       auto-offset-reset: earliest
 nats:
   connection-uri: "nats://localhost:4222"
+notification:
+  buffer:
+    interval: PT10S
+    items-max-amount: 10

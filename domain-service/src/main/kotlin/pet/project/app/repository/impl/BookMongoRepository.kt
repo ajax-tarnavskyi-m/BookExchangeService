@@ -1,5 +1,6 @@
 package pet.project.app.repository.impl
 
+import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.BulkOperations.BulkMode
 import org.springframework.data.mongodb.core.FindAndModifyOptions.options
 import org.springframework.data.mongodb.core.ReactiveBulkOperations
@@ -12,6 +13,7 @@ import org.springframework.data.mongodb.core.aggregation.ConditionalOperators.Co
 import org.springframework.data.mongodb.core.aggregation.Fields
 import org.springframework.data.mongodb.core.aggregation.SetOperation
 import org.springframework.data.mongodb.core.exists
+import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Criteria.where
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Query.query
@@ -19,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.remove
 import org.springframework.data.mongodb.core.updateFirst
+import org.springframework.data.mongodb.core.updateMulti
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.reactive.TransactionalOperator
 import pet.project.app.annotation.Profiling
@@ -78,6 +81,34 @@ internal class BookMongoRepository(
             .`as` { transactionalOperator.transactional(it) }
     }
 
+    override fun getBooksThatShouldBeUpdated(bookIds: Set<String>): Mono<List<MongoBook>> {
+        val findShouldBeUpdatedBooks = query(where(Fields.UNDERSCORE_ID).`in`(bookIds))
+            .addCriteria(where(AMOUNT_AVAILABLE).gt(0))
+//            .addCriteria(where(SHOULD_BE_NOTIFIED).isEqualTo(true))
+        return mongoTemplate.find<MongoBook>(findShouldBeUpdatedBooks)
+            .collectList()
+            .flatMap { resetShouldBeNotified(it) }
+            .retry(2)
+            .onErrorResume {
+                log.error("Failed to check should be notified for book ids: $bookIds", it)
+                Mono.empty()
+            }
+    }
+
+    private fun resetShouldBeNotified(shouldBeNotifiedBookIds: List<MongoBook>): Mono<List<MongoBook>> {
+        val query = query(where(Fields.UNDERSCORE_ID).`in`(shouldBeNotifiedBookIds.map { it.id }))
+        val update = Update().set(SHOULD_BE_NOTIFIED, false)
+        return mongoTemplate.updateMulti<MongoBook>(query, update)
+            .handle { result, sink ->
+                if (result.modifiedCount.toInt() != shouldBeNotifiedBookIds.size) {
+                    sink.error(IllegalStateException("Un expected modification between read and updated operations"))
+                } else {
+                    sink.next(shouldBeNotifiedBookIds)
+                }
+            }
+            .`as` { transactionalOperator.transactional(it) }
+    }
+
     private fun withAmountUpdatePipeline(delta: Int): AggregationUpdate {
         val ifAmountWasZero = Cond.`when`(valueOf(AMOUNT_AVAILABLE_REF).equalToValue(delta))
             .then(true).otherwiseValueOf(SHOULD_BE_NOTIFIED_REF)
@@ -115,6 +146,7 @@ internal class BookMongoRepository(
     private fun whereId(bookId: String) = query(where(Fields.UNDERSCORE_ID).isEqualTo(bookId))
 
     companion object {
+        private val log = LoggerFactory.getLogger(BookMongoRepository::class.java)
         const val SHOULD_BE_NOTIFIED: String = "shouldBeNotified"
         const val SHOULD_BE_NOTIFIED_REF: String = "\$" + SHOULD_BE_NOTIFIED
         const val AMOUNT_AVAILABLE = "amountAvailable"

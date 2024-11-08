@@ -4,6 +4,7 @@ import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.app.dto.book.UpdateBookRequest
 import pet.project.app.model.domain.DomainBook
+import pet.project.app.model.mongo.MongoBook
 import reactor.core.publisher.Mono
 
 interface BookRepository {
@@ -15,4 +16,5 @@ interface BookRepository {
     fun updateShouldBeNotified(bookId: String, newValue: Boolean): Mono<Long>
     fun delete(id: String): Mono<Long>
     fun update(id: String, request: UpdateBookRequest): Mono<DomainBook>
+    fun getBooksThatShouldBeUpdated(bookIds: Set<String>): Mono<List<MongoBook>>
 }
