@@ -102,20 +102,6 @@ class BookRepositoryTest {
     }
 
     @Test
-    fun `should update shouldBeNotified field and return modified count`() {
-        // GIVEN
-        val savedBook = bookRepository.insert(firstCreationRequest).block()!!
-
-        // WHEN
-        val actualMono = bookRepository.updateShouldBeNotified(savedBook.id, true)
-
-        // THEN
-        actualMono.test()
-            .expectNext(1L).`as`("One record should be modified")
-            .verifyComplete()
-    }
-
-    @Test
     fun `should increase amountAvailable when positive delta is applied`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!

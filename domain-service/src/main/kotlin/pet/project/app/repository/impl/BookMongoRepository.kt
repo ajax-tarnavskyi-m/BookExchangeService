@@ -84,7 +84,7 @@ internal class BookMongoRepository(
     override fun getBooksThatShouldBeUpdated(bookIds: Set<String>): Mono<List<MongoBook>> {
         val findShouldBeUpdatedBooks = query(where(Fields.UNDERSCORE_ID).`in`(bookIds))
             .addCriteria(where(AMOUNT_AVAILABLE).gt(0))
-//            .addCriteria(where(SHOULD_BE_NOTIFIED).isEqualTo(true))
+            .addCriteria(where(SHOULD_BE_NOTIFIED).isEqualTo(true))
         return mongoTemplate.find<MongoBook>(findShouldBeUpdatedBooks)
             .collectList()
             .flatMap { resetShouldBeNotified(it) }
@@ -124,12 +124,6 @@ internal class BookMongoRepository(
             query.addCriteria(where(AMOUNT_AVAILABLE).gte(positiveDelta))
         }
         return query
-    }
-
-    override fun updateShouldBeNotified(bookId: String, newValue: Boolean): Mono<Long> {
-        val update = Update().set(SHOULD_BE_NOTIFIED, newValue)
-        return mongoTemplate.updateFirst<MongoBook>(whereId(bookId), update)
-            .map { it.modifiedCount }
     }
 
     override fun delete(id: String): Mono<Long> {

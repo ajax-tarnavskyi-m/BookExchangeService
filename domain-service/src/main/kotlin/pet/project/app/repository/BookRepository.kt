@@ -13,7 +13,6 @@ interface BookRepository {
     fun existsById(id: String): Mono<Boolean>
     fun updateAmount(request: UpdateAmountRequest): Mono<Boolean>
     fun updateAmountMany(requests: List<UpdateAmountRequest>): Mono<Int>
-    fun updateShouldBeNotified(bookId: String, newValue: Boolean): Mono<Long>
     fun delete(id: String): Mono<Long>
     fun update(id: String, request: UpdateBookRequest): Mono<DomainBook>
     fun getBooksThatShouldBeUpdated(bookIds: Set<String>): Mono<List<MongoBook>>

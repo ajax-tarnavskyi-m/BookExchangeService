@@ -59,11 +59,6 @@ class NotificationProcessor(
         log.info("Hi {}! There is new books for you: {}", userDetails.login, userDetails.bookTitles)
     }
 
-    private fun updateShouldBeNotified(bookId: String): Mono<Boolean> {
-        return bookRepository.updateShouldBeNotified(bookId, false)
-            .map { it == 1L }
-    }
-
     companion object {
         private val log = LoggerFactory.getLogger(NotificationProcessor::class.java)
     }
