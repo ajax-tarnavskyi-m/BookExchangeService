@@ -15,5 +15,5 @@ interface BookRepository {
     fun updateAmountMany(requests: List<UpdateAmountRequest>): Mono<Int>
     fun delete(id: String): Mono<Long>
     fun update(id: String, request: UpdateBookRequest): Mono<DomainBook>
-    fun getBooksThatShouldBeUpdated(bookIds: Set<String>): Mono<List<MongoBook>>
+    fun getShouldBeNotifiedBooks(bookIds: Set<String>): Mono<List<MongoBook>>
 }

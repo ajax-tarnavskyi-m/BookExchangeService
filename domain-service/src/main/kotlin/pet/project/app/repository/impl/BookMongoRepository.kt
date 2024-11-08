@@ -81,7 +81,7 @@ internal class BookMongoRepository(
             .`as` { transactionalOperator.transactional(it) }
     }
 
-    override fun getBooksThatShouldBeUpdated(bookIds: Set<String>): Mono<List<MongoBook>> {
+    override fun getShouldBeNotifiedBooks(bookIds: Set<String>): Mono<List<MongoBook>> {
         val findShouldBeUpdatedBooks = query(where(Fields.UNDERSCORE_ID).`in`(bookIds))
             .addCriteria(where(AMOUNT_AVAILABLE).gt(0))
             .addCriteria(where(SHOULD_BE_NOTIFIED).isEqualTo(true))

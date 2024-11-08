@@ -186,7 +186,7 @@ class BookRepositoryTest {
         val ids = setOf(firstSavedBook.id, secondSavedBook.id, thirdSavedBook.id)
 
         // WHEN
-        val actualMono = bookRepository.getBooksThatShouldBeUpdated(ids)
+        val actualMono = bookRepository.getShouldBeNotifiedBooks(ids)
 
         // THEN
         actualMono.test()

@@ -38,17 +38,16 @@ class NotificationProcessor(
             .bufferTimeout(notificationMaxAmount, notificationInterval)
             .doOnNext { recordList -> lastOffset = recordList.last().receiverOffset() }
             .map { records -> toBookIdsList(records).toSet() }
-            .flatMap { uniqueBookIds -> findSubscribedUsersDetails(uniqueBookIds) }
-            .doOnNext { lastOffset?.commit() }
-            .subscribe()
+            .flatMap { uniqueBookIds -> processIds(uniqueBookIds) }
+            .subscribe { lastOffset?.commit()?.block() }
     }
 
     private fun toBookIdsList(records: List<ReceiverRecord<String, ByteArray>>): List<String> {
         return records.map { BookAmountIncreasedEvent.parseFrom(it.value()).bookId }
     }
 
-    private fun findSubscribedUsersDetails(uniqueBookIds: Set<String>): Mono<Unit> {
-        return bookRepository.getBooksThatShouldBeUpdated(uniqueBookIds)
+    private fun processIds(uniqueBookIds: Set<String>): Mono<Unit> {
+        return bookRepository.getShouldBeNotifiedBooks(uniqueBookIds)
             .map { books -> books.map { it.id!!.toHexString() } }
             .flatMapMany(userRepository::findAllSubscribersOf)
             .doOnNext { userDetails -> notifyUsers(userDetails) }
