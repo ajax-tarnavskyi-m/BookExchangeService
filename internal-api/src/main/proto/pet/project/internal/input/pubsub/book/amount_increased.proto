@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package pet.project.internal.input.pubsub.user_notification_details;
+
+option java_multiple_files = true;
+
+message BookAmountIncreasedEvent {
+  string book_id = 1;
+}

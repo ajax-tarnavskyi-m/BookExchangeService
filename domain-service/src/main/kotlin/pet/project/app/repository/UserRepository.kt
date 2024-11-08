@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono
 interface UserRepository {
     fun insert(createUserRequest: CreateUserRequest): Mono<DomainUser>
     fun findById(id: String): Mono<DomainUser>
-    fun findAllSubscribersOf(booksIds: List<String>): Flux<UserNotificationDetails>
+    fun findAllSubscribersOf(booksIds: Collection<String>): Flux<UserNotificationDetails>
     fun addBookToWishList(userId: String, bookId: String): Mono<Long>
     fun update(userId: String, request: UpdateUserRequest): Mono<DomainUser>
     fun delete(id: String): Mono<Long>

@@ -8,9 +8,8 @@ services:
       - "8081:8081"
     env_file:
       - .env
-    depends_on:
-      - mongo
-      - nats
+    depends_on: [ nats, kafka ]
+    profiles: [ dev ]
   gateway:
     build:
       context: gateway
@@ -19,26 +18,38 @@ services:
       - "8080:8080"
     env_file:
       - .env
-    depends_on:
-      - nats
-  mongo:
-    image: mongo:7.0.14
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
-    env_file:
-        - .env
-    volumes:
-      - db_volume:/data/db
-      - config_volume:/data/configdb
+    depends_on: [ nats ]
+    profiles: [ dev ]
   nats:
     image: nats
     container_name: nats
     ports:
       - "4222:4222"
+    profiles: [ dev, test ]
+  kafka:
+    image: confluentinc/confluent-local:7.4.1
+    hostname: kafka
+    container_name: kafka
+    ports:
+      - "8082:8082"
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+    profiles: [ dev, test ]
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    ports:
+      - "9999:8080"
+    depends_on:
+      - kafka
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_SCHEMAREGISTRY: http://schema-registry:8081
+    profiles: [ dev ]
 volumes:
   db_volume:
     driver: local

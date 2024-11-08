@@ -2,7 +2,10 @@ package pet.project.app.repository
 
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.dto.book.UpdateAmountRequest
 import pet.project.core.RandomTestFields.Book.randomAmountAvailable
@@ -15,7 +18,9 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class BookRepositoryTest : AbstractTestContainer {
+@SpringBootTest
+@ActiveProfiles("test")
+class BookRepositoryTest {
     @Autowired
     private lateinit var bookRepository: BookRepository
 
@@ -97,20 +102,6 @@ class BookRepositoryTest : AbstractTestContainer {
     }
 
     @Test
-    fun `should update shouldBeNotified field and return modified count`() {
-        // GIVEN
-        val savedBook = bookRepository.insert(firstCreationRequest).block()!!
-
-        // WHEN
-        val actualMono = bookRepository.updateShouldBeNotified(savedBook.id, true)
-
-        // THEN
-        actualMono.test()
-            .expectNext(1L).`as`("One record should be modified")
-            .verifyComplete()
-    }
-
-    @Test
     fun `should increase amountAvailable when positive delta is applied`() {
         // GIVEN
         val savedBook = bookRepository.insert(firstCreationRequest).block()!!
@@ -171,6 +162,40 @@ class BookRepositoryTest : AbstractTestContainer {
         assertNotNull(updatedBook, "Updated book should not be null")
         val amountBeforeOperation = savedBook.amountAvailable
         assertEquals(amountBeforeOperation, updatedBook.amountAvailable, "AmountAvailable should remain unchanged")
+    }
+
+    @Test
+    fun `test`() {
+        // GIVEN
+        val firstBookWithZeroAmountAvailable =
+            CreateBookRequest(randomTitle(), randomDescription(), randomYearOfPublishing(), randomPrice(), 0)
+        val secondWithZeroAmountAvailable =
+            CreateBookRequest(randomTitle(), randomDescription(), randomYearOfPublishing(), randomPrice(), 0)
+        val thirdWithZeroAmountAvailable =
+            CreateBookRequest(randomTitle(), randomDescription(), randomYearOfPublishing(), randomPrice(), 0)
+        val firstSavedBook = bookRepository.insert(firstBookWithZeroAmountAvailable).block()!!
+        val secondSavedBook = bookRepository.insert(secondWithZeroAmountAvailable).block()!!
+        val thirdSavedBook = bookRepository.insert(thirdWithZeroAmountAvailable).block()!!
+        val positiveDelta = 1
+        val negativeDeltaForSecondBook = -secondCreationRequest.amountAvailable
+        val requests = listOf(
+            UpdateAmountRequest(firstSavedBook.id, positiveDelta),
+            UpdateAmountRequest(secondSavedBook.id, positiveDelta)
+        )
+        bookRepository.updateAmountMany(requests).block()!!
+        val ids = setOf(firstSavedBook.id, secondSavedBook.id, thirdSavedBook.id)
+
+        // WHEN
+        val actualMono = bookRepository.getShouldBeNotifiedBooks(ids)
+
+        // THEN
+        actualMono.test()
+            .assertNext { list ->
+                assertEquals(2, list.size)
+                assertTrue(list.map { it.id!!.toHexString() }.contains(firstSavedBook.id))
+                assertTrue(list.map { it.id!!.toHexString() }.contains(secondSavedBook.id))
+            }
+            .verifyComplete()
     }
 
     @Test

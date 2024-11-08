@@ -51,7 +51,7 @@ internal class UserMongoRepository(private val mongoTemplate: ReactiveMongoTempl
             .map { mongoUser -> mongoUser.toDomain() }
     }
 
-    override fun findAllSubscribersOf(booksIds: List<String>): Flux<UserNotificationDetails> {
+    override fun findAllSubscribersOf(booksIds: Collection<String>): Flux<UserNotificationDetails> {
         val bookObjectIds = booksIds.map { ObjectId(it) }
         val let = Let.just(newVariable(WISHLIST_BOOK).forField(MongoUser::bookWishList.name))
         val newAggregation = newAggregation(

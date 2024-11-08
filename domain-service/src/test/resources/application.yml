@@ -3,3 +3,17 @@ validation:
     future-years-allowance: 5
 mongock:
   enabled: false
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://user:root@mycluster.pgfbmeg.mongodb.net/test?retryWrites=true&w=majority&appName=MyCluster
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      auto-offset-reset: earliest
+nats:
+  connection-uri: "nats://localhost:4222"
+notification:
+  buffer:
+    interval: PT10S
+    items-max-amount: 10

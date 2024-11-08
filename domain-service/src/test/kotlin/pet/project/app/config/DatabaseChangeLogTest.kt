@@ -10,14 +10,17 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.domain.Sort.Direction
 import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.indexOps
+import org.springframework.test.context.ActiveProfiles
 import pet.project.app.config.DatabaseChangeLog.Companion.INDEX_NAME
 import pet.project.app.model.mongo.MongoUser
-import pet.project.app.repository.AbstractTestContainer
 
-class DatabaseChangeLogTest : AbstractTestContainer {
+@SpringBootTest
+@ActiveProfiles("test")
+class DatabaseChangeLogTest {
     @Autowired
     private lateinit var mongoTemplate: MongoTemplate
 

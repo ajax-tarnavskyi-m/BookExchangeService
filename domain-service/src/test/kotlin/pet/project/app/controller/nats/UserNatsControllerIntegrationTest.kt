@@ -3,10 +3,11 @@ package pet.project.app.controller.nats
 import io.nats.client.Connection
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import pet.project.app.dto.book.CreateBookRequest
 import pet.project.app.mapper.UserResponseMapper.toUpdateUserResponse
 import pet.project.app.model.domain.DomainUser
-import pet.project.app.repository.AbstractTestContainer
 import pet.project.app.repository.BookRepository
 import pet.project.app.repository.UserRepository
 import pet.project.internal.app.subject.NatsSubject
@@ -27,7 +28,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class UserNatsControllerIntegrationTest : AbstractTestContainer {
+@SpringBootTest
+@ActiveProfiles("test")
+class UserNatsControllerIntegrationTest {
 
     @Autowired
     lateinit var natsConnection: Connection

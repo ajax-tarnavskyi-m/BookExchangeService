@@ -1,15 +1,19 @@
-package pet.project.bookexchangeservice
+package pet.project.app
 
 import org.hibernate.validator.internal.util.Contracts.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
 import pet.project.app.controller.BookController
 import pet.project.app.controller.nats.UserNatsController
-import pet.project.app.repository.AbstractTestContainer
+import pet.project.app.repository.BookRepository
 import pet.project.app.service.BookService
 import pet.project.app.service.UserService
 
-class BookExchangeServiceApplicationTests : AbstractTestContainer {
+@SpringBootTest
+@ActiveProfiles("test")
+class BookExchangeServiceApplicationTests {
 
     @Autowired
     lateinit var bookController: BookController
@@ -23,8 +27,12 @@ class BookExchangeServiceApplicationTests : AbstractTestContainer {
     @Autowired
     lateinit var userService: UserService
 
+    @Autowired
+    lateinit var bookRepository: BookRepository
+
     @Test
     fun contextLoads() {
+        assertNotNull(bookRepository)
         assertNotNull(bookController)
         assertNotNull(userNatsController)
         assertNotNull(bookService)
